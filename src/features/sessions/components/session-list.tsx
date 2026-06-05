@@ -1,0 +1,81 @@
+"use client";
+
+import { useInfiniteSessions } from "../hooks/use-sessions";
+import { SessionCard } from "./session-card";
+import { SkeletonList } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useRef, useCallback } from "react";
+
+interface SessionListProps {
+  search?: string;
+  isArchived?: boolean;
+  onNewSession?: () => void;
+  onClose?: () => void;
+}
+
+export function SessionList({ search, isArchived = false, onClose }: SessionListProps) {
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteSessions({ search, isArchived });
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastItemRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingNextPage) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  );
+
+  if (isLoading) {
+    return <SkeletonList count={5} />;
+  }
+
+  if (isError) {
+    return (
+      <div className="sidebar__error">
+        <p>Failed to load sessions</p>
+      </div>
+    );
+  }
+
+  const sessions = data?.pages.flatMap((p) => p.items) ?? [];
+
+  if (sessions.length === 0) {
+    return (
+      <div className="sidebar__empty">
+        <p className="sidebar__empty-text">
+          {isArchived ? "No archived sessions" : "No sessions yet"}
+        </p>
+        {!isArchived && onClose && (
+          <p className="sidebar__empty-hint">Click + to create one</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="sidebar__sessions">
+      {sessions.map((session, i) => (
+        <div
+          key={session.id}
+          ref={i === sessions.length - 1 ? lastItemRef : undefined}
+        >
+          <SessionCard session={session} onClose={onClose} />
+        </div>
+      ))}
+      {isFetchingNextPage && <SkeletonList count={2} />}
+    </div>
+  );
+}
