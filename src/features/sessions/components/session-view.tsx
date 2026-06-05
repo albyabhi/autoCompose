@@ -48,7 +48,7 @@ export function SessionView({ id }: SessionViewProps) {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => router.push(`/?sessionId=${session.id}&clone=true`)}
           >
             Edit Prompt & Generate
