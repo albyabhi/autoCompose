@@ -8,7 +8,7 @@ import { getConfig } from "@/config";
 import { clearState } from "@/modules/telegram/state";
 import { mainMenuKeyboard } from "@/modules/telegram/keyboards";
 import { buildDeepLink } from "@/modules/telegram/renderer";
-import { handleMainMenu } from "@/modules/telegram/flows/compose";
+import { handleMainMenu, startCompose } from "@/modules/telegram/flows/compose";
 import bcrypt from "bcryptjs";
 
 function generateBase36Code(length = 8): string {
