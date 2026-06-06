@@ -336,7 +336,6 @@ export async function uploadAndParseResume(
 
   await upsertProfile(userId, {
     personal: existingProfile?.personal ?? { fullName: "" },
-    professional: existingProfile?.professional,
     preferences: existingProfile?.preferences,
     jobApplication: existingProfile?.jobApplication,
   });
@@ -372,7 +371,8 @@ export async function uploadAndParseResume(
 export async function getResume(userId: string): Promise<ResumeData | null> {
   const profile = await getProfile(userId);
   if (!profile || !profile.resume) return null;
-  return profile.resume as unknown as ResumeData;
+  const safeResume = { ...profile.resume, rawText: undefined };
+  return safeResume as unknown as ResumeData;
 }
 
 export async function deleteResume(userId: string): Promise<void> {

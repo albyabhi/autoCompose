@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import type { ProfessionalType } from "@/modules/profile/professional";
 
 export type FormalityLevel = "formal" | "semi-formal" | "casual";
 export type PreferredTone = "professional" | "friendly" | "neutral" | "warm" | "direct";
@@ -11,6 +12,7 @@ export interface IProfile extends Document {
     location?: string;
   };
   professional: {
+    type?: ProfessionalType;
     designation?: string;
     department?: string;
     organization?: string;
@@ -76,6 +78,10 @@ const profileSchema = new Schema<IProfile>(
       location: { type: String, trim: true },
     },
     professional: {
+      type: {
+        type: String,
+        enum: ["student", "working_professional"],
+      },
       designation: { type: String, trim: true },
       department: { type: String, trim: true },
       organization: { type: String, trim: true },

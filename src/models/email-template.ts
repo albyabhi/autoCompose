@@ -1,13 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
-
-export type EmailCategory =
-  | "job_application"
-  | "leave_request"
-  | "sick_leave"
-  | "resignation"
-  | "complaint"
-  | "meeting_request"
-  | "custom";
+import { EMAIL_CATEGORIES, type EmailCategory } from "@/modules/email/categories";
+export type { EmailCategory } from "@/modules/email/categories";
 
 export interface IEmailTemplate extends Document {
   category: EmailCategory;
@@ -24,15 +17,7 @@ const emailTemplateSchema = new Schema<IEmailTemplate>(
   {
     category: {
       type: String,
-      enum: [
-        "job_application",
-        "leave_request",
-        "sick_leave",
-        "resignation",
-        "complaint",
-        "meeting_request",
-        "custom",
-      ],
+      enum: EMAIL_CATEGORIES,
       required: [true, "Category is required"],
       index: true,
     },

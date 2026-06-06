@@ -19,9 +19,9 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
         value={value}
         onChange={(e) => onChange(e.target.value as ModelId)}
       >
-        {Object.entries(MODEL_LABELS).map(([id, label]) => (
-          <option key={id} value={id}>
-            {label}
+        {Object.entries(MODEL_LABELS).map(([id, { name, description }]) => (
+          <option key={id} value={id} title={description}>
+            {name}
           </option>
         ))}
       </select>

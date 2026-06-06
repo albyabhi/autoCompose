@@ -1,21 +1,13 @@
 import { z } from "zod";
+import { MODEL_IDS_KEYS } from "@/modules/ai/types";
+import { EMAIL_CATEGORIES } from "@/modules/email/categories";
 
 export const createSessionSchema = z.object({
   title: z
     .string()
     .min(1, "Title is required")
     .max(200, "Title cannot exceed 200 characters"),
-  category: z
-    .enum([
-      "job_application",
-      "leave_request",
-      "sick_leave",
-      "resignation",
-      "complaint",
-      "meeting_request",
-      "custom",
-    ])
-    .default("custom"),
+  category: z.enum(EMAIL_CATEGORIES).default("custom"),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -33,7 +25,7 @@ export const addMessageSchema = z.object({
     .string()
     .min(1, "Prompt is required")
     .max(5000, "Prompt cannot exceed 5000 characters"),
-  modelId: z.enum(["deepseek", "nemotron"]).default("deepseek"),
+  modelId: z.enum(MODEL_IDS_KEYS).default("deepseek"),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().min(64).max(4096).optional(),
 });

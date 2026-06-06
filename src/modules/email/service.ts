@@ -10,10 +10,12 @@ import { getProfile } from "@/modules/profile/service";
 import { buildProfileContext } from "@/modules/profile/context-builder";
 import { getMessageHistory } from "@/modules/session/service";
 import { withUserId } from "@/lib/auth/ownership";
+import { boundConversationHistory } from "@/modules/session/history-budget";
+import { resolveGenerationCategory, type EmailCategory } from "./categories";
 
 export interface GenerateEmailParams {
   prompt: string;
-  category: string;
+  category: EmailCategory;
   modelId: ModelId;
   temperature?: number;
   maxTokens?: number;
@@ -34,40 +36,58 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
   const provider = getAIProvider();
 
   let sessionIdToUse = params.sessionId;
+  let category = params.category;
 
   logger.info("Generating email", {
-    category: params.category,
+    category,
     modelId: params.modelId,
     sessionId: sessionIdToUse,
   });
 
   let profileContext;
-  let previousMessages;
+  let previousMessages: { role: "user" | "assistant"; content: string }[] = [];
+  let historyCharacterCount = 0;
   if (params.userId) {
     await connectDB();
+
+    if (sessionIdToUse) {
+      const session = await Session.findOne({
+        _id: sessionIdToUse,
+        userId: params.userId,
+        isDeleted: false,
+      }).select("category").lean();
+      if (!session) {
+        const { NotFoundError } = await import("@/lib/errors");
+        throw new NotFoundError("Session not found");
+      }
+      category = resolveGenerationCategory(category, session.category);
+    }
+
     const profile = await getProfile(params.userId);
-    profileContext = buildProfileContext(profile);
+    profileContext = buildProfileContext(profile, category, params.prompt);
 
     if (!sessionIdToUse) {
-      const count = await Session.countDocuments({ userId: params.userId, category: params.category, isDeleted: false });
-      const formattedCategory = params.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const count = await Session.countDocuments({ userId: params.userId, category, isDeleted: false });
+      const formattedCategory = category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       const title = `${formattedCategory} ${count + 1}`;
       
       const newSession = await Session.create({
         title,
-        category: params.category,
+        category,
         userId: params.userId,
         metadata: {},
       });
       sessionIdToUse = newSession._id.toString();
     } else {
-      previousMessages = await getMessageHistory(sessionIdToUse, params.userId);
+      const boundedHistory = boundConversationHistory(await getMessageHistory(sessionIdToUse, params.userId));
+      previousMessages = boundedHistory.messages;
+      historyCharacterCount = boundedHistory.characterCount;
     }
   }
 
   const response = await provider.complete({
     prompt: params.prompt,
-    category: params.category,
+    category,
     config: {
       modelId: params.modelId,
       temperature: params.temperature,
@@ -81,7 +101,7 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
 
   const template = await EmailTemplate.create(
     withUserId({
-      category: params.category as IEmailTemplate["category"],
+      category: category as IEmailTemplate["category"],
       prompt: params.prompt,
       generatedEmail: response.content,
       modelUsed: response.modelUsed,
@@ -94,7 +114,7 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
         sessionId: sessionIdToUse,
         role: "user",
         content: params.prompt,
-        metadata: { category: params.category },
+        metadata: { category },
       },
       {
         sessionId: sessionIdToUse,
@@ -112,11 +132,16 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     entityId: template._id.toString(),
     metadata: {
       modelUsed: response.modelUsed,
-      category: params.category,
+      category,
       usage: response.usage,
+      providerDurationMs: response.durationMs,
       userId: params.userId,
       sessionId: sessionIdToUse,
       profileInjected: !!profileContext,
+      profileSections: profileContext?.selectedSections ?? [],
+      profileCharacters: profileContext?.characterCount ?? 0,
+      historyMessages: previousMessages?.length ?? 0,
+      historyCharacters: historyCharacterCount,
     },
     userId: params.userId ?? undefined,
     ip: params.ip,
@@ -127,6 +152,11 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     id: template._id.toString(),
     model: response.modelUsed,
     profileInjected: !!profileContext,
+    profileSections: profileContext?.selectedSections ?? [],
+    profileCharacters: profileContext?.characterCount ?? 0,
+    historyMessages: previousMessages?.length ?? 0,
+    historyCharacters: historyCharacterCount,
+    providerDurationMs: response.durationMs,
     sessionId: sessionIdToUse,
   });
 

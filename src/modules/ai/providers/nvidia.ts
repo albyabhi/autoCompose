@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { getConfig } from "@/config";
-import { AICompletionRequest, AICompletionResponse, MODEL_IDS } from "../types";
+import { AICompletionRequest, AICompletionResponse, MODEL_DEFAULTS, MODEL_IDS } from "../types";
 import { BaseAIProvider } from "../provider";
 import { AIProviderError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -19,7 +19,9 @@ export class NvidiaNIMProvider extends BaseAIProvider {
   }
 
   async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
-    const modelId = MODEL_IDS[request.config.modelId];
+    const modelKey = request.config.modelId;
+    const modelId = MODEL_IDS[modelKey];
+    const defaults = MODEL_DEFAULTS[modelKey] ?? {};
     const startTime = Date.now();
 
     logger.info("AI completion request", {
@@ -31,7 +33,7 @@ export class NvidiaNIMProvider extends BaseAIProvider {
       const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
         {
           role: "system",
-          content: request.systemPrompt ?? this.buildSystemPrompt(request.profileContext),
+          content: request.systemPrompt ?? this.buildSystemPrompt(request.profileContext, request.category),
         },
       ];
 
@@ -44,8 +46,8 @@ export class NvidiaNIMProvider extends BaseAIProvider {
       const response = await this.client.chat.completions.create({
         model: modelId,
         messages,
-        temperature: request.config.temperature ?? 0.7,
-        max_tokens: request.config.maxTokens ?? 1024,
+        temperature: request.config.temperature ?? defaults.temperature ?? 0.7,
+        max_tokens: request.config.maxTokens ?? defaults.maxTokens ?? 1024,
         ...(request.responseFormat ? { response_format: request.responseFormat } : {}),
       });
 
@@ -62,6 +64,7 @@ export class NvidiaNIMProvider extends BaseAIProvider {
       return {
         content,
         modelUsed: modelId,
+        durationMs: duration,
         usage: usage
           ? {
               promptTokens: usage.prompt_tokens,

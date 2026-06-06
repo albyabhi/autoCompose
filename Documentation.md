@@ -504,10 +504,14 @@ Uses OpenAI SDK to call NVIDIA NIM API. Supports conversation history injection 
 
 ### Models
 
-| ID | Label | NVIDIA Model ID |
-|---|---|---|
-| `deepseek` | DeepSeek V4 Flash | `deepseek-ai/deepseek-v4-flash` |
-| `nemotron` | Nemotron Super 49B | `nvidia/llama-3.3-nemotron-super-49b-v1.5` |
+| ID | Label | NVIDIA Model ID | Notes |
+|---|---|---|---|
+| `deepseek` | DeepSeek V4 Flash | `deepseek-ai/deepseek-v4-flash` | Default. Fast general-purpose drafting. |
+| `nemotron` | Nemotron Super 49B | `nvidia/llama-3.3-nemotron-super-49b-v1.5` | NVIDIA reasoning model. |
+| `gptOss` | GPT-OSS 20B | `openai/gpt-oss-20b` | OpenAI open-weight reasoning (Apache-2.0). |
+| `mistralSmall` | Mistral Small 4 (119B) | `mistralai/mistral-small-4-119b-2603` | Hybrid instruct + reasoning, 256K ctx. Default temp 0.6. |
+| `llamaMaverick` | Llama 4 Maverick 17B | `meta/llama-4-maverick-17b-128e-instruct` | Meta multimodal MoE, 1M ctx. |
+| `minimaxM27` | MiniMax M2.7 | `minimaxai/minimax-m2.7` | Code/agent-tuned MoE (230B/10B). Default temp 1.0. |
 
 ### Prompt Engineering
 
@@ -568,8 +572,12 @@ Every interactive component implements:
 
 ### Adding an AI Model
 
-1. Add to `MODEL_IDS` and `MODEL_LABELS` in `src/modules/ai/types.ts`
-2. Update `modelIdSchema` in the same file
+1. Add an entry to `MODEL_IDS` (registry key → upstream NVIDIA model id) in `src/modules/ai/types.ts`.
+2. Append the new key to `MODEL_IDS_KEYS` in the same file. The `ModelId` type and `modelIdSchema` are both derived from this tuple, so consumers (validation, UI) pick it up automatically.
+3. Add a `{ name, description }` entry to `MODEL_LABELS` — the model selector renders both.
+4. (Optional) Add a `MODEL_DEFAULTS` entry if the model needs a non-default `temperature` or `maxTokens`. The provider will apply these only when the caller has not overridden the value.
+5. Mirror the new key into `nvidia.models` in `src/config/index.ts` to keep the config map in sync.
+6. Update the **Models** table above.
 
 ### Adding a Protected API Route
 
@@ -600,3 +608,14 @@ const schema = new Schema({
 ```
 
 Every query against this model must use `ownedFilter(userId)`.
+
+---
+
+## Changelog
+
+### 2026-06-05 — Auth Simplification & Cleanup
+
+- **Removed `@auth/mongodb-adapter`** — NextAuth no longer uses the MongoDB adapter. Authentication is handled purely via JWT strategy with credentials verified directly through Mongoose `User` model.
+- **Removed direct `mongodb` dependency** — The `mongodb` package is no longer a direct dependency; Mongoose 9.x bundles its own internal driver.
+- **Removed `src/lib/mongo-client.ts`** — The `MongoClient` singleton used solely by the adapter was deleted.
+- **Fixed button variant** — `Edit Prompt & Generate` button in `session-view.tsx` changed from `"outline"` to `"secondary"` (matching the design system).

@@ -1,30 +1,27 @@
 import { AIProvider, AICompletionRequest, AICompletionResponse, ProfileContext } from "./types";
+import { CATEGORY_POLICIES, isEmailCategory } from "@/modules/email/categories";
 
 export abstract class BaseAIProvider implements AIProvider {
   abstract readonly name: string;
 
   abstract complete(request: AICompletionRequest): Promise<AICompletionResponse>;
 
-  protected buildSystemPrompt(profileContext?: ProfileContext): string {
+  protected buildSystemPrompt(profileContext?: ProfileContext, category = "custom"): string {
+    const policy = CATEGORY_POLICIES[isEmailCategory(category) ? category : "custom"];
     const sections: string[] = [
-      "You are an expert email composer. Your task is to generate professional email templates.",
+      "You are an expert email composer.",
+      "Use only facts supplied in the current request, recent conversation, or selected profile context. Never invent missing facts.",
+      `CATEGORY PLAYBOOK: ${policy.aiInstruction}`,
     ];
 
     if (profileContext) {
       sections.push("");
-      sections.push("=== USER PROFILE ===");
+      sections.push("=== SELECTED PROFILE CONTEXT ===");
       sections.push(...profileContext.sections);
     }
 
     sections.push("");
-    sections.push("Process internally (do NOT output this reasoning):");
-    sections.push("1. DIVERGE - Consider 3 different approaches:");
-    sections.push("   - Different tones (formal, semi-formal, direct)");
-    sections.push("   - Different structures");
-    sections.push("   - Different opening/closing strategies");
-    sections.push("2. CONVERGE - Select the best approach based on context and professionalism");
-    sections.push("3. EVALUATE - Verify the chosen email achieves its goal effectively");
-    sections.push("");
+    sections.push("Before answering, silently verify factual accuracy, tone, and whether the email achieves the request.");
     sections.push("OUTPUT RULES:");
     sections.push("- Return ONLY the email template");
     sections.push("- No explanations, reasoning, or notes");
@@ -53,7 +50,7 @@ export abstract class BaseAIProvider implements AIProvider {
   }
 
   protected buildUserPrompt(prompt: string, category: string): string {
-    return `Category: ${category.replace("_", " ").toUpperCase()}
+    return `Category: ${category.replace(/_/g, " ").toUpperCase()}
 
 Instructions: ${prompt}
 

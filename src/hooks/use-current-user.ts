@@ -12,7 +12,7 @@ interface UseCurrentUserResult {
 }
 
 export function useCurrentUser(): UseCurrentUserResult {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const [enriched, setEnriched] = useState<Partial<CurrentUser> | null>(null);
   const [fetching, setFetching] = useState(false);
 
@@ -37,7 +37,8 @@ export function useCurrentUser(): UseCurrentUserResult {
 
   useEffect(() => {
     if (status === "authenticated" && !enriched) {
-      refetch();
+      const timeout = setTimeout(() => void refetch(), 0);
+      return () => clearTimeout(timeout);
     }
   }, [status, enriched, refetch]);
 

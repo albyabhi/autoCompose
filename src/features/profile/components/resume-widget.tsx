@@ -3,6 +3,8 @@
 import { useResume, useUploadResume, useDeleteResume } from "../hooks/use-resume";
 import { useState, useRef } from "react";
 import type { ResumeData } from "../api/resume";
+import { useSearchParams } from "next/navigation";
+import { CATEGORY_POLICIES, isEmailCategory } from "@/modules/email/categories";
 
 function ViewModal({
   resume,
@@ -140,6 +142,9 @@ function ViewModal({
 }
 
 export function ResumeWidget() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") ?? "";
+  const relevant = isEmailCategory(category) && CATEGORY_POLICIES[category].profileSections.includes("resume");
   const { data, isLoading, isError } = useResume();
   const uploadMutation = useUploadResume();
   const deleteMutation = useDeleteResume();
@@ -197,7 +202,7 @@ export function ResumeWidget() {
   const isBusy = uploadMutation.isPending || deleteMutation.isPending;
 
   return (
-    <div className="settings-section">
+    <div id="profile-resume" className={`settings-section ${relevant ? "settings-section--relevant" : ""}`}>
       <div className="settings-section__header">
         <h2 className="settings-section__title">Resume</h2>
         <p className="settings-section__description">

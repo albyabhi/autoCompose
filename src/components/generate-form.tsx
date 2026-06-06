@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession as useAuthSession } from "next-auth/react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession as useAppSession } from "@/features/sessions/hooks/use-sessions";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,19 +8,10 @@ import { ModelSelector } from "./model-selector";
 import { ResponseDisplay } from "./response-display";
 import { ModelId } from "@/modules/ai/types";
 import Link from "next/link";
-
-const CATEGORIES = [
-  { value: "job_application", label: "Job Application" },
-  { value: "leave_request", label: "Leave Request" },
-  { value: "sick_leave", label: "Sick Leave" },
-  { value: "resignation", label: "Resignation" },
-  { value: "complaint", label: "Complaint" },
-  { value: "meeting_request", label: "Meeting Request" },
-  { value: "custom", label: "Custom" },
-] as const;
+import { CATEGORY_OPTIONS, CATEGORY_POLICIES, type EmailCategory } from "@/modules/email/categories";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 
 export function GenerateForm() {
-  const { status } = useAuthSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -29,25 +19,24 @@ export function GenerateForm() {
   const clonePrompt = searchParams.get("clone") === "true";
   
   const { data: sessionData } = useAppSession(initialSessionId || "");
+  const { data: profileData } = useProfile();
   
   const [prompt, setPrompt] = useState("");
-  const [category, setCategory] = useState("custom");
+  const [promptEdited, setPromptEdited] = useState(false);
+  const [category, setCategory] = useState<EmailCategory>("custom");
   const [modelId, setModelId] = useState<ModelId>("deepseek");
   const [response, setResponse] = useState<string | null>(null);
   const [modelUsed, setModelUsed] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (clonePrompt && sessionData && sessionData.messages) {
-      const messages = sessionData.messages;
-      const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
-      if (lastUserMessage && !prompt) { // Prevent overwriting if user already started typing
-        setPrompt(lastUserMessage.content);
-        setCategory(sessionData.category);
-      }
-    }
-  }, [clonePrompt, sessionData, prompt]);
+  const clonedPrompt = clonePrompt && sessionData?.messages
+    ? [...sessionData.messages].reverse().find((message) => message.role === "user")?.content ?? ""
+    : "";
+  const effectivePrompt = promptEdited ? prompt : clonedPrompt;
+  const effectiveCategory = (sessionData?.category as EmailCategory | undefined) ?? category;
+  const policy = CATEGORY_POLICIES[effectiveCategory];
+  const missingSections = profileData?.readiness[effectiveCategory]?.missingSections ?? [];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +48,7 @@ export function GenerateForm() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, category, modelId, sessionId: initialSessionId || undefined }),
+        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId, sessionId: initialSessionId || undefined }),
       });
 
       const data = await res.json();
@@ -100,10 +89,11 @@ export function GenerateForm() {
             <select
               id="category-select"
               className="field-select"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={effectiveCategory}
+              onChange={(e) => setCategory(e.target.value as EmailCategory)}
+              disabled={!!initialSessionId}
             >
-              {CATEGORIES.map((cat) => (
+              {CATEGORY_OPTIONS.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
                 </option>
@@ -122,15 +112,33 @@ export function GenerateForm() {
             id="prompt-input"
             className="field-textarea"
             placeholder="e.g., Write a professional leave request email to my manager for 3 days off next week..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            value={effectivePrompt}
+            onChange={(e) => {
+              setPromptEdited(true);
+              setPrompt(e.target.value);
+            }}
             rows={5}
             required
           />
-          <span className="field-hint">{prompt.length}/5000 characters</span>
+          <span className="field-hint">{effectivePrompt.length}/5000 characters</span>
         </div>
 
-        <button type="submit" className="generate-btn" disabled={loading || prompt.length < 10}>
+        <div className="category-guidance">
+          <strong>For the best result, include:</strong>
+          <span>{policy.promptGuidance.join(", ")}</span>
+        </div>
+
+        {missingSections.length > 0 && (
+          <div className="profile-readiness-warning">
+            <div>
+              <strong>Complete these profile sections for best results:</strong>{" "}
+              {missingSections.map((section) => section === "jobApplication" ? "Job Application" : section[0].toUpperCase() + section.slice(1)).join(", ")}
+            </div>
+            <Link href={`/settings?category=${effectiveCategory}`}>Complete profile</Link>
+          </div>
+        )}
+
+        <button type="submit" className="generate-btn" disabled={loading || effectivePrompt.length < 10}>
           {loading ? "Generating..." : "Generate Email"}
         </button>
       </form>

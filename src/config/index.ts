@@ -57,6 +57,10 @@ export function getConfig() {
       models: {
         deepseek: "deepseek-ai/deepseek-v4-flash",
         nemotron: "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+        gptOss: "openai/gpt-oss-20b",
+        mistralSmall: "mistralai/mistral-small-4-119b-2603",
+        llamaMaverick: "meta/llama-4-maverick-17b-128e-instruct",
+        minimaxM27: "minimaxai/minimax-m2.7",
       } as const,
     },
     auth: {

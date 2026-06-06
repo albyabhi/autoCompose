@@ -5,6 +5,7 @@ import { NotFoundError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import type { SessionData, PaginatedResult, SessionListOptions } from "./types";
 import type { CreateSessionInput, UpdateSessionInput } from "./validation";
+import { HISTORY_MESSAGE_LIMIT } from "./history-budget";
 
 function toSessionData(session: ISession): SessionData {
   return {
@@ -216,11 +217,12 @@ export async function getMessageHistory(
   }
 
   const messages = await Message.find({ sessionId: session._id })
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
+    .limit(HISTORY_MESSAGE_LIMIT)
     .select("role content")
     .lean();
 
-  return messages.map((m) => ({
+  return messages.reverse().map((m) => ({
     role: m.role as "user" | "assistant",
     content: m.content,
   }));

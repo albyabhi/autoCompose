@@ -1,17 +1,40 @@
 import { z } from "zod";
+import type { EmailCategory, ProfileSection } from "@/modules/email/categories";
 
 export const MODEL_IDS = {
   deepseek: "deepseek-ai/deepseek-v4-flash",
   nemotron: "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+  gptOss: "openai/gpt-oss-20b",
+  mistralSmall: "mistralai/mistral-small-4-119b-2603",
+  llamaMaverick: "meta/llama-4-maverick-17b-128e-instruct",
+  minimaxM27: "minimaxai/minimax-m2.7",
 } as const;
 
-export type ModelId = keyof typeof MODEL_IDS;
+export const MODEL_IDS_KEYS = [
+  "deepseek",
+  "nemotron",
+  "gptOss",
+  "mistralSmall",
+  "llamaMaverick",
+  "minimaxM27",
+] as const satisfies readonly (keyof typeof MODEL_IDS)[];
 
-export const modelIdSchema = z.enum(["deepseek", "nemotron"]);
+export type ModelId = (typeof MODEL_IDS_KEYS)[number];
 
-export const MODEL_LABELS: Record<ModelId, string> = {
-  deepseek: "DeepSeek V4 Flash",
-  nemotron: "Nemotron Super 49B",
+export const modelIdSchema = z.enum(MODEL_IDS_KEYS);
+
+export const MODEL_LABELS: Record<ModelId, { name: string; description: string }> = {
+  deepseek: { name: "DeepSeek V4 Flash", description: "Fast general-purpose drafting" },
+  nemotron: { name: "Nemotron Super 49B", description: "NVIDIA reasoning model" },
+  gptOss: { name: "GPT-OSS 20B", description: "OpenAI open-weight reasoning (Apache-2.0)" },
+  mistralSmall: { name: "Mistral Small 4 (119B)", description: "Hybrid instruct + reasoning, 256K ctx" },
+  llamaMaverick: { name: "Llama 4 Maverick 17B", description: "Meta multimodal MoE, 1M ctx" },
+  minimaxM27: { name: "MiniMax M2.7", description: "Code/agent-tuned MoE (230B/10B)" },
+};
+
+export const MODEL_DEFAULTS: Partial<Record<ModelId, { temperature?: number; maxTokens?: number }>> = {
+  mistralSmall: { temperature: 0.6 },
+  minimaxM27: { temperature: 1.0 },
 };
 
 export type FormalityLevel = "formal" | "semi-formal" | "casual";
@@ -19,11 +42,25 @@ export type PreferredTone = "professional" | "friendly" | "neutral" | "warm" | "
 
 export interface ProfileContext {
   sections: string[];
+  selectedSections: ProfileSection[];
+  characterCount: number;
   signature: string;
   formality: FormalityLevel;
   tone: PreferredTone;
-  hasJobInfo: boolean;
   language?: string;
+}
+
+export interface ProfileReadiness {
+  category: EmailCategory;
+  selectedSections: ProfileSection[];
+  missingSections: ProfileSection[];
+}
+
+export interface ContextMetrics {
+  profileSections: ProfileSection[];
+  profileCharacters: number;
+  historyMessages: number;
+  historyCharacters: number;
 }
 
 export interface AIConfig {
@@ -45,6 +82,7 @@ export interface AICompletionRequest {
 export interface AICompletionResponse {
   content: string;
   modelUsed: string;
+  durationMs?: number;
   usage?: {
     promptTokens?: number;
     completionTokens?: number;

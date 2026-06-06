@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import type { EmailCategory } from "./email-template";
+import { EMAIL_CATEGORIES } from "@/modules/email/categories";
 
 export interface ISession extends Document {
   title: string;
@@ -22,15 +23,7 @@ const sessionSchema = new Schema<ISession>(
     },
     category: {
       type: String,
-      enum: [
-        "job_application",
-        "leave_request",
-        "sick_leave",
-        "resignation",
-        "complaint",
-        "meeting_request",
-        "custom",
-      ],
+      enum: EMAIL_CATEGORIES,
       default: "custom",
     },
     userId: {

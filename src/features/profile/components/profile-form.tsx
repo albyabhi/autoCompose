@@ -1,8 +1,11 @@
 "use client";
 
 import { useProfile, useUpdateProfile } from "../hooks/use-profile";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { SkeletonList } from "@/components/ui/skeleton";
+import { useSearchParams } from "next/navigation";
+import { CATEGORY_POLICIES, isEmailCategory, type ProfileSection } from "@/modules/email/categories";
+import { isProfessionalFieldVisible, type ProfessionalType } from "@/modules/profile/professional";
 
 const LANGUAGES = [
   { value: "", label: "Default (English)" },
@@ -26,7 +29,7 @@ const LANGUAGES = [
 ];
 
 interface SectionConfig {
-  key: string;
+  key: Exclude<ProfileSection, "resume">;
   title: string;
   description: string;
   fields: {
@@ -34,6 +37,8 @@ interface SectionConfig {
     label: string;
     type: "text" | "url" | "select" | "textarea";
     options?: { value: string; label: string }[];
+    visibleFor?: ProfessionalType;
+    required?: boolean;
   }[];
 }
 
@@ -51,13 +56,24 @@ const SECTIONS: SectionConfig[] = [
   {
     key: "professional",
     title: "Professional",
-    description: "Your work and education details",
+    description: "Choose the profile type that best describes you",
     fields: [
-      { key: "designation", label: "Designation", type: "text" },
-      { key: "department", label: "Department", type: "text" },
-      { key: "organization", label: "Organization", type: "text" },
-      { key: "college", label: "College", type: "text" },
-      { key: "degree", label: "Degree", type: "text" },
+      {
+        key: "type",
+        label: "I am a",
+        type: "select",
+        required: true,
+        options: [
+          { value: "", label: "Select profile type" },
+          { value: "student", label: "Student" },
+          { value: "working_professional", label: "Working Professional" },
+        ],
+      },
+      { key: "college", label: "College", type: "text", visibleFor: "student", required: true },
+      { key: "degree", label: "Degree", type: "text", visibleFor: "student", required: true },
+      { key: "designation", label: "Designation", type: "text", visibleFor: "working_professional", required: true },
+      { key: "department", label: "Department", type: "text", visibleFor: "working_professional" },
+      { key: "organization", label: "Organization", type: "text", visibleFor: "working_professional", required: true },
     ],
   },
   {
@@ -111,19 +127,27 @@ const SECTIONS: SectionConfig[] = [
 function SectionForm({
   section,
   initialData,
+  relevant,
 }: {
   section: SectionConfig;
   initialData: Record<string, string>;
+  relevant: boolean;
 }) {
   const [values, setValues] = useState<Record<string, string>>(initialData);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const updateMutation = useUpdateProfile();
-
-  useEffect(() => {
-    setValues(initialData);
-    setDirty(false);
-  }, [initialData]);
+  const professionalType = values.type as ProfessionalType | undefined;
+  const visibleFields = section.fields.filter(
+    (field) => isProfessionalFieldVisible(field.visibleFor, professionalType)
+  );
+  const description = section.key === "professional"
+    ? professionalType === "student"
+      ? "Your current education details"
+      : professionalType === "working_professional"
+        ? "Your current work details"
+        : section.description
+    : section.description;
 
   const handleChange = useCallback((key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -133,6 +157,16 @@ function SectionForm({
 
   async function handleSave() {
     setMessage(null);
+    const missingRequired = visibleFields
+      .filter((field) => field.required && !values[field.key]?.trim())
+      .map((field) => field.label);
+    if (missingRequired.length > 0) {
+      setMessage({
+        type: "error",
+        text: `Complete required fields: ${missingRequired.join(", ")}`,
+      });
+      return;
+    }
     try {
       await updateMutation.mutateAsync({ section: section.key, data: values });
       setDirty(false);
@@ -143,10 +177,13 @@ function SectionForm({
   }
 
   return (
-    <div className="settings-section">
+    <div
+      id={`profile-${section.key}`}
+      className={`settings-section ${relevant ? "settings-section--relevant" : ""}`}
+    >
       <div className="settings-section__header">
         <h2 className="settings-section__title">{section.title}</h2>
-        <p className="settings-section__description">{section.description}</p>
+        <p className="settings-section__description">{description}</p>
       </div>
 
       {message && (
@@ -156,13 +193,13 @@ function SectionForm({
       )}
 
       <div className="settings-section__fields">
-        {section.fields.map((field) => (
+        {visibleFields.map((field) => (
           <div key={field.key} className="settings-field">
             <label
               htmlFor={`${section.key}-${field.key}`}
               className="settings-field__label"
             >
-              {field.label}
+              {field.label}{field.required ? " *" : ""}
             </label>
             {field.type === "select" ? (
               <select
@@ -170,6 +207,7 @@ function SectionForm({
                 className="settings-field__select"
                 value={values[field.key] ?? ""}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                required={field.required}
               >
                 {field.options?.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -184,6 +222,7 @@ function SectionForm({
                 value={values[field.key] ?? ""}
                 onChange={(e) => handleChange(field.key, e.target.value)}
                 rows={3}
+                required={field.required}
               />
             ) : (
               <input
@@ -192,11 +231,18 @@ function SectionForm({
                 className="settings-field__input"
                 value={values[field.key] ?? ""}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                required={field.required}
               />
             )}
           </div>
         ))}
       </div>
+
+      {section.key === "professional" && !professionalType && (
+        <div className="settings-section__notice">
+          Select Student or Working Professional to provide the details used for personalized emails.
+        </div>
+      )}
 
       <div className="settings-section__actions">
         <button
@@ -213,6 +259,11 @@ function SectionForm({
 
 export function ProfileForm() {
   const { data, isLoading, isError } = useProfile();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category") ?? "";
+  const relevantSections = new Set(
+    isEmailCategory(categoryParam) ? CATEGORY_POLICIES[categoryParam].profileSections : []
+  );
 
   if (isLoading) {
     return (
@@ -231,8 +282,6 @@ export function ProfileForm() {
   }
 
   const profile = data?.profile;
-  const emptyRecord: Record<string, string> = {};
-
   return (
     <div className="settings-sections">
       {SECTIONS.map((section) => {
@@ -245,9 +294,10 @@ export function ProfileForm() {
         }
         return (
           <SectionForm
-            key={section.key}
+            key={`${section.key}-${JSON.stringify(initial)}`}
             section={section}
             initialData={initial}
+            relevant={relevantSections.has(section.key)}
           />
         );
       })}

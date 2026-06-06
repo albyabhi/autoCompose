@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeProfessionalForSave, PROFESSIONAL_TYPES } from "./professional";
 
 export const personalSchema = z.object({
   fullName: z
@@ -9,13 +10,34 @@ export const personalSchema = z.object({
   location: z.string().max(200, "Location cannot exceed 200 characters").optional().or(z.literal("")),
 });
 
-export const professionalSchema = z.object({
+const professionalBaseSchema = z.object({
+  type: z.enum(PROFESSIONAL_TYPES),
   designation: z.string().max(100).optional().or(z.literal("")),
   department: z.string().max(100).optional().or(z.literal("")),
   organization: z.string().max(200).optional().or(z.literal("")),
   college: z.string().max(200).optional().or(z.literal("")),
   degree: z.string().max(100).optional().or(z.literal("")),
 });
+
+export const professionalSchema = professionalBaseSchema
+  .superRefine((data, ctx) => {
+    if (data.type === "student") {
+      if (!data.college?.trim()) {
+        ctx.addIssue({ code: "custom", path: ["college"], message: "College is required for students" });
+      }
+      if (!data.degree?.trim()) {
+        ctx.addIssue({ code: "custom", path: ["degree"], message: "Degree is required for students" });
+      }
+    } else {
+      if (!data.designation?.trim()) {
+        ctx.addIssue({ code: "custom", path: ["designation"], message: "Designation is required for working professionals" });
+      }
+      if (!data.organization?.trim()) {
+        ctx.addIssue({ code: "custom", path: ["organization"], message: "Organization is required for working professionals" });
+      }
+    }
+  })
+  .transform(normalizeProfessionalForSave);
 
 export const preferencesSchema = z.object({
   formalityLevel: z.enum(["formal", "semi-formal", "casual"]),

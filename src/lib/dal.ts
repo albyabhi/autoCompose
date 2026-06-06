@@ -6,6 +6,7 @@ import { getCurrentUser as getAuthCurrentUser } from "@/lib/auth/current-user";
 import { getProfile } from "@/modules/profile/service";
 import { buildProfileContext } from "@/modules/profile/context-builder";
 import type { ProfileContext } from "@/modules/ai/types";
+import type { EmailCategory } from "@/modules/email/categories";
 
 export const getSession = getServerSession;
 
@@ -25,13 +26,13 @@ export const verifySession = cache(async () => {
 
 export const getCurrentUser = getAuthCurrentUser;
 
-export const getUserProfileContext = cache(async (): Promise<ProfileContext | null> => {
+export const getUserProfileContext = cache(async (category: EmailCategory = "custom", prompt = ""): Promise<ProfileContext | null> => {
   const session = await getServerSession();
   if (!session?.user?.id) return null;
 
   try {
     const profile = await getProfile(session.user.id);
-    return buildProfileContext(profile);
+    return buildProfileContext(profile, category, prompt);
   } catch {
     return null;
   }

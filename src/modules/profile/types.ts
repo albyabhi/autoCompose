@@ -1,4 +1,6 @@
 import type { FormalityLevel, PreferredTone } from "@/models/profile";
+import type { EmailCategory, ProfileSection } from "@/modules/email/categories";
+import type { ProfessionalType } from "./professional";
 
 export interface ProfileData {
   personal: {
@@ -7,6 +9,7 @@ export interface ProfileData {
     location?: string;
   };
   professional: {
+    type?: ProfessionalType;
     designation?: string;
     department?: string;
     organization?: string;
@@ -27,11 +30,17 @@ export interface ProfileData {
 }
 
 export interface ProfileContext {
-  summary: string;
   signature: string;
   formality: FormalityLevel;
   tone: PreferredTone;
-  hasJobInfo: boolean;
   language?: string;
   sections: string[];
+  selectedSections: ProfileSection[];
+  characterCount: number;
+}
+
+export interface ProfileReadiness {
+  category: EmailCategory;
+  selectedSections: ProfileSection[];
+  missingSections: ProfileSection[];
 }

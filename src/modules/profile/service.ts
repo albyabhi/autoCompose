@@ -4,6 +4,7 @@ import { NotFoundError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { ownedFilter } from "@/lib/auth/ownership";
 import type { ProfileUpdateInput, ProfileCreateInput } from "./validation";
+import { normalizeProfessionalForSave } from "./professional";
 
 export async function getProfile(userId: string): Promise<IProfile | null> {
   await connectDB();
@@ -24,7 +25,7 @@ export async function createProfile(
   const profile = await Profile.create({
     userId,
     personal: data.personal,
-    professional: data.professional ?? {},
+    professional: data.professional ? normalizeProfessionalForSave(data.professional) : {},
     preferences: data.preferences ?? { formalityLevel: "semi-formal", preferredTone: "professional" },
     jobApplication: data.jobApplication ?? {},
   });
@@ -50,7 +51,7 @@ export async function updateProfile(
 
   const update: Record<string, unknown> = {};
   if (data.personal) update["personal"] = { ...existing.toObject().personal, ...data.personal };
-  if (data.professional) update["professional"] = { ...existing.toObject().professional, ...data.professional };
+  if (data.professional) update["professional"] = normalizeProfessionalForSave(data.professional);
   if (data.preferences) update["preferences"] = { ...existing.toObject().preferences, ...data.preferences };
   if (data.jobApplication) update["jobApplication"] = { ...existing.toObject().jobApplication, ...data.jobApplication };
 
@@ -78,7 +79,7 @@ export async function upsertProfile(
     {
       $set: {
         ...(data.personal && { personal: data.personal }),
-        ...(data.professional && { professional: data.professional }),
+        ...(data.professional && { professional: normalizeProfessionalForSave(data.professional) }),
         ...(data.preferences && { preferences: data.preferences }),
         ...(data.jobApplication && { jobApplication: data.jobApplication }),
       },

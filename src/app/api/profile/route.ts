@@ -4,6 +4,7 @@ import { validate } from "@/utils/validation";
 import { profileUpdateSchema } from "@/modules/profile/validation";
 import { getProfile, updateProfile } from "@/modules/profile/service";
 import { requireAuth } from "@/lib/auth/session";
+import { buildAllCategoryReadiness, sanitizeProfile } from "@/modules/profile/context-builder";
 
 export async function GET() {
   try {
@@ -11,10 +12,13 @@ export async function GET() {
 
     const profile = await getProfile(user.userId);
     if (!profile) {
-      return success({ profile: null });
+      return success({ profile: null, readiness: buildAllCategoryReadiness(null) });
     }
 
-    return success({ profile });
+    return success({
+      profile: sanitizeProfile(profile),
+      readiness: buildAllCategoryReadiness(profile),
+    });
   } catch (error) {
     return failure(error);
   }
@@ -28,7 +32,10 @@ export async function PATCH(request: NextRequest) {
     const input = validate(profileUpdateSchema, body);
 
     const profile = await updateProfile(user.userId, input);
-    return success({ profile });
+    return success({
+      profile: sanitizeProfile(profile),
+      readiness: buildAllCategoryReadiness(profile),
+    });
   } catch (error) {
     return failure(error);
   }

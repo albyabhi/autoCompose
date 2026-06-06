@@ -3,16 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCreateSession } from "../hooks/use-sessions";
-
-const CATEGORIES = [
-  { value: "job_application", label: "Job Application" },
-  { value: "leave_request", label: "Leave Request" },
-  { value: "sick_leave", label: "Sick Leave" },
-  { value: "resignation", label: "Resignation" },
-  { value: "complaint", label: "Complaint" },
-  { value: "meeting_request", label: "Meeting Request" },
-  { value: "custom", label: "Custom" },
-];
+import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 
 interface NewSessionDialogProps {
   open: boolean;
@@ -22,7 +13,7 @@ interface NewSessionDialogProps {
 export function NewSessionDialog({ open, onClose }: NewSessionDialogProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("custom");
+  const [category, setCategory] = useState<EmailCategory>("custom");
   const createMutation = useCreateSession();
 
   if (!open) return null;
@@ -33,7 +24,7 @@ export function NewSessionDialog({ open, onClose }: NewSessionDialogProps) {
 
     const result = await createMutation.mutateAsync({
       title: title.trim(),
-      category: category as any,
+      category,
     });
 
     setTitle("");
@@ -72,9 +63,9 @@ export function NewSessionDialog({ open, onClose }: NewSessionDialogProps) {
               id="new-session-category"
               className="field-select"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => setCategory(e.target.value as EmailCategory)}
             >
-              {CATEGORIES.map((c) => (
+              {CATEGORY_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
