@@ -17,10 +17,11 @@ export interface ProfileData {
     degree: string;
   };
   preferences: {
-    formalityLevel: string;
-    preferredTone: string;
-    defaultSignature: string;
-    preferredLanguage: string;
+    formalityLevel?: string;
+    preferredTone?: string;
+    defaultSignature?: string;
+    preferredLanguage?: string;
+    preferredModel?: string;
   };
   jobApplication: {
     resumeUrl: string;

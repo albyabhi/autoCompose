@@ -19,6 +19,7 @@ export interface ProfileSource {
     preferredTone?: PreferredTone;
     defaultSignature?: string;
     preferredLanguage?: string;
+    preferredModel?: string;
   };
   jobApplication?: { resumeUrl?: string; linkedIn?: string; portfolio?: string };
   resume?: {

@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { success, failure } from "@/utils/api-response";
 import { requireAuth } from "@/lib/auth/session";
 import { uploadAndParseResume, getResume, deleteResume } from "@/modules/resume/service";
-import { AppError } from "@/lib/errors";
+import { modelIdSchema, type ModelId } from "@/modules/ai/types";
+import { AppError, ValidationError } from "@/lib/errors";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
     if (!file || !(file instanceof File)) {
       throw new AppError("MISSING_FILE", "No file provided. Please upload a resume file.", 400);
     }
+
+    const rawModelId = formData.get("modelId");
+    const parsedModelId = rawModelId
+      ? modelIdSchema.safeParse(rawModelId)
+      : undefined;
+    if (parsedModelId && !parsedModelId.success) {
+      throw new ValidationError("Invalid modelId", parsedModelId.error.flatten());
+    }
+    const modelId: ModelId = (parsedModelId?.data as ModelId | undefined) ?? "deepseek";
 
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -46,7 +56,7 @@ export async function POST(request: NextRequest) {
           sendProgress(0, "Initializing upload...");
           const buffer = Buffer.from(await file.arrayBuffer());
           
-          const result = await uploadAndParseResume(user.userId, buffer, file.name, sendProgress);
+          const result = await uploadAndParseResume(user.userId, buffer, file.name, modelId, sendProgress);
           
           const finalPayload = JSON.stringify({ type: "success", data: { resume: result } }) + "\n";
           controller.enqueue(encoder.encode(finalPayload));

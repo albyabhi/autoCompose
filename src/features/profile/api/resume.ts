@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import type { ModelId } from "@/modules/ai/types";
 
 export interface ResumeData {
   rawText?: string;
@@ -8,6 +9,7 @@ export interface ResumeData {
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  parsedByModel?: string;
   skills: string[];
   education: { degree: string; institution?: string; year?: string }[];
   experience: { company: string; role?: string; duration?: string; description?: string }[];
@@ -20,10 +22,12 @@ export async function fetchResume(): Promise<{ resume: ResumeData | null }> {
 
 export async function uploadResume(
   file: File,
+  modelId: ModelId,
   onProgress?: (progress: number, message: string) => void
 ): Promise<{ resume: ResumeData }> {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("modelId", modelId);
 
   const res = await fetch("/api/profile/resume", {
     method: "POST",

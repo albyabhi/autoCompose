@@ -62,3 +62,16 @@ describe("AI model registry", () => {
     }
   });
 });
+
+describe("resume route accepts any ModelId", () => {
+  it.each(MODEL_IDS_KEYS)(
+    "modelIdSchema accepts %s so the resume form field can carry it",
+    (id) => {
+      expect(() => modelIdSchema.parse(id)).not.toThrow();
+    }
+  );
+
+  it("rejects an unknown model id for resume parsing", () => {
+    expect(() => modelIdSchema.parse("not-a-model")).toThrow();
+  });
+});

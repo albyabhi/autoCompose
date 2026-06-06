@@ -1,10 +1,12 @@
 "use client";
 
 import { useResume, useUploadResume, useDeleteResume } from "../hooks/use-resume";
+import { useProfile } from "../hooks/use-profile";
 import { useState, useRef } from "react";
 import type { ResumeData } from "../api/resume";
 import { useSearchParams } from "next/navigation";
 import { CATEGORY_POLICIES, isEmailCategory } from "@/modules/email/categories";
+import { MODEL_IDS_KEYS, MODEL_LABELS, type ModelId } from "@/modules/ai/types";
 
 function ViewModal({
   resume,
@@ -146,12 +148,28 @@ export function ResumeWidget() {
   const category = searchParams.get("category") ?? "";
   const relevant = isEmailCategory(category) && CATEGORY_POLICIES[category].profileSections.includes("resume");
   const { data, isLoading, isError } = useResume();
+  const { data: profileData } = useProfile();
   const uploadMutation = useUploadResume();
   const deleteMutation = useDeleteResume();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [progressInfo, setProgressInfo] = useState<{ percent: number; text: string } | null>(null);
+  const [modelId, setModelId] = useState<ModelId>("deepseek");
+  const [userTouchedModel, setUserTouchedModel] = useState(false);
+
+  const storedPreferred = profileData?.profile?.preferences?.preferredModel;
+  const effectiveModelId =
+    !userTouchedModel &&
+    typeof storedPreferred === "string" &&
+    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+      ? (storedPreferred as ModelId)
+      : modelId;
+
+  const handleModelChange = (next: ModelId) => {
+    setUserTouchedModel(true);
+    setModelId(next);
+  };
 
   const resume = data?.resume;
 
@@ -170,7 +188,8 @@ export function ResumeWidget() {
     setProgressInfo({ percent: 0, text: "Initializing..." });
     uploadMutation.mutate(
       { 
-        file, 
+        file,
+        modelId: effectiveModelId,
         onProgress: (percent, text) => setProgressInfo({ percent, text }) 
       },
       {
@@ -263,6 +282,24 @@ export function ResumeWidget() {
             Drag & drop your resume here, or click to browse
           </p>
           <p className="resume-upload__hint">PDF, DOCX, or TXT (max 10MB)</p>
+          <div className="field-group resume-upload__model">
+            <label htmlFor="resume-model-select" className="field-label">
+              AI Model
+            </label>
+            <select
+              id="resume-model-select"
+              className="field-select"
+              value={effectiveModelId}
+              onChange={(e) => handleModelChange(e.target.value as ModelId)}
+              disabled={isBusy}
+            >
+              {Object.entries(MODEL_LABELS).map(([id, { name, description }]) => (
+                <option key={id} value={id} title={description}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             className="settings-section__save"
             onClick={handlePick}

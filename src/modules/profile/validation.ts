@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MODEL_IDS_KEYS } from "@/modules/ai/types";
 import { normalizeProfessionalForSave, PROFESSIONAL_TYPES } from "./professional";
 
 export const personalSchema = z.object({
@@ -40,10 +41,16 @@ export const professionalSchema = professionalBaseSchema
   .transform(normalizeProfessionalForSave);
 
 export const preferencesSchema = z.object({
-  formalityLevel: z.enum(["formal", "semi-formal", "casual"]),
-  preferredTone: z.enum(["professional", "friendly", "neutral", "warm", "direct"]),
+  formalityLevel: z.enum(["formal", "semi-formal", "casual"]).optional(),
+  preferredTone: z.enum(["professional", "friendly", "neutral", "warm", "direct"]).optional(),
   defaultSignature: z.string().max(500).optional().or(z.literal("")),
   preferredLanguage: z.string().max(50).optional().or(z.literal("")),
+  preferredModel: z
+    .string()
+    .refine((value) => (MODEL_IDS_KEYS as readonly string[]).includes(value), {
+      message: "preferredModel must be one of the registered ModelId values",
+    })
+    .optional(),
 });
 
 export const jobApplicationSchema = z.object({

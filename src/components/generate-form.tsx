@@ -6,7 +6,7 @@ import { useSession as useAppSession } from "@/features/sessions/hooks/use-sessi
 import { useQueryClient } from "@tanstack/react-query";
 import { ModelSelector } from "./model-selector";
 import { ResponseDisplay } from "./response-display";
-import { ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
 import Link from "next/link";
 import { CATEGORY_OPTIONS, CATEGORY_POLICIES, type EmailCategory } from "@/modules/email/categories";
 import { useProfile } from "@/features/profile/hooks/use-profile";
@@ -25,10 +25,24 @@ export function GenerateForm() {
   const [promptEdited, setPromptEdited] = useState(false);
   const [category, setCategory] = useState<EmailCategory>("custom");
   const [modelId, setModelId] = useState<ModelId>("deepseek");
+  const [userTouchedModel, setUserTouchedModel] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [modelUsed, setModelUsed] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const storedPreferred = profileData?.profile?.preferences?.preferredModel;
+  const effectiveModelId =
+    !userTouchedModel &&
+    typeof storedPreferred === "string" &&
+    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+      ? (storedPreferred as ModelId)
+      : modelId;
+
+  const handleModelChange = (next: ModelId) => {
+    setUserTouchedModel(true);
+    setModelId(next);
+  };
 
   const clonedPrompt = clonePrompt && sessionData?.messages
     ? [...sessionData.messages].reverse().find((message) => message.role === "user")?.content ?? ""
@@ -48,7 +62,7 @@ export function GenerateForm() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId, sessionId: initialSessionId || undefined }),
+        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId: effectiveModelId, sessionId: initialSessionId || undefined }),
       });
 
       const data = await res.json();
@@ -101,7 +115,7 @@ export function GenerateForm() {
             </select>
           </div>
 
-          <ModelSelector value={modelId} onChange={setModelId} />
+          <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
         </div>
 
         <div className="field-group">

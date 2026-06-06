@@ -17,8 +17,8 @@ export interface ProfileData {
     degree?: string;
   };
   preferences: {
-    formalityLevel: FormalityLevel;
-    preferredTone: PreferredTone;
+    formalityLevel?: FormalityLevel;
+    preferredTone?: PreferredTone;
     defaultSignature?: string;
     preferredLanguage?: string;
   };

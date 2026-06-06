@@ -396,8 +396,16 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 | Professional | Designation, Department, Organization, College, Degree |
 | Writing Preferences | Formality Level, Preferred Tone, Signature, Language |
 | Job Application | Resume URL, LinkedIn, Portfolio |
+| AI Settings | Preferred AI Model (default for compose and resume parsing) |
+| Resume | AI-parsed skills, education, experience, projects (see below) |
 
 Each section has independent dirty-state detection and save button. Uses TanStack Query for fetch + mutation with automatic cache invalidation.
+
+The default AI model for both email composition and resume parsing is set in **Settings → AI Settings → Preferred AI Model**. The per-action selector in compose and resume upload still allows one-off overrides without changing the saved preference. The default is applied on first render of the action form; changing the preference while a form is open does not retroactively update it.
+
+### Resume Parsing
+
+The Resume section in Settings accepts PDF, DOCX, or TXT uploads. Parsing is streamed from `POST /api/profile/resume` and persisted to `Profile.resume` (with `rawText` excluded from `GET` responses). The AI model used for parsing is selectable per-upload inside the upload card; defaults to `deepseek`. The chosen upstream model id is stored on `Profile.resume.parsedByModel` for audit.
 
 ---
 

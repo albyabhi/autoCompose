@@ -24,6 +24,7 @@ export interface IProfile extends Document {
     preferredTone: PreferredTone;
     defaultSignature?: string;
     preferredLanguage?: string;
+    preferredModel?: string;
   };
   jobApplication: {
     resumeUrl?: string;
@@ -38,6 +39,7 @@ export interface IProfile extends Document {
       linkedin?: string;
       github?: string;
       portfolio?: string;
+      parsedByModel?: string;
       skills: string[];
     education: {
       degree: string;
@@ -101,6 +103,7 @@ const profileSchema = new Schema<IProfile>(
       },
       defaultSignature: { type: String, trim: true },
       preferredLanguage: { type: String, trim: true, default: "English" },
+      preferredModel: { type: String, trim: true },
     },
     jobApplication: {
       resumeUrl: { type: String, trim: true },
@@ -115,6 +118,7 @@ const profileSchema = new Schema<IProfile>(
       linkedin: { type: String },
       github: { type: String },
       portfolio: { type: String },
+      parsedByModel: { type: String },
       skills: [{ type: String }],
       education: [
         {

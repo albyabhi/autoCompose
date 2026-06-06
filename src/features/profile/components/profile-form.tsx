@@ -6,6 +6,7 @@ import { SkeletonList } from "@/components/ui/skeleton";
 import { useSearchParams } from "next/navigation";
 import { CATEGORY_POLICIES, isEmailCategory, type ProfileSection } from "@/modules/email/categories";
 import { isProfessionalFieldVisible, type ProfessionalType } from "@/modules/profile/professional";
+import { AiSettingsSection } from "./ai-settings-section";
 
 const LANGUAGES = [
   { value: "", label: "Default (English)" },
@@ -301,6 +302,7 @@ export function ProfileForm() {
           />
         );
       })}
+      <AiSettingsSection />
     </div>
   );
 }

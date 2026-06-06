@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getAIProvider } from "@/modules/ai/factory";
+import { MODEL_IDS, type ModelId } from "@/modules/ai/types";
 import { getProfile, upsertProfile } from "@/modules/profile/service";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
@@ -75,6 +76,7 @@ async function attemptExtract<T>(
   systemPrompt: string,
   schema: z.ZodSchema<T>,
   category: string,
+  modelId: ModelId,
   maxTokens: number,
 ): Promise<T | null> {
   const provider = getAIProvider();
@@ -84,7 +86,7 @@ async function attemptExtract<T>(
       const response = await provider.complete({
         prompt: instruction ? `${instruction}\n\n${rawText.slice(0, 6000)}` : rawText.slice(0, 6000),
         category,
-        config: { modelId: "deepseek", temperature: 0, maxTokens },
+        config: { modelId, temperature: 0, maxTokens },
         systemPrompt,
         responseFormat: { type: "json_object" },
       });
@@ -183,9 +185,10 @@ const CombinedSchema = z.object({
 
 export async function parseResumeWithAI(
   rawText: string,
+  modelId: ModelId,
   onProgress?: (progress: number, message: string) => void
 ): Promise<ParsedResume> {
-  logger.info("Parsing resume with single-shot extraction", { textLength: rawText.length });
+  logger.info("Parsing resume with single-shot extraction", { textLength: rawText.length, modelId });
 
   // 1. Fast Regex Fallbacks
   const simple = extractSimpleFields(rawText);
@@ -198,6 +201,7 @@ export async function parseResumeWithAI(
       COMPREHENSIVE_RESUME_PROMPT,
       CombinedSchema,
       "resume_full_extract",
+      modelId,
       1500
     )
   );
@@ -230,6 +234,7 @@ export async function parseResumeWithAI(
     hasLinkedIn: !!result.linkedin,
     hasGithub: !!result.github,
     hasPortfolio: !!result.portfolio,
+    modelUsed: MODEL_IDS[modelId],
   });
 
   return result;
@@ -324,12 +329,13 @@ export async function uploadAndParseResume(
   userId: string,
   buffer: Buffer,
   filename: string,
+  modelId: ModelId,
   onProgress?: (progress: number, message: string) => void
 ): Promise<ParsedResume> {
   onProgress?.(10, "Extracting text from file...");
   const rawText = await extractTextFromFile(buffer, filename);
   
-  const parsed = await parseResumeWithAI(rawText, onProgress);
+  const parsed = await parseResumeWithAI(rawText, modelId, onProgress);
 
   onProgress?.(90, "Finalizing profile data...");
   const existingProfile = await getProfile(userId);
@@ -348,6 +354,7 @@ export async function uploadAndParseResume(
     linkedin: parsed.linkedin,
     github: parsed.github,
     portfolio: parsed.portfolio,
+    parsedByModel: MODEL_IDS[modelId],
     skills: parsed.skills,
     education: parsed.education,
     experience: parsed.experience,

@@ -2122,6 +2122,69 @@ body {
   }
 
   .app-shell__content {
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  .generate-page {
+    padding: 8px 0 80px;
+  }
+
+  .generate-form {
+    padding: 20px;
+    box-shadow: 4px 4px 0 #000;
+  }
+}
+
+@media (max-width: 640px) {
+  .field-select,
+  .model-select {
+    padding: 12px 14px;
+    padding-right: 32px;
+    background-position: right 12px center;
+  }
+
+  /* Resume summary: switch 4 stat boxes from 1x4 flex to 2x2 grid so
+     numbers and labels stop overlapping on narrow screens. */
+  .resume-summary__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Resume summary: allow long name/email/phone to wrap cleanly. */
+  .resume-summary__contact {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* Resume summary: View/Remove buttons wrap to second row if needed
+     and share the row width. */
+  .resume-summary__actions {
+    flex-wrap: wrap;
+  }
+  .resume-summary__actions .settings-section__save,
+  .resume-summary__actions .resume-summary__remove {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  /* Resume upload dropzone: tighten padding on mobile. */
+  .resume-upload {
     padding: 24px 16px;
+  }
+
+  /* Resume modal tabs: shrink padding + font so 4 tabs fit without
+     wrapping text on narrow modals. */
+  .resume-modal__tab {
+    padding: 10px 6px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  /* Resume modal header: keep title + close button on one row without
+     pushing the title off-screen. */
+  .resume-modal__title {
+    font-size: 16px;
   }
 }
