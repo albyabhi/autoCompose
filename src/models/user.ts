@@ -3,6 +3,13 @@ import mongoose, { Schema, Document } from "mongoose";
 export type UserRole = "user" | "admin";
 export type AuthProvider = "credentials" | "oauth";
 
+export interface ITelegramLink {
+  chatId?: string;
+  username?: string;
+  linkedAt?: Date;
+  enabled: boolean;
+}
+
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -12,9 +19,22 @@ export interface IUser extends Document {
   provider: AuthProvider;
   emailVerified?: Date;
   onboardingCompleted: boolean;
+  telegram: ITelegramLink;
+  telegramLoginCode?: string;
+  telegramLoginCodeExpiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const telegramSubSchema = new Schema<ITelegramLink>(
+  {
+    chatId: { type: String, trim: true },
+    username: { type: String, trim: true },
+    linkedAt: { type: Date },
+    enabled: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
 
 const userSchema = new Schema<IUser>(
   {
@@ -53,6 +73,18 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    telegram: {
+      type: telegramSubSchema,
+      default: () => ({ enabled: false }),
+    },
+    telegramLoginCode: {
+      type: String,
+      select: false,
+    },
+    telegramLoginCodeExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -61,6 +93,10 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
+userSchema.index(
+  { "telegram.chatId": 1 },
+  { unique: true, partialFilterExpression: { "telegram.chatId": { $type: "string" } } }
+);
 
 export const User =
   mongoose.models.User ?? mongoose.model<IUser>("User", userSchema);

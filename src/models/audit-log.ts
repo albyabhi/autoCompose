@@ -19,7 +19,17 @@ export type AuditAction =
   | "email.sent"
   | "email.send_failed"
   | "email.credentials_saved"
-  | "email.credentials_removed";
+  | "email.credentials_removed"
+  | "telegram.linked"
+  | "telegram.unlinked"
+  | "telegram.login_code_generated"
+  | "telegram.login_code_attempt"
+  | "telegram.message_received"
+  | "telegram.command_executed"
+  | "telegram.email_generated"
+  | "telegram.email_sent"
+  | "telegram.email_send_failed"
+  | "telegram.webhook_rejected";
 
 export interface IAuditLog extends Document {
   action: AuditAction;

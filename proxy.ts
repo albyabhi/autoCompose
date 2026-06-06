@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const publicPaths = ["/login", "/register", "/auth/error"];
+const publicApiPaths = ["/api/telegram/webhook"];
 
 export async function proxy(request: NextRequest) {
   const session = await auth();
@@ -11,10 +12,11 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     publicPaths.some((p) => pathname.startsWith(p));
   const isApiAuth = pathname.startsWith("/api/auth");
+  const isApiPublic = publicApiPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const isStatic =
     pathname.startsWith("/_next") || pathname.startsWith("/favicon");
 
-  if (isApiAuth || isStatic) {
+  if (isApiAuth || isApiPublic || isStatic) {
     return NextResponse.next();
   }
 
@@ -32,5 +34,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/auth|api/telegram/webhook|_next/static|_next/image|favicon.ico).*)"],
 };

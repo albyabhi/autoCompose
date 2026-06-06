@@ -10,6 +10,9 @@ const envSchema = z.object({
   AUTH_URL: z.string().url().default("http://localhost:3000"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  TELEGRAM_BOT_TOKEN: z.string().min(1, "TELEGRAM_BOT_TOKEN is required").optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string().min(16, "TELEGRAM_WEBHOOK_SECRET must be at least 16 characters").optional(),
+  TELEGRAM_BOT_USERNAME: z.string().min(1, "TELEGRAM_BOT_USERNAME is required").optional(),
 });
 
 let validatedEnv: EnvVars | null = null;
@@ -25,6 +28,9 @@ function getEnv(): EnvVars {
     AUTH_URL: process.env.AUTH_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
+    TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME,
   });
 
   if (!parsed.success) {
@@ -72,6 +78,12 @@ export function getConfig() {
       url: env.NEXT_PUBLIC_APP_URL,
       isDev: env.NODE_ENV === "development",
       isProd: env.NODE_ENV === "production",
+    },
+    telegram: {
+      botToken: env.TELEGRAM_BOT_TOKEN ?? null,
+      webhookSecret: env.TELEGRAM_WEBHOOK_SECRET ?? null,
+      botUsername: env.TELEGRAM_BOT_USERNAME ?? null,
+      enabled: !!env.TELEGRAM_BOT_TOKEN && !!env.TELEGRAM_WEBHOOK_SECRET,
     },
   } as const;
 }

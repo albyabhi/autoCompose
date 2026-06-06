@@ -1,5 +1,6 @@
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { ResumeWidget } from "@/features/profile/components/resume-widget";
+import { TelegramCard } from "@/components/settings/telegram-card";
 
 export default function SettingsPage() {
   return (
@@ -8,6 +9,7 @@ export default function SettingsPage() {
       <p className="settings-page__subtitle">
         Your profile is used to personalize AI-generated emails
       </p>
+      <TelegramCard />
       <ProfileForm />
       <ResumeWidget />
     </div>

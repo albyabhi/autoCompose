@@ -2353,3 +2353,116 @@ body {
     font-size: 16px;
   }
 }
+
+/* =========== TELEGRAM CARD =========== */
+
+.telegram-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.telegram-card__title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.telegram-card__muted {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.telegram-card__muted a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.telegram-card__error {
+  font-size: 14px;
+  color: var(--pink);
+  font-weight: 700;
+}
+
+.telegram-card__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.telegram-card__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid var(--black);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.telegram-card__pill--ok {
+  background: var(--green);
+  color: var(--black);
+}
+
+.telegram-card__pill--off {
+  background: var(--surface);
+  color: #555;
+  box-shadow: 2px 2px 0 #888;
+}
+
+.telegram-card__username {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.telegram-card__code {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: var(--border-w) dashed var(--black);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.telegram-card__label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #555;
+}
+
+.telegram-card__code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.telegram-card__code-value {
+  font-family: var(--font);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  background: var(--white);
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.telegram-card__countdown {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--black);
+}
