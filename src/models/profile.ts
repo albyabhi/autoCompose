@@ -31,6 +31,10 @@ export interface IProfile extends Document {
     linkedIn?: string;
     portfolio?: string;
   };
+  emailCredentials?: {
+    gmailAddress?: string;
+    encryptedAppPassword?: string;
+  };
     resume?: {
       rawText?: string;
       name?: string;
@@ -109,6 +113,10 @@ const profileSchema = new Schema<IProfile>(
       resumeUrl: { type: String, trim: true },
       linkedIn: { type: String, trim: true },
       portfolio: { type: String, trim: true },
+    },
+    emailCredentials: {
+      gmailAddress: { type: String, trim: true },
+      encryptedAppPassword: { type: String },
     },
     resume: {
       rawText: { type: String },

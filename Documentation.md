@@ -24,11 +24,12 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 │  GET  /api/sessions    → requireAuth → listSessions (paginated)  │
 │  GET  /api/sessions/:id → requireAuth → getSession + messages    │
 │  PATCH /api/sessions/:id → requireAuth → updateSession           │
-│  DELETE /api/sessions/:id → requireAuth → deleteSession (soft)   │
+│  DELETE /api/sessions/:id → requireAuth → deleteSession (soft)  │
 │  PATCH /api/sessions/:id/archive → requireAuth → toggleArchive   │
 │  GET  /api/sessions/:id/messages → requireAuth → getMessages     │
 │  GET  /api/profile      → requireAuth → getProfile               │
 │  PATCH /api/profile     → requireAuth → updateProfile            │
+│  POST /api/send-email   → requireAuth → rate-limit → decrypt → SMTP│
 │  GET  /api/auth/me      → getCurrentUser (enriched)              │
 └──────────────────────────────┬───────────────────────────────────┘
           ┌────────────────────┼────────────────────┐
@@ -61,6 +62,8 @@ src/
 │   │   │   └── me/route.ts       # Current user (enriched)
 │   │   ├── generate/route.ts     # POST /api/generate
 │   │   ├── profile/route.ts      # GET/PATCH profile
+│   │   ├── profile/resume/route.ts  # GET/POST/DELETE resume
+│   │   ├── send-email/route.ts   # POST /api/send-email
 │   │   └── sessions/             # Session CRUD + messages
 │   ├── globals.css               # Neubrutalist design system
 │   ├── layout.tsx                # Root layout (providers)
@@ -84,6 +87,7 @@ src/
 │   ├── generate-form.tsx         # Prompt input + category + model selector
 │   ├── model-selector.tsx
 │   ├── response-display.tsx      # Loading/error/empty/success states
+│   ├── send-email-dialog.tsx     # Reusable send modal (recipient/subject/body)
 │   └── providers.tsx             # TanStack Query provider
 │
 ├── features/                     # Feature-based modules
@@ -101,11 +105,15 @@ src/
 │   │       ├── session-card.tsx   # Inline rename, archive, delete
 │   │       ├── session-list.tsx   # Infinite scroll list
 │   │       ├── session-view.tsx   # Full session with messages
+│   │       ├── message-bubble.tsx # Role/content + Send via Email action
 │   │       └── new-session-dialog.tsx
 │   └── profile/                  # Profile management
 │       ├── api/profile.ts
 │       ├── hooks/use-profile.ts
-│       └── components/profile-form.tsx  # 4-section settings form
+│       └── components/
+│           ├── profile-form.tsx        # 5-section settings form host
+│           ├── ai-settings-section.tsx  # Preferred AI Model
+│           └── email-credentials-section.tsx  # Gmail + App Password
 │
 ├── hooks/
 │   └── use-current-user.ts       # Client-side CurrentUser hook
@@ -123,6 +131,7 @@ src/
 │   ├── errors.ts                 # AppError hierarchy
 │   ├── logger.ts                 # Level-based structured logging
 │   ├── audit.ts                  # Audit log service
+│   ├── crypto.ts                 # AES-256-GCM (v1:iv:tag:ct) — server-only
 │   └── rate-limit.ts             # In-memory sliding window
 │
 ├── models/                       # Mongoose schemas
@@ -139,9 +148,12 @@ src/
 │   │   ├── provider.ts           # BaseAIProvider with ToT/DCE prompt
 │   │   ├── providers/nvidia.ts   # NVIDIA NIM via OpenAI SDK
 │   │   └── factory.ts
-│   ├── email/                    # Email generation
-│   │   ├── validation.ts
-│   │   └── service.ts            # Orchestrates AI + persistence + messages
+│   ├── email/                    # Email generation + delivery
+│   │   ├── validation.ts         # generateEmailSchema, sendEmailSchema
+│   │   ├── service.ts            # AI generation + persistence + messages
+│   │   ├── sender.ts             # Nodemailer transport per-send (fresh)
+│   │   ├── content.ts            # parseEmailContent() subject/body splitter
+│   │   └── categories.ts         # Policy registry + readiness types
 │   ├── profile/                  # Profile CRUD
 │   │   ├── types.ts
 │   │   ├── validation.ts
@@ -163,6 +175,11 @@ src/
 │   ├── api-response.ts           # success() / created() / failure()
 │   └── validation.ts             # validate() wrapper
 └── auth.ts                       # NextAuth v5 config (JWT + credentials)
+
+vitest-shims/                     # Vitest-only stubs
+├── server-only.ts                # Empty module for "server-only" alias
+└── setup.ts                      # Test env defaults
+vitest.config.ts                  # @ alias + server-only alias + setupFiles
 ```
 
 ---
@@ -323,6 +340,53 @@ Update profile sections.
 }
 ```
 
+To save Gmail credentials:
+
+```json
+{ "emailCredentials": { "gmailAddress": "me@gmail.com", "appPassword": "abcd efgh ijkl mnop" } }
+```
+
+To remove Gmail credentials:
+
+```json
+{ "emailCredentials": null }
+```
+
+The password is encrypted server-side before write; the encrypted form is never returned by GET. The Zod schema strips whitespace and requires exactly 16 characters.
+
+### `POST /api/send-email`
+
+Send a generated email via the user's own Gmail account (App Password auth). Requires the user to have configured Gmail credentials via `PATCH /api/profile` first.
+
+**Rate limit:** 5 requests / 60 s per user.
+
+**Request Body:**
+
+```json
+{
+  "to": "recipient@example.com",
+  "subject": "Leave request for next week",
+  "body": "Hi Manager,\n\nPlease consider my leave.\n\nBest,\nArjun"
+}
+```
+
+**Response (200):**
+
+```json
+{ "success": true, "data": { "sent": true } }
+```
+
+**Errors:**
+
+| Code | Status | Cause |
+|---|---|---|
+| `CREDENTIALS_NOT_CONFIGURED` | 400 | User has not saved Gmail credentials yet. |
+| `CREDENTIALS_INVALID` | 400 | Gmail rejected the credentials (revoked or wrong). |
+| `CREDENTIALS_DECRYPTION_FAILED` | 500 | Stored blob can't be decrypted (AUTH_SECRET rotated, tampered record). |
+| `SEND_FAILED` | 502 | SMTP / network error. |
+| `VALIDATION_ERROR` | 400 | `to` / `subject` / `body` failed Zod. |
+| `RATE_LIMIT` | 429 | > 5 sends in 60 s. |
+
 ### `GET /api/auth/me`
 
 Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCompleted`).
@@ -333,9 +397,14 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 |---|---|---|
 | `VALIDATION_ERROR` | 400 | Input validation failed |
 | `UNAUTHORIZED` | 401 | Authentication required |
+| `FORBIDDEN` | 403 | Access denied |
 | `NOT_FOUND` | 404 | Resource not found |
 | `RATE_LIMIT` | 429 | Too many requests |
 | `AI_PROVIDER_ERROR` | 502 | AI API error |
+| `CREDENTIALS_NOT_CONFIGURED` | 400 | Gmail credentials not set in Settings |
+| `CREDENTIALS_INVALID` | 400 | Gmail rejected the stored App Password |
+| `CREDENTIALS_DECRYPTION_FAILED` | 500 | Stored credentials blob cannot be decrypted |
+| `SEND_FAILED` | 502 | SMTP / network error during send |
 | `INTERNAL_ERROR` | 500 | Unexpected error |
 
 ---
@@ -390,22 +459,48 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 
 ### Profile Management
 
-| Section | Fields |
-|---|---|
-| Personal | Full Name, Phone, Location |
-| Professional | Designation, Department, Organization, College, Degree |
-| Writing Preferences | Formality Level, Preferred Tone, Signature, Language |
-| Job Application | Resume URL, LinkedIn, Portfolio |
-| AI Settings | Preferred AI Model (default for compose and resume parsing) |
-| Resume | AI-parsed skills, education, experience, projects (see below) |
+| Section | Component | Fields |
+|---|---|---|
+| Personal | inline (ProfileForm) | Full Name, Phone, Location |
+| Professional | inline (ProfileForm) | Designation, Department, Organization, College, Degree |
+| Writing Preferences | inline (ProfileForm) | Formality Level, Preferred Tone, Signature, Language |
+| Job Application | inline (ProfileForm) | Resume URL, LinkedIn, Portfolio |
+| AI Settings | `AiSettingsSection` | Preferred AI Model (default for compose and resume parsing) |
+| Email Credentials | `EmailCredentialsSection` | Gmail address, encrypted App Password (5th section) |
+| Resume | (see below) | AI-parsed skills, education, experience, projects |
 
-Each section has independent dirty-state detection and save button. Uses TanStack Query for fetch + mutation with automatic cache invalidation.
+The first four sections are rendered by `ProfileForm` with the shared dirty-state / save button pattern. `AiSettingsSection` and `EmailCredentialsSection` are mounted as dedicated components beneath the form so they can host section-specific UX (status badges, destructive remove actions, password masking, help links).
 
 The default AI model for both email composition and resume parsing is set in **Settings → AI Settings → Preferred AI Model**. The per-action selector in compose and resume upload still allows one-off overrides without changing the saved preference. The default is applied on first render of the action form; changing the preference while a form is open does not retroactively update it.
 
 ### Resume Parsing
 
 The Resume section in Settings accepts PDF, DOCX, or TXT uploads. Parsing is streamed from `POST /api/profile/resume` and persisted to `Profile.resume` (with `rawText` excluded from `GET` responses). The AI model used for parsing is selectable per-upload inside the upload card; defaults to `deepseek`. The chosen upstream model id is stored on `Profile.resume.parsedByModel` for audit.
+
+### Email Sending
+
+AutoCompose can deliver a generated email through the user's own Gmail account, authenticated with a Google **App Password** (not the Gmail password). The full path:
+
+1. **Configure** — In **Settings → Email Credentials**, the user enters their Gmail address and a 16-character App Password. The password is validated (whitespace stripped, length === 16) and encrypted with AES-256-GCM (`v1:iv:tag:ct` hex) using a key derived from `AUTH_SECRET` via `scryptSync` (`src/lib/crypto.ts`). The encrypted form is stored on `Profile.emailCredentials.encryptedAppPassword` and is **never** returned by the API — `sanitizeProfile()` is the single secret-stripping site.
+2. **Trigger** — The "Send via Email" button appears in two places:
+   - On the compose page's `ResponseDisplay` success card (the freshly generated email).
+   - On every assistant message in a session (`MessageBubble` in `/sessions/:id`), so the user can re-send any past email.
+   In both cases the button reads `emailCredentials.emailConfigured` from the cached profile (TanStack Query, `["profile"]`); when `false` it is disabled with a tooltip and a "Connect Gmail in Settings" hint.
+3. **Compose** — The `SendEmailDialog` pre-fills the subject and body by calling `parseEmailContent(content)` (`src/modules/email/content.ts`), which strips a leading `Subject: ...` line if present (case-insensitive) and trims the body. The user can override the recipient, subject, and body.
+4. **Send** — `POST /api/send-email` runs through:
+   1. `requireAuth()` (rate-limited at 5/min per user via `checkRateLimit('send-email:${userId}')`).
+   2. `validate(sendEmailSchema)` — Zod-validated `to` / `subject` / `body`.
+   3. `Profile.findOne(ownedFilter(userId)).select('emailCredentials')` — ownership-scoped, projection-minimised.
+   4. `decrypt(encryptedAppPassword)` — decryption happens at the route boundary. If this throws, the route returns `CREDENTIALS_DECRYPTION_FAILED` 500.
+   5. `sendEmail(...)` (`src/modules/email/sender.ts`) — builds a **fresh** Nodemailer transporter per call (`smtp.gmail.com:465`, `secure: true`, `connectionTimeout: 10s`, `socketTimeout: 15s`, `logger: false`, `debug: false`), calls `sendMail`, then `transporter.close()` in `finally`. The plaintext password lives only for the request lifetime.
+   6. `recordAudit('email.sent' | 'email.send_failed')` — never logs the password; logs `to`, `subjectLength`, `bodyLength`, and the failure reason.
+5. **Errors** — `EAUTH` from Nodemailer → `CREDENTIALS_INVALID` 400. Other SMTP errors → `SEND_FAILED` 502. Missing credentials → `CREDENTIALS_NOT_CONFIGURED` 400.
+
+**Security invariants** (enforced in code):
+
+- `encryptedAppPassword` is written only by `updateProfile()` (`src/modules/profile/service.ts:53-67`) and is read by `decrypt()` only inside the `send-email` route.
+- The `from` header is the user's own Gmail (the SMTP authenticator) — we never spoof a sender.
+- Rotating `AUTH_SECRET` invalidates all stored passwords; users must re-enter them in Settings. This is the only secret-rotation failure mode and is documented in the Settings hint.
 
 ---
 
@@ -471,8 +566,10 @@ Index: `{ sessionId: 1, createdAt: 1 }`.
 | `userId` | string (unique) | Owner |
 | `personal` | subdoc | Name, phone, location |
 | `professional` | subdoc | Designation, org, education |
-| `preferences` | subdoc | Tone, formality, signature, language |
+| `preferences` | subdoc | Tone, formality, signature, language, preferred model |
 | `jobApplication` | subdoc | Resume, LinkedIn, portfolio URLs |
+| `emailCredentials` | subdoc | `gmailAddress` (string), `encryptedAppPassword` (AES-256-GCM hex) — both optional |
+| `resume` | subdoc | AI-parsed skills, education, experience, projects (with `rawText` stripped from GET) |
 
 ### EmailTemplate
 
@@ -541,7 +638,6 @@ Based on Neubrutalist design specification in `skills/ui-skill.md`.
 | Border | `3px solid #000` |
 | Shadow | `6px 6px 0 #000` |
 | Radius | `8px` |
-| Font | `Space Grotesk` |
 | Primary | `#ffd700` (Yellow) |
 | Error | `#ff4d6d` (Pink) |
 | Success | `#06d6a0` (Green) |
@@ -567,6 +663,22 @@ Every interactive component implements:
 | `Card` | `hover` (adds interactive shadow), `CardHeader/CardBody/CardFooter` |
 | `Skeleton` | `width`, `height`, `SkeletonCard`, `SkeletonList` |
 | `EmptyState` | `icon`, `title`, `description`, `action` |
+
+### Email-sending UI classes (in `globals.css`)
+
+| Class | Purpose |
+|---|---|
+| `.send-btn` / `.send-btn--inline` | Blue neubrutalist button on `ResponseDisplay` and `MessageBubble`. Inline variant is smaller. |
+| `.send-btn-hint` | Underlined "Connect Gmail in Settings" link shown when the button is disabled. |
+| `.response-actions` / `.message__actions` | Flex containers for the action row. |
+| `.dialog-backdrop` | Existing dark overlay (50% black) for the send dialog and other modals. |
+| `.dialog__header` | Flex row with a 2px black bottom border — separates title from body. |
+| `.dialog__close` | 36×36 square button, turns pink on hover. |
+| `.dialog__body` | Flex column with 16px gap for form fields. |
+| `.dialog__title` | Existing 24px / 800 weight / uppercase title. |
+| `.dialog__actions` | Existing flex row for footer buttons. |
+| `.settings-badge` / `--success` / `--muted` | Pill-shaped status badges (e.g. "Connected" / "Not connected") with a 2px hard shadow and dot indicator. |
+| `.settings-section__title-row` | Flex row that hosts the section title and a status badge. |
 
 ---
 
@@ -620,6 +732,33 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-06-06b — Send via Email on session messages + visual styling
+
+- **New `MessageBubble` component** (`src/features/sessions/components/message-bubble.tsx`) — extracted from `session-view.tsx` so the "Send via Email" action is available on every assistant message in `/sessions/:id` (not just the freshly generated one on `/`). User messages render without the action.
+- **New `parseEmailContent()` helper** (`src/modules/email/content.ts`) — splits a generated email's content into `{ subject, body }` by detecting a leading `Subject: ...` line (case-insensitive, trimmed) and stripping a single trailing blank line. Falls back to the first non-empty line as the subject and caps at 200 chars. Reused by both `ResponseDisplay` and `MessageBubble` (DRY).
+- **New unit tests** — `src/modules/email/content.test.ts` (9 cases) covers subject detection, case-insensitivity, blank-line stripping, length cap, empty input, and the strip-only-first-occurrence rule.
+- **Neubrutalist styles** added to `globals.css` for the email-sending surfaces:
+  - `.send-btn` (blue, hard shadow, hover lift) + `.send-btn--inline` (compact variant for inside message bubbles) + `.send-btn-hint` (underlined Settings link).
+  - `.response-actions` / `.message__actions` (flex wrap containers).
+  - `.dialog__header` (flex row with bottom border) + `.dialog__close` (36×36 pink-on-hover close button) + `.dialog__body` (form-area spacing).
+  - `.settings-badge` / `--success` (green pill) / `--muted` (gray pill) + `.settings-section__title-row` (title + badge layout).
+- **Dialog overlay class aligned** — `SendEmailDialog` now uses the project's existing `.dialog-backdrop` class instead of a separate `.dialog-overlay`.
+- **No API / schema / audit changes** — pure presentation refactor on top of the prior round.
+
+### 2026-06-06 — Per-user Gmail credentials + Send via Email
+
+- **New `emailCredentials` subdoc on `Profile`** — stores `gmailAddress` and an AES-256-GCM encrypted `appPassword`. Both optional; absence means the user has not configured email sending.
+- **AES-256-GCM at rest** — key derived from `AUTH_SECRET` via `scryptSync` in `src/lib/crypto.ts`. Storage format is `v1:iv:tag:ciphertext` (hex). No new env vars, no new npm packages.
+- **Secret never returned by the API** — `sanitizeProfile()` is the single secret-stripping site: GET `/api/profile` returns only `emailCredentials: { gmailAddress, emailConfigured }`.
+- **New `POST /api/send-email` route** — decrypts at the boundary, hands plaintext to `src/modules/email/sender.ts`, which builds a fresh Nodemailer transporter per send (explicit `smtp.gmail.com:465`, 10s connect / 15s socket timeouts, `logger: false, debug: false`). Rate-limited at 5 req/min per user. Decryption failures → `CREDENTIALS_DECRYPTION_FAILED` 500; auth failures → `CREDENTIALS_INVALID` 400.
+- **New audit actions** — `email.sent`, `email.send_failed`, `email.credentials_saved`, `email.credentials_removed` (never log the password).
+- **New `EmailCredentialsSection` (5th Settings section)** — masked password input, "Connected" green badge, "Remove" button with `window.confirm`, help link to Google App Passwords page, hint about 2-Step Verification.
+- **New `Send via Email` button on `ResponseDisplay`** — disabled with tooltip + Settings link when credentials aren't configured; opens a `SendEmailDialog` modal otherwise.
+- **Tests** — `src/lib/crypto.test.ts` (14 cases: round-trip, tamper, malformed, version mismatch) and `src/modules/email/sender.test.ts` (6 cases: transporter config, timeouts, no logger/debug, close on success and failure, `from` header shapes).
+- **Vitest shim** — `vitest-shims/server-only.ts` and `vitest-shims/setup.ts` mock the undeclared `server-only` module and provide test env vars.
+- **Local type declaration** — `src/types/nodemailer.d.ts` (no `@types/nodemailer` install needed).
+- **Operator note** — rotating `AUTH_SECRET` invalidates all stored app passwords. Documented in the Settings hint.
 
 ### 2026-06-05 — Auth Simplification & Cleanup
 

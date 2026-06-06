@@ -22,6 +22,7 @@ export interface ProfileSource {
     preferredModel?: string;
   };
   jobApplication?: { resumeUrl?: string; linkedIn?: string; portfolio?: string };
+  emailCredentials?: { gmailAddress?: string; encryptedAppPassword?: string };
   resume?: {
     rawText?: string;
     email?: string;
@@ -193,6 +194,10 @@ export function buildProfileContext(
 export function sanitizeProfile(profile: ProfileSource | null): ProfileSource | null {
   if (!profile) return null;
   const safeResume = profile.resume ? { ...profile.resume, rawText: undefined } : undefined;
+  const safeEmailCredentials = {
+    gmailAddress: profile.emailCredentials?.gmailAddress ?? null,
+    emailConfigured: !!profile.emailCredentials?.encryptedAppPassword,
+  };
   return JSON.parse(JSON.stringify({
     personal: profile.personal ?? {},
     professional: profile.professional
@@ -200,6 +205,7 @@ export function sanitizeProfile(profile: ProfileSource | null): ProfileSource | 
       : {},
     preferences: profile.preferences ?? {},
     jobApplication: profile.jobApplication ?? {},
+    emailCredentials: safeEmailCredentials,
     ...(safeResume ? { resume: safeResume } : {}),
   }));
 }

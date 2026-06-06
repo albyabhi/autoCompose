@@ -59,6 +59,20 @@ export const jobApplicationSchema = z.object({
   portfolio: z.string().url("Portfolio URL must be a valid URL").optional().or(z.literal("")),
 });
 
+export const emailCredentialsSchema = z.union([
+  z.object({
+    gmailAddress: z.string().email("Gmail address must be a valid email"),
+    appPassword: z
+      .string()
+      .transform((value) => value.replace(/\s+/g, ""))
+      .refine(
+        (value) => value.length === 16,
+        "App password must be 16 characters (Google App Password format)"
+      ),
+  }),
+  z.null(),
+]);
+
 export const resumeEducationSchema = z.object({
   degree: z.string(),
   institution: z.string().optional(),
@@ -97,6 +111,7 @@ export const profileUpdateSchema = z.object({
   professional: professionalSchema.optional(),
   preferences: preferencesSchema.optional(),
   jobApplication: jobApplicationSchema.optional(),
+  emailCredentials: emailCredentialsSchema.optional(),
 });
 
 export const profileCreateSchema = z.object({

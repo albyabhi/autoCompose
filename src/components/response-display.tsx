@@ -1,5 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { useProfile } from "@/features/profile/hooks/use-profile";
+import { parseEmailContent } from "@/modules/email/content";
+import { SendEmailDialog } from "./send-email-dialog";
+
 interface ResponseDisplayProps {
   content: string | null;
   modelUsed: string | null;
@@ -8,6 +14,12 @@ interface ResponseDisplayProps {
 }
 
 export function ResponseDisplay({ content, modelUsed, loading, error }: ResponseDisplayProps) {
+  const { data: profileData, isLoading: isProfileLoading } = useProfile();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const emailConfigured = !!profileData?.profile?.emailCredentials?.emailConfigured;
+  const gmailAddress = profileData?.profile?.emailCredentials?.gmailAddress;
+
   if (loading) {
     return (
       <div className="response-card response-loading">
@@ -38,6 +50,8 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
     );
   }
 
+  const { subject, body } = parseEmailContent(content);
+
   return (
     <div className="response-card response-success">
       <div className="response-header">
@@ -49,12 +63,43 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
           <p key={i}>{line || "\u00A0"}</p>
         ))}
       </div>
-      <button
-        className="copy-btn"
-        onClick={() => navigator.clipboard.writeText(content)}
-      >
-        Copy to Clipboard
-      </button>
+      <div className="response-actions">
+        <button
+          className="copy-btn"
+          onClick={() => navigator.clipboard.writeText(content)}
+        >
+          Copy to Clipboard
+        </button>
+        <button
+          className="send-btn"
+          onClick={() => {
+            if (emailConfigured) setDialogOpen(true);
+          }}
+          disabled={!emailConfigured || isProfileLoading}
+          title={
+            emailConfigured
+              ? `Send this email from ${gmailAddress ?? "your Gmail"}`
+              : "Add Gmail credentials in Settings to enable sending"
+          }
+        >
+          Send via Email
+        </button>
+        {!emailConfigured && !isProfileLoading && (
+          <Link
+            className="send-btn-hint"
+            href="/settings?focus=email-credentials"
+          >
+            Connect Gmail in Settings
+          </Link>
+        )}
+      </div>
+
+      <SendEmailDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        defaultSubject={subject}
+        defaultBody={body}
+      />
     </div>
   );
 }

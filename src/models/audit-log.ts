@@ -15,7 +15,11 @@ export type AuditAction =
   | "session.updated"
   | "session.deleted"
   | "session.archived"
-  | "session.unarchived";
+  | "session.unarchived"
+  | "email.sent"
+  | "email.send_failed"
+  | "email.credentials_saved"
+  | "email.credentials_removed";
 
 export interface IAuditLog extends Document {
   action: AuditAction;

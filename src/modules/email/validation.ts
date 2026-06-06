@@ -14,4 +14,11 @@ export const generateEmailSchema = z.object({
   sessionId: z.string().optional(),
 });
 
+export const sendEmailSchema = z.object({
+  to: z.string().email("Recipient must be a valid email"),
+  subject: z.string().min(1, "Subject is required").max(200, "Subject cannot exceed 200 characters"),
+  body: z.string().min(1, "Body is required").max(20000, "Body cannot exceed 20000 characters"),
+});
+
 export type GenerateEmailInput = z.infer<typeof generateEmailSchema>;
+export type SendEmailInput = z.infer<typeof sendEmailSchema>;

@@ -2089,6 +2089,171 @@ body {
   gap: 16px;
 }
 
+/* =========== RESPONSE / MESSAGE ACTIONS =========== */
+
+.response-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.message__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* =========== SEND BUTTON =========== */
+
+.send-btn {
+  padding: 10px 20px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  background: var(--blue);
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: 4px 4px 0 #000;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.send-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.send-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.send-btn--inline {
+  font-size: 12px;
+  padding: 8px 14px;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.send-btn-hint {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.send-btn-hint:hover {
+  color: var(--blue);
+}
+
+/* =========== DIALOG EXTENSIONS =========== */
+
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--black);
+}
+
+.dialog__close {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--black);
+  background: var(--white);
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: 3px 3px 0 #000;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 0;
+}
+
+.dialog__close:hover {
+  background: var(--pink);
+  color: var(--white);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #000;
+}
+
+.dialog__close:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========== SETTINGS SECTION HEADER ROW =========== */
+
+.settings-section__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* =========== STATUS BADGES =========== */
+
+.settings-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid var(--black);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.settings-badge::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.settings-badge--success {
+  background: var(--green);
+  color: var(--black);
+}
+
+.settings-badge--muted {
+  background: var(--surface);
+  color: #555;
+  box-shadow: 2px 2px 0 #888;
+}
+
 /* =========== RESPONSIVE =========== */
 
 @media (max-width: 768px) {

@@ -28,6 +28,10 @@ export interface ProfileData {
     linkedIn: string;
     portfolio: string;
   };
+  emailCredentials: {
+    gmailAddress: string | null;
+    emailConfigured: boolean;
+  };
 }
 
 export interface ProfileReadiness {
@@ -51,5 +55,20 @@ export async function updateProfile(
 ): Promise<ProfileResponse> {
   return api.patch<ProfileResponse>("/api/profile", {
     [section]: data,
+  });
+}
+
+export async function setEmailCredentials(payload: {
+  gmailAddress: string;
+  appPassword: string;
+}): Promise<ProfileResponse> {
+  return api.patch<ProfileResponse>("/api/profile", {
+    emailCredentials: payload,
+  });
+}
+
+export async function removeEmailCredentials(): Promise<ProfileResponse> {
+  return api.patch<ProfileResponse>("/api/profile", {
+    emailCredentials: null,
   });
 }

@@ -4,6 +4,7 @@ import { useSession } from "../hooks/use-sessions";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { MessageBubble } from "./message-bubble";
 import { useRouter } from "next/navigation";
 
 interface SessionViewProps {
@@ -78,20 +79,7 @@ export function SessionView({ id }: SessionViewProps) {
             }
           />
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`message ${msg.role === "user" ? "message--user" : "message--assistant"}`}
-            >
-              <div className="message__role">
-                {msg.role === "user" ? "You" : "AI"}
-                {msg.modelUsed && (
-                  <span className="message__model">{msg.modelUsed}</span>
-                )}
-              </div>
-              <div className="message__content">{msg.content}</div>
-            </div>
-          ))
+          messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
         )}
       </div>
     </div>

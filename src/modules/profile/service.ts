@@ -3,6 +3,8 @@ import { Profile, IProfile } from "@/models/profile";
 import { NotFoundError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { ownedFilter } from "@/lib/auth/ownership";
+import { encrypt } from "@/lib/crypto";
+import { recordAudit } from "@/lib/audit";
 import type { ProfileUpdateInput, ProfileCreateInput } from "./validation";
 import { normalizeProfessionalForSave } from "./professional";
 
@@ -55,6 +57,20 @@ export async function updateProfile(
   if (data.preferences) update["preferences"] = { ...existing.toObject().preferences, ...data.preferences };
   if (data.jobApplication) update["jobApplication"] = { ...existing.toObject().jobApplication, ...data.jobApplication };
 
+  let credentialsAction: "saved" | "removed" | null = null;
+  if (data.emailCredentials !== undefined) {
+    if (data.emailCredentials === null) {
+      update["emailCredentials"] = null;
+      credentialsAction = "removed";
+    } else {
+      update["emailCredentials"] = {
+        gmailAddress: data.emailCredentials.gmailAddress,
+        encryptedAppPassword: encrypt(data.emailCredentials.appPassword),
+      };
+      credentialsAction = "saved";
+    }
+  }
+
   const profile = await Profile.findOneAndUpdate(
     ownedFilter(userId),
     { $set: update },
@@ -66,6 +82,21 @@ export async function updateProfile(
   }
 
   logger.info("Profile updated", { userId });
+  if (credentialsAction === "saved") {
+    void recordAudit({
+      action: "email.credentials_saved",
+      entityType: "Profile",
+      entityId: userId,
+      userId,
+    });
+  } else if (credentialsAction === "removed") {
+    void recordAudit({
+      action: "email.credentials_removed",
+      entityType: "Profile",
+      entityId: userId,
+      userId,
+    });
+  }
   return JSON.parse(JSON.stringify(profile));
 }
 
