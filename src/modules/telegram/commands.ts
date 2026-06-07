@@ -7,29 +7,17 @@ import { recordAudit } from "@/lib/audit";
 import { getConfig } from "@/config";
 import { clearState } from "@/modules/telegram/state";
 import { mainMenuKeyboard } from "@/modules/telegram/keyboards";
-import { buildDeepLink } from "@/modules/telegram/renderer";
 import { handleMainMenu, startCompose } from "@/modules/telegram/flows/compose";
 import bcrypt from "bcryptjs";
-
-function generateBase36Code(length = 8): string {
-  const alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
-  const bytes = new Uint8Array(length);
-  if (typeof globalThis.crypto?.getRandomValues === "function") {
-    globalThis.crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < length; i++) bytes[i] = Math.floor(Math.random() * 256);
-  }
-  let out = "";
-  for (let i = 0; i < length; i++) {
-    out += alphabet[bytes[i] % alphabet.length];
-  }
-  return out;
-}
 
 export async function handleStart(ctx: Context): Promise<void> {
   const chatId = ctx.chat?.id;
   const fromUsername = ctx.from?.username;
-  const payload = ctx.match?.toString().trim() ?? "";
+  const rawText = ctx.message?.text?.trim() ?? "";
+  let payload = ctx.match?.toString().trim() ?? "";
+  if (!payload && /^[\/!]start\b/i.test(rawText)) {
+    payload = rawText.replace(/^[\/!]start\b/i, "").trim();
+  }
 
   await connectDB();
 
@@ -59,8 +47,10 @@ export async function handleStart(ctx: Context): Promise<void> {
       action: "telegram.login_code_attempt",
       metadata: { chatId: chatId?.toString(), reason: "invalid_or_expired" },
     });
+    const cfg = getConfig();
+    const settingsUrl = `${cfg.app.url.replace(/\/$/, "")}/settings`;
     await ctx.reply(
-      "❌ This code is invalid or has expired. Generate a new one from the web Settings page."
+      `❌ This code is invalid or has expired.\n\nGenerate a new one at: ${settingsUrl}`
     );
     return;
   }
@@ -78,12 +68,12 @@ export async function handleStart(ctx: Context): Promise<void> {
   }
 
   const cfg = getConfig();
-  const exampleCode = generateBase36Code();
+  const settingsUrl = `${cfg.app.url.replace(/\/$/, "")}/settings`;
   const help = cfg.telegram.botUsername
-    ? `1. Open the web app Settings page.\n2. Generate a login code.\n3. Tap the link or paste the code here.`
-    : `1. Open the web app Settings page.\n2. Generate a login code.\n3. Send the code here.`;
+    ? `1. Open Settings → Telegram Integration.\n2. Click <b>Generate login code</b>.\n3. Tap the deep link or paste the code here.`
+    : `1. Open Settings → Telegram Integration.\n2. Click <b>Generate login code</b>.\n3. Send the code here.`;
   await ctx.reply(
-    `👋 <b>Welcome to AutoCompose.</b>\n\n${help}\n\nExample deep link: <code>${buildDeepLink(cfg.telegram.botUsername ?? "YourBot", exampleCode)}</code>`
+    `👋 <b>Welcome to AutoCompose.</b>\n\n${help}\n\n🌐 Open Settings: ${settingsUrl}`
   );
 }
 
