@@ -157,7 +157,5 @@ const profileSchema = new Schema<IProfile>(
   }
 );
 
-profileSchema.index({ userId: 1 });
-
 export const Profile =
   mongoose.models.Profile ?? mongoose.model<IProfile>("Profile", profileSchema);

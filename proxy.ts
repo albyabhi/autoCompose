@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const publicPaths = ["/login", "/register", "/auth/error"];
-const publicApiPaths = ["/api/telegram/webhook"];
+const publicApiPaths = ["/api/telegram/webhook", "/api/telegram/health"];
 
 export async function proxy(request: NextRequest) {
   const session = await auth();
@@ -34,5 +34,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/auth|api/telegram/webhook|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/auth|api/telegram/webhook|api/telegram/health|_next/static|_next/image|favicon.ico).*)"],
 };

@@ -28,7 +28,7 @@ vi.mock("@/lib/logger", () => ({ logger: loggerMock }));
 
 const handleUpdateMock = vi.hoisted(() => vi.fn());
 vi.mock("@/modules/telegram/bot", () => ({
-  ensureBotMiddleware: () => ({
+  ensureBotMiddleware: async () => ({
     handleUpdate: handleUpdateMock,
   }),
   isTelegramEnabled: () => env.enabled,

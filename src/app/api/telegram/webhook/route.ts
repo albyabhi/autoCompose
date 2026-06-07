@@ -5,6 +5,9 @@ import { recordAudit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 import { timingSafeEqual } from "crypto";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 function constantTimeEquals(a: string, b: string): boolean {
   const aBuf = Buffer.from(a);
   const bBuf = Buffer.from(b);
@@ -43,11 +46,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const bot = ensureBotMiddleware();
+    const bot = await ensureBotMiddleware();
     await bot.handleUpdate(update as Parameters<typeof bot.handleUpdate>[0]);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    logger.error("Telegram webhook error", error instanceof Error ? { message: error.message } : error);
+    logger.error("Telegram webhook error", error instanceof Error ? { message: error.message, stack: error.stack } : error);
     await recordAudit({
       action: "api.error",
       ip,

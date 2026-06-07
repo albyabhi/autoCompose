@@ -3,22 +3,15 @@ import { Bot } from "grammy";
 import { getConfig } from "@/config";
 import { handleUpdate } from "@/modules/telegram/webhook";
 
-let cached: Bot | null = null;
-let middlewareRegistered = false;
+let initPromise: Promise<Bot> | null = null;
 
-export function getBot(): Bot {
-  if (cached) return cached;
+async function initBot(): Promise<Bot> {
   const cfg = getConfig();
   if (!cfg.telegram.botToken) {
     throw new Error("TELEGRAM_BOT_TOKEN is not configured");
   }
-  cached = new Bot(cfg.telegram.botToken);
-  return cached;
-}
-
-export function ensureBotMiddleware(): Bot {
-  const bot = getBot();
-  if (middlewareRegistered) return bot;
+  const bot = new Bot(cfg.telegram.botToken);
+  await bot.init();
   bot.use(async (ctx, next) => {
     try {
       const result = await handleUpdate(ctx);
@@ -30,8 +23,18 @@ export function ensureBotMiddleware(): Bot {
     }
     await next();
   });
-  middlewareRegistered = true;
   return bot;
+}
+
+export function getBot(): Promise<Bot> {
+  if (!initPromise) {
+    initPromise = initBot();
+  }
+  return initPromise;
+}
+
+export function ensureBotMiddleware(): Promise<Bot> {
+  return getBot();
 }
 
 export function isTelegramEnabled(): boolean {
