@@ -7,6 +7,8 @@ export const CB = {
   categoryPrefix: "tg:cat:",
   regenerate: "tg:gen:regen",
   sendStart: "tg:send:start",
+  sendToMe: "tg:send:tome",
+  sendConfirm: "tg:send:confirm",
 } as const;
 
 export function mainMenuKeyboard(): InlineKeyboardMarkup {
@@ -47,8 +49,23 @@ export function reviewKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
+        { text: "📤 Send", callback_data: CB.sendStart },
+        { text: "👤 To me", callback_data: CB.sendToMe },
+      ],
+      [
         { text: "🔁 Regenerate", callback_data: CB.regenerate },
         { text: "↩️ Main menu", callback_data: CB.menu },
+      ],
+    ],
+  };
+}
+
+export function sendConfirmKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [
+        { text: "✅ Send", callback_data: CB.sendConfirm },
+        { text: "↩️ Cancel", callback_data: CB.cancel },
       ],
     ],
   };

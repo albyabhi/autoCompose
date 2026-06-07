@@ -16,8 +16,13 @@ import {
   handleComposeCommand,
 } from "@/modules/telegram/commands";
 import { handlePromptMessage } from "@/modules/telegram/flows/compose";
+import {
+  handleRecipientInput,
+  handleSubjectInput,
+} from "@/modules/telegram/flows/send";
 import { TELEGRAM_RATE_KEYS, TELEGRAM_RATE_LIMITS, checkTelegramRateLimit } from "@/modules/telegram/ratelimit";
 import { mainMenuKeyboard } from "@/modules/telegram/keyboards";
+import { replyHtml } from "@/modules/telegram/reply";
 
 export interface HandleUpdateResult {
   status: "ok" | "duplicate" | "ignored" | "rate_limited" | "rejected";
@@ -91,7 +96,8 @@ export async function handleUpdate(ctx: Context): Promise<HandleUpdateResult> {
     .lean();
 
   if (!user) {
-    await ctx.reply(
+    await replyHtml(
+      ctx,
       "❌ This chat is not linked to an AutoCompose account.\n\nType /start to begin linking.",
       { reply_markup: mainMenuKeyboard() }
     );
@@ -114,16 +120,29 @@ export async function handleUpdate(ctx: Context): Promise<HandleUpdateResult> {
       await handlePromptMessage(ctx, ctx.message.text);
       return { status: "ok" };
     }
-    if (state.step === "awaiting_recipient" || state.step === "awaiting_subject" || state.step === "awaiting_send_confirm") {
-      await ctx.reply("Send flow not yet enabled. Type /cancel.");
+    if (state.step === "awaiting_recipient") {
+      await handleRecipientInput(ctx, ctx.message.text);
       return { status: "ok" };
     }
-    await ctx.reply("Please use /menu to choose an action.", { reply_markup: mainMenuKeyboard() });
+    if (state.step === "awaiting_subject") {
+      await handleSubjectInput(ctx, ctx.message.text);
+      return { status: "ok" };
+    }
+    if (state.step === "awaiting_send_confirm") {
+      await replyHtml(
+        ctx,
+        "Please use the buttons above to confirm or cancel the send, or type /cancel to abort."
+      );
+      return { status: "ok" };
+    }
+    await replyHtml(ctx, "Please use /menu to choose an action.", {
+      reply_markup: mainMenuKeyboard(),
+    });
     return { status: "ok" };
   }
 
   if (ctx.message && !ctx.message.text) {
-    await ctx.reply("Please send text. Type /menu to choose an action.");
+    await replyHtml(ctx, "Please send text. Type /menu to choose an action.");
     return { status: "ok" };
   }
 

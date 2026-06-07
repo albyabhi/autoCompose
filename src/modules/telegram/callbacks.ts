@@ -7,12 +7,19 @@ import {
   handleRegenerate,
   handleMainMenu,
 } from "@/modules/telegram/flows/compose";
+import {
+  handleSendStart,
+  handleSendToMe,
+  handleSendConfirm,
+  handleSendCancel,
+} from "@/modules/telegram/flows/send";
 import { handleHelp } from "@/modules/telegram/commands";
+import { replyHtml, answerCb } from "@/modules/telegram/reply";
 
 export async function handleCallback(ctx: Context): Promise<void> {
   const data = ctx.callbackQuery?.data;
   if (!data) {
-    await ctx.answerCallbackQuery();
+    await answerCb(ctx);
     return;
   }
 
@@ -25,16 +32,27 @@ export async function handleCallback(ctx: Context): Promise<void> {
     return;
   }
   if (data === CB.cancel) {
-    await ctx.answerCallbackQuery();
-    await ctx.reply("Cancelled.");
+    await handleSendCancel(ctx);
     return;
   }
   if (data === CB.regenerate) {
     await handleRegenerate(ctx);
     return;
   }
+  if (data === CB.sendStart) {
+    await handleSendStart(ctx);
+    return;
+  }
+  if (data === CB.sendToMe) {
+    await handleSendToMe(ctx);
+    return;
+  }
+  if (data === CB.sendConfirm) {
+    await handleSendConfirm(ctx);
+    return;
+  }
   if (data === "tg:menu:help") {
-    await ctx.answerCallbackQuery();
+    await answerCb(ctx);
     await handleHelp(ctx);
     return;
   }
@@ -44,5 +62,6 @@ export async function handleCallback(ctx: Context): Promise<void> {
     return;
   }
 
-  await ctx.answerCallbackQuery();
+  await answerCb(ctx);
+  await replyHtml(ctx, "Unknown action. Use /menu to return to the main menu.");
 }

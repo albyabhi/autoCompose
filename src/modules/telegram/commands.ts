@@ -8,6 +8,8 @@ import { getConfig } from "@/config";
 import { clearState } from "@/modules/telegram/state";
 import { mainMenuKeyboard } from "@/modules/telegram/keyboards";
 import { handleMainMenu, startCompose } from "@/modules/telegram/flows/compose";
+import { escapeHtml } from "@/modules/telegram/renderer";
+import { replyHtml } from "@/modules/telegram/reply";
 import bcrypt from "bcryptjs";
 
 export async function handleStart(ctx: Context): Promise<void> {
@@ -26,7 +28,7 @@ export async function handleStart(ctx: Context): Promise<void> {
       .select("_id telegram telegramLoginCode telegramLoginCodeExpiresAt")
       .lean();
     if (user && user.telegram?.enabled) {
-      await ctx.reply("✅ Your Telegram is already linked.");
+      await replyHtml(ctx, "✅ Your Telegram is already linked.");
       await handleMainMenu(ctx);
       return;
     }
@@ -37,7 +39,8 @@ export async function handleStart(ctx: Context): Promise<void> {
         userId: matched.userId,
         metadata: { chatId: chatId?.toString(), username: fromUsername },
       });
-      await ctx.reply(
+      await replyHtml(
+        ctx,
         "✅ <b>Account linked successfully.</b>\n\nType /menu to get started.",
         { reply_markup: mainMenuKeyboard() }
       );
@@ -49,7 +52,8 @@ export async function handleStart(ctx: Context): Promise<void> {
     });
     const cfg = getConfig();
     const settingsUrl = `${cfg.app.url.replace(/\/$/, "")}/settings`;
-    await ctx.reply(
+    await replyHtml(
+      ctx,
       `❌ This code is invalid or has expired.\n\nGenerate a new one at: ${settingsUrl}`
     );
     return;
@@ -60,7 +64,8 @@ export async function handleStart(ctx: Context): Promise<void> {
     "telegram.enabled": true,
   }).lean();
   if (user) {
-    await ctx.reply(
+    await replyHtml(
+      ctx,
       "👋 Welcome back to AutoCompose.\n\nType /menu to get started.",
       { reply_markup: mainMenuKeyboard() }
     );
@@ -72,7 +77,8 @@ export async function handleStart(ctx: Context): Promise<void> {
   const help = cfg.telegram.botUsername
     ? `1. Open Settings → Telegram Integration.\n2. Click <b>Generate login code</b>.\n3. Tap the deep link or paste the code here.`
     : `1. Open Settings → Telegram Integration.\n2. Click <b>Generate login code</b>.\n3. Send the code here.`;
-  await ctx.reply(
+  await replyHtml(
+    ctx,
     `👋 <b>Welcome to AutoCompose.</b>\n\n${help}\n\n🌐 Open Settings: ${settingsUrl}`
   );
 }
@@ -128,11 +134,12 @@ export async function handleMenu(ctx: Context): Promise<void> {
 export async function handleCancel(ctx: Context): Promise<void> {
   const chatId = ctx.chat?.id;
   if (chatId) await clearState(chatId.toString());
-  await ctx.reply("Cancelled.", { reply_markup: mainMenuKeyboard() });
+  await replyHtml(ctx, "Cancelled.", { reply_markup: mainMenuKeyboard() });
 }
 
 export async function handleHelp(ctx: Context): Promise<void> {
-  await ctx.reply(
+  await replyHtml(
+    ctx,
     "🤖 <b>AutoCompose Bot</b>\n\n" +
       "/start — link or show menu\n" +
       "/menu — main menu\n" +
@@ -151,7 +158,7 @@ export async function handleStatus(ctx: Context): Promise<void> {
     .select("_id email telegram")
     .lean();
   if (!user) {
-    await ctx.reply("Not linked. Use /start to begin.");
+    await replyHtml(ctx, "Not linked. Use /start to begin.");
     return;
   }
   const profile = await Profile.findOne({ userId: user._id.toString() })
@@ -161,7 +168,8 @@ export async function handleStatus(ctx: Context): Promise<void> {
   const gmailConfigured = !!profile?.emailCredentials?.encryptedAppPassword;
   const linkedAt = user.telegram?.linkedAt;
   const linkedAtStr = linkedAt ? linkedAt.toISOString().slice(0, 10) : "—";
-  await ctx.reply(
+  await replyHtml(
+    ctx,
     `📊 <b>Status</b>\n\n` +
       `Linked: <code>${escapeHtml(linkedAtStr)}</code>\n` +
       `Default model: <code>${escapeHtml(modelId)}</code>\n` +
@@ -171,10 +179,4 @@ export async function handleStatus(ctx: Context): Promise<void> {
 
 export async function handleComposeCommand(ctx: Context): Promise<void> {
   await startCompose(ctx);
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"]/g, (c) =>
-    c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&quot;"
-  );
 }

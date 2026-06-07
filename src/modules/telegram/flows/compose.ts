@@ -9,6 +9,7 @@ import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
 import { categoryKeyboard, reviewKeyboard, mainMenuKeyboard } from "@/modules/telegram/keyboards";
 import { escapeHtml, describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
+import { replyHtml, editHtml, answerCb } from "@/modules/telegram/reply";
 import { recordAudit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
@@ -32,14 +33,14 @@ export async function startCompose(ctx: Context): Promise<void> {
     draftSnapshot: null,
     pendingInput: null,
   });
-  await ctx.reply("Select a category:", { reply_markup: categoryKeyboard() });
+  await replyHtml(ctx, "Select a category:", { reply_markup: categoryKeyboard() });
 }
 
 export async function handleCategorySelection(ctx: Context, category: string): Promise<void> {
   const chatId = ctx.chat?.id;
   if (!chatId) return;
   if (!isEmailCategory(category)) {
-    await ctx.answerCallbackQuery({ text: "Unknown category" });
+    await answerCb(ctx, "Unknown category");
     return;
   }
   const userId = await resolveUserIdFromContext(ctx);
@@ -49,8 +50,9 @@ export async function handleCategorySelection(ctx: Context, category: string): P
     step: "awaiting_prompt",
     category,
   });
-  await ctx.answerCallbackQuery();
-  await ctx.editMessageText(
+  await answerCb(ctx);
+  await editHtml(
+    ctx,
     `Category: <b>${escapeHtml(describeCategoryLabel(category))}</b>\n\nDescribe what you need (the more detail the better).`
   );
 }
@@ -70,11 +72,11 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
     return;
   }
   if (prompt.length < 10) {
-    await ctx.reply("Please provide a little more detail (at least 10 characters).");
+    await replyHtml(ctx, "Please provide a little more detail (at least 10 characters).");
     return;
   }
   if (prompt.length > 5000) {
-    await ctx.reply("Prompt is too long. Please shorten it to under 5000 characters.");
+    await replyHtml(ctx, "Prompt is too long. Please shorten it to under 5000 characters.");
     return;
   }
 
@@ -82,9 +84,14 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
   const profile = await Profile.findOne({ userId }).lean();
   const modelId = defaultModelForUser(profile);
 
-  const placeholder = await ctx.reply(
+  const placeholder = await replyHtml(
+    ctx,
     `⏳ Generating with <b>${escapeHtml(MODEL_LABELS[modelId].name)}</b>…`
   );
+  const placeholderMessageId =
+    typeof placeholder === "object" && placeholder !== null && "message_id" in placeholder
+      ? (placeholder as { message_id: number }).message_id
+      : undefined;
 
   try {
     const result = await generateFromTelegram({
@@ -104,12 +111,20 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
     const body = result.content.length > TELEGRAM_MAX_MESSAGE
       ? `${result.content.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
       : result.content;
-    await ctx.api.editMessageText(
-      chatId,
-      placeholder.message_id,
-      `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
-      { reply_markup: reviewKeyboard() }
-    );
+
+    if (placeholderMessageId !== undefined) {
+      await editHtml(
+        ctx,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
+      );
+    } else {
+      await replyHtml(
+        ctx,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        { reply_markup: reviewKeyboard() }
+      );
+    }
   } catch (error) {
     const errCode = error instanceof AppError ? error.code : "INTERNAL_ERROR";
     const reason = error instanceof Error ? error.message : "unknown";
@@ -119,14 +134,15 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
       userId,
       metadata: { reason: errCode, source: "telegram.generate" },
     });
-    try {
-      await ctx.api.editMessageText(
-        chatId,
-        placeholder.message_id,
-        "⚠️ Generation failed. Please try again or /cancel."
-      );
-    } catch {
-      await ctx.reply("⚠️ Generation failed. Please try again or /cancel.");
+    const failMessage = "⚠️ Generation failed. Please try again or /cancel.";
+    if (placeholderMessageId !== undefined) {
+      try {
+        await editHtml(ctx, failMessage, { chatId: chatId, messageId: placeholderMessageId });
+      } catch {
+        await replyHtml(ctx, failMessage);
+      }
+    } else {
+      await replyHtml(ctx, failMessage);
     }
     await saveState(chatId.toString(), userId, { step: "idle", pendingInput: null });
   }
@@ -140,17 +156,21 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
 
   const state = await loadStateForUser(chatId.toString(), userId);
   if (!state.draftSnapshot || !state.category) {
-    await ctx.answerCallbackQuery({ text: "Nothing to regenerate." });
+    await answerCb(ctx, "Nothing to regenerate.");
     return;
   }
   if (!isEmailCategory(state.category)) {
-    await ctx.answerCallbackQuery({ text: "Unknown category" });
+    await answerCb(ctx, "Unknown category");
     return;
   }
 
-  await ctx.answerCallbackQuery({ text: "Regenerating…" });
+  await answerCb(ctx, "Regenerating…");
 
-  const placeholder = await ctx.reply("⏳ Regenerating…");
+  const placeholder = await replyHtml(ctx, "⏳ Regenerating…");
+  const placeholderMessageId =
+    typeof placeholder === "object" && placeholder !== null && "message_id" in placeholder
+      ? (placeholder as { message_id: number }).message_id
+      : undefined;
   await connectDB();
   const profile = await Profile.findOne({ userId }).lean();
   const modelId = defaultModelForUser(profile);
@@ -169,17 +189,29 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
     const body = result.content.length > TELEGRAM_MAX_MESSAGE
       ? `${result.content.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
       : result.content;
-    await ctx.api.editMessageText(
-      chatId,
-      placeholder.message_id,
-      `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
-      { reply_markup: reviewKeyboard() }
-    );
+    if (placeholderMessageId !== undefined) {
+      await editHtml(
+        ctx,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
+      );
+    } else {
+      await replyHtml(
+        ctx,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        { reply_markup: reviewKeyboard() }
+      );
+    }
   } catch {
-    try {
-      await ctx.api.editMessageText(chatId, placeholder.message_id, "⚠️ Regeneration failed.");
-    } catch {
-      await ctx.reply("⚠️ Regeneration failed.");
+    const failMessage = "⚠️ Regeneration failed.";
+    if (placeholderMessageId !== undefined) {
+      try {
+        await editHtml(ctx, failMessage, { chatId: chatId, messageId: placeholderMessageId });
+      } catch {
+        await replyHtml(ctx, failMessage);
+      }
+    } else {
+      await replyHtml(ctx, failMessage);
     }
   }
 }
@@ -190,21 +222,16 @@ export async function handleMainMenu(ctx: Context): Promise<void> {
   const userId = await resolveUserIdFromContext(ctx);
   if (!userId) return;
   await clearState(chatId.toString());
+  const text = "🏠 <b>Main Menu</b>\n\nWhat would you like to do?";
   if (ctx.callbackQuery) {
-    await ctx.answerCallbackQuery();
+    await answerCb(ctx);
     try {
-      await ctx.editMessageText("🏠 <b>Main Menu</b>\n\nWhat would you like to do?", {
-        reply_markup: mainMenuKeyboard(),
-      });
+      await editHtml(ctx, text, { reply_markup: mainMenuKeyboard() });
     } catch {
-      await ctx.reply("🏠 <b>Main Menu</b>\n\nWhat would you like to do?", {
-        reply_markup: mainMenuKeyboard(),
-      });
+      await replyHtml(ctx, text, { reply_markup: mainMenuKeyboard() });
     }
   } else {
-    await ctx.reply("🏠 <b>Main Menu</b>\n\nWhat would you like to do?", {
-      reply_markup: mainMenuKeyboard(),
-    });
+    await replyHtml(ctx, text, { reply_markup: mainMenuKeyboard() });
   }
 }
 
