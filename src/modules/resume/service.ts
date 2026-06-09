@@ -257,6 +257,47 @@ export async function extractTextFromFile(
 
   if (ext === "pdf") {
     try {
+      if (typeof globalThis.DOMMatrix === "undefined") {
+        class DOMMatrix2D {
+          a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+          constructor(init?: string | number[]) {
+            if (typeof init === "string") {
+              const m = init.match(/matrix\(([^)]+)\)/);
+              if (m) { const v = m[1].split(",").map(Number); [this.a, this.b, this.c, this.d, this.e, this.f] = v; }
+            } else if (Array.isArray(init) && init.length >= 6) {
+              [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+            }
+          }
+          multiplySelf(o: DOMMatrix2D) {
+            const { a, b, c, d, e, f } = this;
+            this.a = a * o.a + c * o.b; this.b = b * o.a + d * o.b;
+            this.c = a * o.c + c * o.d; this.d = b * o.c + d * o.d;
+            this.e = a * o.e + c * o.f + e; this.f = b * o.e + d * o.f + f;
+            return this;
+          }
+          preMultiplySelf(o: DOMMatrix2D) {
+            const { a, b, c, d, e, f } = this;
+            this.a = o.a * a + o.c * b; this.b = o.b * a + o.d * b;
+            this.c = o.a * c + o.c * d; this.d = o.b * c + o.d * d;
+            this.e = o.a * e + o.c * f + o.e; this.f = o.b * e + o.d * f + o.f;
+            return this;
+          }
+          invertSelf() {
+            const { a, b, c, d, e, f } = this;
+            const det = a * d - b * c;
+            if (det) {
+              this.a = d / det; this.b = -b / det;
+              this.c = -c / det; this.d = a / det;
+              this.e = (c * f - d * e) / det;
+              this.f = (b * e - a * f) / det;
+            }
+            return this;
+          }
+          translate(x: number, y: number) { return this.multiplySelf(new DOMMatrix2D([1, 0, 0, 1, x, y])); }
+          scale(x: number, y: number) { return this.multiplySelf(new DOMMatrix2D([x, 0, 0, y, 0, 0])); }
+        }
+        globalThis.DOMMatrix = DOMMatrix2D as unknown as typeof globalThis.DOMMatrix;
+      }
       const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
       if (typeof pdfjs.GlobalWorkerOptions.workerSrc === "string" &&

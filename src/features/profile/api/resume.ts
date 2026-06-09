@@ -55,17 +55,19 @@ export async function uploadResume(
 
     for (const line of lines) {
       if (!line.trim()) continue;
+      let data: Record<string, unknown>;
       try {
-        const data = JSON.parse(line);
-        if (data.type === "progress" && onProgress) {
-          onProgress(data.progress, data.message);
-        } else if (data.type === "success") {
-          return data.data;
-        } else if (data.type === "error") {
-          throw new Error(data.message);
-        }
-      } catch (e) {
+        data = JSON.parse(line);
+      } catch {
         console.error("Failed to parse stream line:", line);
+        continue;
+      }
+      if (data.type === "progress" && onProgress) {
+        onProgress(data.progress as number, data.message as string);
+      } else if (data.type === "success") {
+        return data.data as { resume: ResumeData };
+      } else if (data.type === "error") {
+        throw new Error(data.message as string);
       }
     }
   }
