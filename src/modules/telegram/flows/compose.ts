@@ -8,6 +8,7 @@ import { isEmailCategory, EmailCategory } from "@/modules/email/categories";
 import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
 import { categoryKeyboard, reviewKeyboard, mainMenuKeyboard } from "@/modules/telegram/keyboards";
+import { cleanAIContent } from "@/modules/email/content";
 import { escapeHtml, describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
 import { replyHtml, editHtml, answerCb } from "@/modules/telegram/reply";
 import { recordAudit } from "@/lib/audit";
@@ -108,9 +109,10 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
       pendingInput: null,
     });
 
-    const body = result.content.length > TELEGRAM_MAX_MESSAGE
-      ? `${result.content.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
-      : result.content;
+    const cleaned = cleanAIContent(result.content);
+    const body = cleaned.length > TELEGRAM_MAX_MESSAGE
+      ? `${cleaned.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
+      : cleaned;
 
     if (placeholderMessageId !== undefined) {
       await editHtml(
@@ -186,9 +188,10 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
       draftId: result.id,
       draftSnapshot: result.content,
     });
-    const body = result.content.length > TELEGRAM_MAX_MESSAGE
-      ? `${result.content.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
-      : result.content;
+    const cleaned = cleanAIContent(result.content);
+    const body = cleaned.length > TELEGRAM_MAX_MESSAGE
+      ? `${cleaned.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
+      : cleaned;
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,

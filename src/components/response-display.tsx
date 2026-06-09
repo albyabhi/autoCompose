@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
-import { parseEmailContent } from "@/modules/email/content";
+import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
 import { SendEmailDialog } from "./send-email-dialog";
 
 interface ResponseDisplayProps {
@@ -59,14 +59,14 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
         {modelUsed && <span className="response-model">via {modelUsed}</span>}
       </div>
       <div className="response-content">
-        {content.split("\n").map((line, i) => (
+        {cleanAIContent(content).split("\n").map((line, i) => (
           <p key={i}>{line || "\u00A0"}</p>
         ))}
       </div>
       <div className="response-actions">
         <button
           className="copy-btn"
-          onClick={() => navigator.clipboard.writeText(content)}
+          onClick={() => navigator.clipboard.writeText(cleanAIContent(content))}
         >
           Copy to Clipboard
         </button>

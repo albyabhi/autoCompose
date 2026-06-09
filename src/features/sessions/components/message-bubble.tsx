@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
-import { parseEmailContent } from "@/modules/email/content";
+import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
 import { SendEmailDialog } from "@/components/send-email-dialog";
 import type { MessageData } from "../types";
 
@@ -32,7 +32,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <span className="message__model">{message.modelUsed}</span>
         )}
       </div>
-      <div className="message__content">{message.content}</div>
+      <div className="message__content">{cleanAIContent(message.content)}</div>
       {isAssistant && (
         <div className="message__actions">
           <button

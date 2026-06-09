@@ -8,6 +8,8 @@ export const MODEL_IDS = {
   mistralSmall: "mistralai/mistral-small-4-119b-2603",
   llamaMaverick: "meta/llama-4-maverick-17b-128e-instruct",
   minimaxM27: "minimaxai/minimax-m2.7",
+  llamaNemotronNano: "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+  nemotron3Ultra: "nvidia/nemotron-3-ultra-550b-a55b",
 } as const;
 
 export const MODEL_IDS_KEYS = [
@@ -17,6 +19,8 @@ export const MODEL_IDS_KEYS = [
   "mistralSmall",
   "llamaMaverick",
   "minimaxM27",
+  "llamaNemotronNano",
+  "nemotron3Ultra",
 ] as const satisfies readonly (keyof typeof MODEL_IDS)[];
 
 export type ModelId = (typeof MODEL_IDS_KEYS)[number];
@@ -30,6 +34,8 @@ export const MODEL_LABELS: Record<ModelId, { name: string; description: string }
   mistralSmall: { name: "Mistral Small 4 (119B)", description: "Hybrid instruct + reasoning, 256K ctx" },
   llamaMaverick: { name: "Llama 4 Maverick 17B", description: "Meta multimodal MoE, 1M ctx" },
   minimaxM27: { name: "MiniMax M2.7", description: "Code/agent-tuned MoE (230B/10B)" },
+  llamaNemotronNano: { name: "Llama Nemotron Nano 8B VL", description: "NVIDIA lightweight multimodal vision-language" },
+  nemotron3Ultra: { name: "Nemotron 3 Ultra 550B", description: "NVIDIA flagship reasoning, 550B param MoE (55B active)" },
 };
 
 export const MODEL_DEFAULTS: Partial<Record<ModelId, { temperature?: number; maxTokens?: number }>> = {

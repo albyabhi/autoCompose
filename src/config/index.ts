@@ -67,6 +67,8 @@ export function getConfig() {
         mistralSmall: "mistralai/mistral-small-4-119b-2603",
         llamaMaverick: "meta/llama-4-maverick-17b-128e-instruct",
         minimaxM27: "minimaxai/minimax-m2.7",
+        llamaNemotronNano: "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+        nemotron3Ultra: "nvidia/nemotron-3-ultra-550b-a55b",
       } as const,
     },
     auth: {

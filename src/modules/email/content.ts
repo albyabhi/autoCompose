@@ -3,6 +3,10 @@ export interface ParsedEmailContent {
   body: string;
 }
 
+export function cleanAIContent(content: string): string {
+  return content.replace(/^\s*[*\-]\s+/gm, "");
+}
+
 const SUBJECT_PREFIX = /^subject\s*:\s*(.+)$/i;
 
 export function extractSubject(content: string): string {
@@ -35,8 +39,9 @@ export function stripSubjectLine(content: string): string {
 }
 
 export function parseEmailContent(content: string): ParsedEmailContent {
+  const cleaned = cleanAIContent(content);
   return {
-    subject: extractSubject(content),
-    body: stripSubjectLine(content),
+    subject: extractSubject(cleaned),
+    body: stripSubjectLine(cleaned),
   };
 }

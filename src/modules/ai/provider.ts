@@ -26,6 +26,7 @@ export abstract class BaseAIProvider implements AIProvider {
     sections.push("- Return ONLY the email template");
     sections.push("- No explanations, reasoning, or notes");
     sections.push("- No subject line prefixes like \"Subject:\"");
+    sections.push("- No markdown formatting \u2014 never use asterisks (*) for bold, italics, or lists");
     sections.push("- Use proper email formatting with clear paragraphs");
     sections.push("- Include appropriate salutation and closing");
     sections.push("- Keep it concise and professional");
