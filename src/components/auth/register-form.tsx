@@ -3,18 +3,30 @@
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { register } from "@/app/actions/auth";
+import { AuthLoadingScreen } from "./auth-loading-screen";
 
 export function RegisterForm() {
   const router = useRouter();
   const [state, action, pending] = useActionState(register, undefined);
+  const [showLoading, setShowLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state?.success) {
-      router.push("/dashboard");
+      setShowLoading(true);
     }
-  }, [state, router]);
+  }, [state]);
+
+  if (showLoading) {
+    return (
+      <AuthLoadingScreen
+        variant="register"
+        onComplete={() => router.push("/dashboard")}
+      />
+    );
+  }
 
   return (
     <div className="auth-card">
@@ -66,22 +78,54 @@ export function RegisterForm() {
           <label htmlFor="reg-password" className="auth-form__label">
             Password
           </label>
-          <input
-            id="reg-password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            placeholder="Create a strong password"
-            className="auth-form__input"
-            disabled={pending}
-          />
+          <div className="auth-form__input-wrapper">
+            <input
+              id="reg-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              required
+              placeholder="Create a strong password"
+              className="auth-form__input"
+              disabled={pending}
+            />
+            <button
+              type="button"
+              className="auth-form__toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              disabled={pending}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           <p className="auth-form__hint">
             At least 8 characters with uppercase, lowercase, number, and special
             character.
           </p>
           {state?.errors?.password && (
             <p className="auth-form__field-error">{state.errors.password[0]}</p>
+          )}
+        </div>
+
+        <div className="auth-form__field">
+          <label htmlFor="reg-confirm-password" className="auth-form__label">
+            Confirm password
+          </label>
+          <input
+            id="reg-confirm-password"
+            name="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            required
+            placeholder="Re-enter your password"
+            className="auth-form__input"
+            disabled={pending}
+          />
+          {state?.errors?.confirmPassword && (
+            <p className="auth-form__field-error">
+              {state.errors.confirmPassword[0]}
+            </p>
           )}
         </div>
 

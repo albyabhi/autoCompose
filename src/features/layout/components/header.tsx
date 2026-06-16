@@ -1,8 +1,6 @@
 "use client";
 
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { useLayoutStore } from "@/features/layout/stores/layout-store";
-import { UserButton } from "@/components/auth/user-button";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -10,7 +8,6 @@ interface HeaderProps {
 }
 
 export function Header({ title }: HeaderProps) {
-  const { user } = useCurrentUser();
   const setMobileSidebarOpen = useLayoutStore((s) => s.setMobileSidebarOpen);
 
   return (
@@ -30,10 +27,6 @@ export function Header({ title }: HeaderProps) {
         </Link>
         {title && <span className="app-header__divider">/</span>}
         {title && <span className="app-header__title">{title}</span>}
-      </div>
-
-      <div className="app-header__right">
-        {user && <UserButton />}
       </div>
     </header>
   );

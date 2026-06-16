@@ -4,7 +4,8 @@ import { signIn } from "next-auth/react";
 import { useActionState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { AuthLoadingScreen } from "./auth-loading-screen";
 
 async function loginAction(
   _prev: {
@@ -61,12 +62,23 @@ export function LoginForm() {
   const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [state, action, pending] = useActionState(loginAction, null);
+  const [showLoading, setShowLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (state?.success && state.callbackUrl) {
-      router.push(state.callbackUrl);
+    if (state?.success) {
+      setShowLoading(true);
     }
-  }, [state, router]);
+  }, [state]);
+
+  if (showLoading) {
+    return (
+      <AuthLoadingScreen
+        variant="login"
+        onComplete={() => router.push(state?.callbackUrl || "/dashboard")}
+      />
+    );
+  }
 
   return (
     <div className="auth-card">
@@ -101,16 +113,27 @@ export function LoginForm() {
           <label htmlFor="login-password" className="auth-form__label">
             Password
           </label>
-          <input
-            id="login-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            placeholder="Enter your password"
-            className="auth-form__input"
-            disabled={pending}
-          />
+          <div className="auth-form__input-wrapper">
+            <input
+              id="login-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              placeholder="Enter your password"
+              className="auth-form__input"
+              disabled={pending}
+            />
+            <button
+              type="button"
+              className="auth-form__toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              disabled={pending}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           {state?.errors?.password && (
             <p className="auth-form__field-error">{state.errors.password[0]}</p>
           )}

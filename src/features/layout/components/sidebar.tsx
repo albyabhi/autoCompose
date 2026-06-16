@@ -3,6 +3,7 @@
 import { useLayoutStore } from "@/features/layout/stores/layout-store";
 import { SessionList } from "@/features/sessions/components/session-list";
 import { NewSessionDialog } from "@/features/sessions/components/new-session-dialog";
+import { SidebarFooter } from "@/features/layout/components/sidebar-footer";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -76,6 +77,8 @@ export function Sidebar() {
           </div>
 
           <SessionList onNewSession={() => setNewSessionOpen(true)} />
+
+          <SidebarFooter />
         </div>
 
         <NewSessionDialog
