@@ -384,3 +384,12 @@ export function ResumeWidget() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/profile/components/resume-widget.tsx
+// ============================================================
+// PURPOSE: Upload, view, and manage a parsed resume with drag-and-drop support and AI model selection.
+// HOW IT works: Displays a drag-and-drop upload zone when no resume exists, allowing the user to pick an AI model and upload a PDF/DOCX/TXT file. Upload progress is streamed via onProgress. When a resume is present, shows a summary with skill tags and stats, and a ViewModal with tabs for skills, education, experience, and projects. Also supports removing the resume.
+// PROPS: None (self-contained widget).
+// INTEGRATION: useResume/useUploadResume/useDeleteResume hooks, useProfile (for preferred model), MODEL_LABELS/MODEL_IDS_KEYS, CATEGORY_POLICIES.
+// ============================================================

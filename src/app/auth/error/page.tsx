@@ -21,3 +21,13 @@ export default function AuthErrorPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/auth/error/page.tsx
+// ============================================================
+// PURPOSE: Auth error page — displays a sign-in failure message.
+// HOW IT WORKS: Static error page shown when NextAuth callback redirects with
+//   an error parameter (e.g., CredentialsSignin). Displays a message explaining
+//   the failure and a "Try again" link back to /login. No dynamic logic.
+// INTEGRATION: Next.js Link, auth-page CSS
+// ============================================================

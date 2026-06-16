@@ -20,3 +20,13 @@ export async function GET(
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/sessions/[id]/messages/route.ts
+// ============================================================
+// PURPOSE: API endpoint for fetching paginated messages within a session.
+// HOW IT WORKS: Validates page/pageSize from query params (page >= 1, pageSize 1-100,
+//   default 50), then calls getMessages() with ownership enforcement. Returns
+//   paginated message items and total count.
+// INTEGRATION: Message service, auth session
+// ============================================================

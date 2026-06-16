@@ -126,3 +126,16 @@ export async function upsertProfile(
   logger.info("Profile upserted", { userId });
   return JSON.parse(JSON.stringify(profile));
 }
+
+// ============================================================
+// FILE: src/modules/profile/service.ts
+// ============================================================
+// PURPOSE: CRUD operations for user profiles with encrypted credential management.
+// HOW IT WORKS: getProfile() returns the user's profile or null. createProfile()
+//   creates a new profile (throws if one exists). updateProfile() merges partial
+//   updates into existing sections and handles emailCredentials specially - encrypting
+//   the app password before storage and recording audit entries for save/remove.
+//   upsertProfile() does a MongoDB upsert for atomic create-or-update. All operations
+//   use ownedFilter() to enforce ownership. Credentials are encrypted via crypto.ts.
+// INTEGRATION: Profile model, crypto.ts (encryption), audit.ts, professional.ts
+// ============================================================

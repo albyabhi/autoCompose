@@ -91,3 +91,15 @@ export function getConfig() {
 }
 
 export type AppConfig = ReturnType<typeof getConfig>;
+
+// ============================================================
+// FILE: src/config/index.ts
+// ============================================================
+// PURPOSE: Centralizes and validates all environment variables using Zod schemas.
+// HOW IT WORKS: Defines a strict schema for required env vars (MongoDB URI,
+//   NVIDIA API key, auth secret, etc.) and optional ones (Telegram tokens).
+//   On first access, parses process.env through Zod; in production, invalid
+//   vars throw an error. In development, they log a warning but continue.
+//   getConfig() returns a typed, nested config object with sensible defaults.
+// INTEGRATION: Reads from process.env, provides config to all other modules
+// ============================================================

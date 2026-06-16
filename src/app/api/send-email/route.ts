@@ -32,3 +32,14 @@ export async function POST(request: NextRequest) {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/send-email/route.ts
+// ============================================================
+// PURPOSE: API endpoint for sending emails via Gmail SMTP (POST /api/send-email).
+// HOW IT WORKS: Authenticates the user, validates the request body against
+//   sendEmailSchema (to, subject, body), and delegates to dispatchSendEmail()
+//   with rate limiting (5 sends/minute). Returns success or wraps dispatch
+//   errors as AppError responses with appropriate status codes.
+// INTEGRATION: Email dispatch module, auth session, rate limiter
+// ============================================================

@@ -153,3 +153,18 @@ export async function clearAllTelegramState(chatId: string): Promise<void> {
   await connectDB();
   await TelegramState.deleteMany({ chatId });
 }
+
+// ============================================================
+// FILE: src/modules/telegram/webhook.ts
+// ============================================================
+// PURPOSE: Central update dispatcher that routes Telegram updates to handlers.
+// HOW IT WORKS: handleUpdate() processes each incoming Telegram update: (1) Checks
+//   for duplicate updateIds via idempotency module, (2) Routes callback queries
+//   to handleCallback(), (3) Routes text commands (/start, /menu, /cancel, /help,
+//   /status, /compose) to their handlers with audit logging, (4) For non-command
+//   messages, loads the user's conversation state and routes based on step:
+//   awaiting_prompt -> handlePromptMessage, awaiting_recipient -> handleRecipientInput,
+//   awaiting_subject -> handleSubjectInput. Unlinked chats get a prompt to /start.
+//   Rate limiting is applied to login code attempts.
+// INTEGRATION: All Telegram submodules (commands, callbacks, flows, state, keyboards)
+// ============================================================

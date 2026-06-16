@@ -40,3 +40,11 @@ export function useDeleteResume() {
     },
   });
 }
+
+// ============================================================
+// FILE: src/features/profile/hooks/use-resume.ts
+// ============================================================
+// PURPOSE: React Query hooks for fetching, uploading (with streaming progress), and deleting the user's parsed resume.
+// HOW IT works: useResume queries the resume endpoint. useUploadResume accepts a File, modelId, and optional onProgress callback, calling the streaming upload API. useDeleteResume sends a DELETE request. All mutations invalidate the resume query cache on success.
+// INTEGRATION: @tanstack/react-query, resume API client (fetchResume, uploadResume, deleteResume), ModelId type.
+// ============================================================

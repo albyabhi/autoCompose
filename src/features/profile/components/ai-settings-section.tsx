@@ -114,3 +114,12 @@ export function AiSettingsSection() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/profile/components/ai-settings-section.tsx
+// ============================================================
+// PURPOSE: Settings section for selecting the default AI model used for email composition and resume parsing.
+// HOW IT works: Reads the stored preferredModel from the profile, displays a dropdown of MODEL_LABELS, and tracks local dirty state. On save, calls useUpdateProfile with the preferences section. Falls back to "deepseek" if no valid model is stored.
+// PROPS: None (self-contained settings section).
+// INTEGRATION: useProfile/useUpdateProfile hooks, MODEL_IDS_KEYS/MODEL_LABELS/ModelId from @/modules/ai/types.
+// ============================================================

@@ -75,3 +75,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+// ============================================================
+// FILE: src/auth.ts
+// ============================================================
+// PURPOSE: Configures NextAuth.js with JWT-based credentials authentication.
+// HOW IT WORKS: Sets up a single "credentials" provider that accepts email
+//   + password. The authorize() function looks up the user in MongoDB and
+//   verifies the password hash with bcrypt. JWT callbacks enrich the token
+//   with user ID and role. Session callback exposes these to the client.
+//   Custom pages direct users to /login and /auth/error.
+// INTEGRATION: MongoDB (User model), bcryptjs for password hashing
+// ============================================================

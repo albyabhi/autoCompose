@@ -36,3 +36,18 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/((?!api/auth|api/telegram/webhook|api/telegram/health|_next/static|_next/image|favicon.ico).*)"],
 };
+
+// ============================================================
+// FILE: proxy.ts (Next.js Middleware)
+// ============================================================
+// PURPOSE: Route-level authentication guard that protects all non-public routes.
+// HOW IT WORKS: Checks the NextAuth session for each request. Public paths
+//   (login, register, auth/error) and public API paths (telegram webhook/health)
+//   are allowed through without auth. API auth routes and static assets are
+//   also exempted. Unauthenticated users on protected routes are redirected
+//   to /login with a callbackUrl. Authenticated users on /login are redirected
+//   to /dashboard. The matcher excludes api/auth, telegram webhook/health,
+//   and static assets from middleware processing.
+// [SECURITY] First line of defense - ensures all routes require authentication
+// INTEGRATION: NextAuth session, Next.js middleware system
+// ============================================================

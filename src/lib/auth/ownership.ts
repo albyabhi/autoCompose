@@ -32,3 +32,16 @@ export function withUserId<T>(
 ): T & { userId: string } {
   return { ...data, userId };
 }
+
+// ============================================================
+// FILE: src/lib/auth/ownership.ts
+// ============================================================
+// PURPOSE: Utilities for enforcing resource ownership in database queries.
+// HOW IT WORKS: ownedFilter() creates a MongoDB filter that includes userId,
+//   ensuring queries only return the user's own data. requireOwnership()
+//   fetches a document by ID + userId, throwing NotFoundError if not found
+//   (hides existence from other users). assertOwnership() validates an
+//   existing entity belongs to the user. withUserId() injects userId into
+//   data objects before database insertion.
+// INTEGRATION: Used by service modules for data isolation between users
+// ============================================================

@@ -617,6 +617,8 @@ Uses OpenAI SDK to call NVIDIA NIM API. Supports conversation history injection 
 | `mistralSmall` | Mistral Small 4 (119B) | `mistralai/mistral-small-4-119b-2603` | Hybrid instruct + reasoning, 256K ctx. Default temp 0.6. |
 | `llamaMaverick` | Llama 4 Maverick 17B | `meta/llama-4-maverick-17b-128e-instruct` | Meta multimodal MoE, 1M ctx. |
 | `minimaxM27` | MiniMax M2.7 | `minimaxai/minimax-m2.7` | Code/agent-tuned MoE (230B/10B). Default temp 1.0. |
+| `llamaNemotronNano` | Llama Nemotron Nano 8B VL | `nvidia/llama-3.1-nemotron-nano-vl-8b-v1` | NVIDIA lightweight multimodal vision-language. |
+| `nemotron3Ultra` | Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b` | NVIDIA flagship reasoning, 550B param MoE (55B active). |
 
 ### Prompt Engineering
 
@@ -624,6 +626,70 @@ The system prompt embeds Tree of Thought + DCE reasoning:
 1. **DIVERGE** — Consider 3 different approaches (tone, structure, strategy)
 2. **CONVERGE** — Select the best approach based on context
 3. **EVALUATE** — Verify the email achieves its goal effectively
+
+---
+
+## Code Documentation Convention
+
+Every source file has a standardized comment block at the **bottom of the file** explaining its purpose, how it works, and key integrations. This ensures readability for both technical and mid-technical team members.
+
+### Format
+
+```typescript
+// ============================================================
+// FILE: src/path/to/file.ts
+// ============================================================
+// PURPOSE: [1 sentence — what this file does]
+// HOW IT WORKS: [2-3 sentences — the logic/flow explained simply]
+// PROPS: [for components — key props and their types]
+// [SECURITY: for sensitive files — security implications]
+// INTEGRATION: [key dependencies and external services]
+// ============================================================
+```
+
+### Sections
+
+| Section | Required | Description |
+|---|---|---|
+| `FILE` | Yes | Relative path for quick navigation |
+| `PURPOSE` | Yes | One clear sentence on what the file does |
+| `HOW IT WORKS` | Yes | 2-3 sentences explaining the logic flow |
+| `PROPS` | Components only | Key props with brief descriptions |
+| `SECURITY` | Sensitive files | Security implications (e.g., "Server-only — handles encrypted credentials") |
+| `INTEGRATION` | Yes | Dependencies, external services, and consumers |
+
+### Examples
+
+**Infrastructure file:**
+```typescript
+// ============================================================
+// FILE: src/lib/crypto.ts
+// ============================================================
+// PURPOSE: Provides AES-256-GCM encryption/decryption for sensitive data (Gmail passwords).
+// HOW IT WORKS: Derives a 32-byte encryption key from the auth secret using
+//   scrypt. encrypt() generates a random 12-byte IV, encrypts the plaintext,
+//   and returns a versioned string: "v1:<iv>:<authTag>:<ciphertext>". decrypt()
+//   parses this format, validates hex encoding, and decrypts with auth tag
+//   verification to detect tampering.
+// [SECURITY] Server-only - handles encrypted credential storage
+// INTEGRATION: Uses auth secret from config as encryption key source
+// ============================================================
+```
+
+**React component:**
+```typescript
+// ============================================================
+// FILE: src/components/send-email-dialog.tsx
+// ============================================================
+// PURPOSE: Modal dialog for composing and sending an email via Gmail SMTP.
+// HOW IT WORKS: Opens with pre-filled subject and body from the generated email.
+//   User enters recipient email, can edit subject/body, and clicks Send. Calls
+//   /api/send-email via the API client. Shows success/error states. Supports
+//   Escape key to close and backdrop click. Resets state on each open via key prop.
+// PROPS: open (boolean), onClose (callback), defaultSubject, defaultBody
+// INTEGRATION: API client (post to /api/send-email), UI components (Button, Input)
+// ============================================================
+```
 
 ---
 

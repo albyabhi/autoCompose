@@ -109,3 +109,15 @@ export async function deleteSessionMessages(sessionId: string): Promise<void> {
   await Message.deleteMany({ sessionId });
   logger.info("Session messages deleted", { sessionId });
 }
+
+// ============================================================
+// FILE: src/modules/message/service.ts
+// ============================================================
+// PURPOSE: CRUD operations for messages within email generation sessions.
+// HOW IT WORKS: createMessage() verifies session ownership before creating a
+//   message. getMessages() returns paginated messages for a session (default
+//   50 per page, sorted chronologically). deleteSessionMessages() removes all
+//   messages for a session (used during session cleanup). All operations enforce
+//   ownership by checking userId matches the session.
+// INTEGRATION: Used by session API routes, email service, and frontend session view
+// ============================================================

@@ -16,3 +16,14 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+
+// ============================================================
+// FILE: eslint.config.mjs
+// ============================================================
+// PURPOSE: ESLint flat config for Next.js with TypeScript support.
+// HOW IT WORKS: Extends eslint-config-next's core-web-vitals and TypeScript
+//   rules. Ignores build output directories (.next, out, build) and the
+//   auto-generated next-env.d.ts file. Uses the new ESLint flat config
+//   format (defineConfig + globalIgnores).
+// INTEGRATION: ESLint, eslint-config-next
+// ============================================================

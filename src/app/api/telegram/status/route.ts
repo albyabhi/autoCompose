@@ -17,3 +17,13 @@ export async function GET() {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/telegram/status/route.ts
+// ============================================================
+// PURPOSE: API endpoint for checking Telegram link status (GET /api/telegram/status).
+// HOW IT WORKS: Returns whether Telegram is linked, the linked username, link date,
+//   and bot configuration (enabled, username). Used by the settings page to display
+//   current Telegram integration status.
+// INTEGRATION: Telegram link service, config, auth session
+// ============================================================

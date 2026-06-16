@@ -290,3 +290,17 @@ export function TelegramCard() {
     </Card>
   );
 }
+
+// ============================================================
+// FILE: src/components/settings/telegram-card.tsx
+// ============================================================
+// PURPOSE: Settings card for managing Telegram bot integration (link/unlink/code).
+// HOW IT WORKS: Fetches Telegram status via /api/telegram/status. Shows three states:
+//   (1) Not linked - instructions to generate a login code, copy it, and send to the bot.
+//   (2) Code active - displays the code with copy button, deep link, and countdown timer.
+//   (3) Connected - shows linked username, date, and disconnect button. Handles code
+//   generation (/api/telegram/login-code POST), revocation (DELETE), and unlinking
+//   (/api/telegram/link DELETE). CountdownTimer shows MM:SS until code expiry.
+// PROPS: None (self-contained)
+// INTEGRATION: API client, Telegram status/login-code/link endpoints, UI components
+// ============================================================

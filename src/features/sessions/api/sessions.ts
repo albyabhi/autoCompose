@@ -45,3 +45,11 @@ export async function fetchSessionMessages(
 ): Promise<{ items: { id: string; sessionId: string; role: string; content: string; modelUsed?: string; createdAt: string }[]; total: number }> {
   return api.get(`/api/sessions/${id}/messages?page=${page}&pageSize=${pageSize}`);
 }
+
+// ============================================================
+// FILE: src/features/sessions/api/sessions.ts
+// ============================================================
+// PURPOSE: API client functions for CRUD operations on sessions and fetching paginated session messages.
+// HOW IT works: Provides fetchSessions (with search/archive/pagination params via URLSearchParams), fetchSession, createSession, updateSession, deleteSession, toggleArchive, and fetchSessionMessages. All functions use the shared api client and return typed results.
+// INTEGRATION: @/lib/api-client, SessionData/SessionWithMessages/PaginatedResult types, CreateSessionInput/UpdateSessionInput from validation module.
+// ============================================================

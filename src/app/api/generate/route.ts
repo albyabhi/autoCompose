@@ -33,3 +33,15 @@ export async function POST(request: NextRequest) {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/generate/route.ts
+// ============================================================
+// PURPOSE: API endpoint for generating AI-powered emails (POST /api/generate).
+// HOW IT WORKS: Authenticates the user via requireAuth(), applies rate limiting
+//   (10 requests/minute per user), validates the request body against
+//   generateEmailSchema, and delegates to generateEmail() service. Returns
+//   the generated email content, model used, and session ID. Creates a new
+//   session if no sessionId is provided.
+// INTEGRATION: Email service, rate limiter, auth session, Zod validation
+// ============================================================

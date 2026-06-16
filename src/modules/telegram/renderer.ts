@@ -48,3 +48,15 @@ export function describeCategoryLabel(value: string): string {
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+// ============================================================
+// FILE: src/modules/telegram/renderer.ts
+// ============================================================
+// PURPOSE: HTML escaping, text chunking, and formatting utilities for Telegram messages.
+// HOW IT WORKS: escapeHtml() converts special characters to HTML entities for safe
+//   display. chunkText() splits long messages at natural break points (double newline,
+//   single newline, space) to stay within Telegram's 4096-char limit. buildDeepLink()
+//   constructs t.me deep links for account linking. describeCategoryLabel() converts
+//   snake_case category names to Title Case for display.
+// INTEGRATION: Used by all Telegram handlers for safe message rendering
+// ============================================================

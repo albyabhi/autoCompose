@@ -51,5 +51,17 @@ export const api = {
     request<T>(url, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(url: string, body?: unknown) =>
     request<T>(url, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(url: string) => request<T>(url, { method: "DELETE" }),
+  delete: <T>(url: string) => request<T>(url),
 };
+
+// ============================================================
+// FILE: src/lib/api-client.ts
+// ============================================================
+// PURPOSE: Typed HTTP client for making API requests from frontend components.
+// HOW IT WORKS: Provides a request() function that calls fetch, parses JSON,
+//   and handles the standardized { success, data/error } response format.
+//   On error responses, it throws ApiError with status, code, and message.
+//   The api object exposes get/post/patch/delete convenience methods with
+//   proper Content-Type headers and JSON serialization.
+// INTEGRATION: Used by frontend feature hooks (useProfile, useSessions, etc.)
+// ============================================================

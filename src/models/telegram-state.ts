@@ -66,3 +66,17 @@ telegramStateSchema.index({ userId: 1, updatedAt: -1 });
 export const TelegramState =
   mongoose.models.TelegramState ??
   mongoose.model<ITelegramState>("TelegramState", telegramStateSchema);
+
+// ============================================================
+// FILE: src/models/telegram-state.ts
+// ============================================================
+// PURPOSE: Mongoose schema for tracking multi-step Telegram bot conversation state.
+// HOW IT WORKS: Maintains a state machine per chatId with steps: idle ->
+//   selecting_category -> awaiting_prompt -> browsing_sessions -> awaiting_recipient
+//   -> awaiting_subject -> awaiting_send_confirm. Stores draft data, pending
+//   inputs, and pagination offset. Has a 24-hour TTL index on updatedAt to
+//   auto-expire stale conversations. The version field prevents race conditions.
+// FIELDS: chatId (unique), userId, step, category, draftId, draftSnapshot,
+//   pendingSendTo, pendingSubject, pageOffset, pendingInput, version
+// INTEGRATION: Used by Telegram state machine, compose flow, and send flow
+// ============================================================

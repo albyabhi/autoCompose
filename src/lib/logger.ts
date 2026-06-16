@@ -43,3 +43,15 @@ export const logger = {
     }
   },
 };
+
+// ============================================================
+// FILE: src/lib/logger.ts
+// ============================================================
+// PURPOSE: Simple leveled logger with configurable log levels and JSON formatting.
+// HOW IT WORKS: Defines 4 levels (debug < info < warn < error). The current
+//   level is read from NEXT_PUBLIC_LOG_LEVEL env var, defaulting to "debug"
+//   in development and "info" in production. Each log method checks if the
+//   message level meets the threshold before outputting. Messages are formatted
+//   as "[ISO timestamp] LEVEL: message {metadata}".
+// INTEGRATION: Used throughout the codebase for structured logging
+// ============================================================

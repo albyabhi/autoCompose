@@ -209,3 +209,19 @@ export function sanitizeProfile(profile: ProfileSource | null): ProfileSource | 
     ...(safeResume ? { resume: safeResume } : {}),
   }));
 }
+
+// ============================================================
+// FILE: src/modules/profile/context-builder.ts
+// ============================================================
+// PURPOSE: Builds AI-ready profile context strings from user profile data.
+// HOW IT WORKS: buildProfileContext() assembles a budgeted text representation
+//   of the user's profile based on the email category's required sections. It
+//   includes personal info, professional details, job application links, resume
+//   data (ranked by keyword relevance to the prompt), and writing preferences.
+//   Resume items are ranked using word-overlap scoring and limited (10 skills,
+//   4 experience, 3 education, 3 projects). The total is capped at 3600 chars.
+//   getCompletedProfileSections() and buildCategoryReadiness() track which
+//   sections are filled vs missing. sanitizeProfile() strips sensitive data
+//   (rawText, encrypted passwords) for safe API responses.
+// INTEGRATION: Used by email service, DAL, and Telegram AI bridge
+// ============================================================

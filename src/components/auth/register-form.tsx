@@ -103,3 +103,15 @@ export function RegisterForm() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/auth/register-form.tsx
+// ============================================================
+// PURPOSE: Registration form component with name, email, and password fields.
+// HOW IT WORKS: Uses React's useActionState to call the register server action.
+//   On success, navigates to /dashboard. Shows field-level validation errors
+//   and form-level messages. Password hint explains complexity requirements.
+//   Supports pending state for loading UI. Links to /login for existing users.
+// PROPS: None (standalone page component)
+// INTEGRATION: Register server action, React useActionState, Next.js router
+// ============================================================

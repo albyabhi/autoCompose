@@ -158,3 +158,15 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody }: Conten
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/send-email-dialog.tsx
+// ============================================================
+// PURPOSE: Modal dialog for composing and sending an email via Gmail SMTP.
+// HOW IT WORKS: Opens with pre-filled subject and body from the generated email.
+//   User enters recipient email, can edit subject/body, and clicks Send. Calls
+//   /api/send-email via the API client. Shows success/error states. Supports
+//   Escape key to close and backdrop click. Resets state on each open via key prop.
+// PROPS: open (boolean), onClose (callback), defaultSubject, defaultBody
+// INTEGRATION: API client (post to /api/send-email), UI components (Button, Input)
+// ============================================================

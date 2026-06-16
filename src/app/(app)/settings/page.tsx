@@ -15,3 +15,15 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/(app)/settings/page.tsx
+// ============================================================
+// PURPOSE: Settings page — displays Telegram linking, profile form, and resume upload.
+// HOW IT WORKS: Server component that renders three main sections: TelegramCard
+//   (link/unlink Telegram account), ProfileForm (personal info, professional
+//   details, writing preferences, job application links), and ResumeWidget
+//   (upload/parse/delete resume). Profile data flows to the AI to personalize
+//   generated emails.
+// INTEGRATION: TelegramCard, ProfileForm, ResumeWidget
+// ============================================================

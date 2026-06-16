@@ -21,3 +21,14 @@ export function checkTelegramRateLimit(
 ): void {
   checkRateLimit(key, { maxRequests: config.maxRequests, windowMs: config.windowMs });
 }
+
+// ============================================================
+// FILE: src/modules/telegram/ratelimit.ts
+// ============================================================
+// PURPOSE: Telegram-specific rate limit configurations and checker.
+// HOW IT WORKS: Defines rate limit keys (namespaced by action and user/chat ID)
+//   and limits for 4 actions: login code generation (5/hr), login code attempts
+//   (5/15min), email generation (20/hr), and email sending (10/hr). checkTelegramRateLimit()
+//   delegates to the generic rate limiter with the Telegram-specific config.
+// INTEGRATION: Used by webhook handler, compose flow, send flow, and link service
+// ============================================================

@@ -95,3 +95,15 @@ export async function register(
     };
   }
 }
+
+// ============================================================
+// FILE: src/app/actions/auth.ts
+// ============================================================
+// PURPOSE: Server action for user registration from the registration form.
+// HOW IT WORKS: Validates form data against registerSchema (name, email, password
+//   with complexity requirements). Checks for duplicate emails, hashes the password
+//   with bcrypt (12 rounds), creates the User, then auto-signs in the new user
+//   via signIn("credentials"). Returns validation errors or success state for
+//   form handling. Uses "use server" directive for Next.js server actions.
+// INTEGRATION: User model, bcryptjs, NextAuth signIn, Zod validation
+// ============================================================

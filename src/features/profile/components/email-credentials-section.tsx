@@ -227,3 +227,12 @@ export function EmailCredentialsSection() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/profile/components/email-credentials-section.tsx
+// ============================================================
+// PURPOSE: Settings section for connecting or disconnecting a Gmail account via Google App Password.
+// HOW IT works: Shows a connected/not-connected badge, an email input, and a masked app-password input. Validates that the app password is exactly 16 characters. On save, calls setEmailCredentials API; on remove, calls removeEmailCredentials API. Invalidates the profile query cache after each action.
+// PROPS: None (self-contained settings section).
+// INTEGRATION: useProfile hook, setEmailCredentials/removeEmailCredentials API, Button, Input UI components, queryClient.
+// ============================================================

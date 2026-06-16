@@ -43,3 +43,16 @@ export function withOptionalAuth(handler: OptionalAuthHandler) {
     }
   };
 }
+
+// ============================================================
+// FILE: src/lib/auth/guards.ts
+// ============================================================
+// PURPOSE: Higher-order functions that wrap API route handlers with auth checks.
+// HOW IT WORKS: withAuth() calls requireAuth() before the handler; if auth
+//   fails, it returns a structured error response. The handler receives the
+//   authenticated CurrentUser. withOptionalAuth() works similarly but passes
+//   null instead of throwing when unauthenticated. Both extract route params
+//   from the Next.js context and pass them to the handler.
+// [SECURITY] Server-only - enforces authentication on API routes
+// INTEGRATION: Next.js API routes, requireAuth, api-response utilities
+// ============================================================

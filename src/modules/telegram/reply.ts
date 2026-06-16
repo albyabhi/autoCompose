@@ -40,3 +40,14 @@ export async function editHtml(
 export async function answerCb(ctx: Context, text?: string): Promise<void> {
   await ctx.answerCallbackQuery(text ? { text } : undefined);
 }
+
+// ============================================================
+// FILE: src/modules/telegram/reply.ts
+// ============================================================
+// PURPOSE: Convenience wrappers for sending/editing HTML-formatted Telegram messages.
+// HOW IT WORKS: replyHtml() sends a new message with HTML parse mode and optional
+//   inline keyboard. editHtml() edits an existing message, supporting both context-based
+//   editing and explicit chatId/messageId pairs. answerCb() acknowledges a callback
+//   query with optional toast text. All functions handle grammY's API abstraction.
+// INTEGRATION: Used throughout all Telegram handlers for consistent message formatting
+// ============================================================

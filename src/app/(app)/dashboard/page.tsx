@@ -37,3 +37,14 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/(app)/dashboard/page.tsx
+// ============================================================
+// PURPOSE: Dashboard page — displays welcome message and navigation cards.
+// HOW IT WORKS: Server component that fetches the session and current user via
+//   DAL functions (verifySession, getCurrentUser). Renders a welcome greeting
+//   with the user's name (or userId fallback) and three navigation cards:
+//   Compose Email (/), Session History (/sessions), and Profile Settings (/settings).
+// INTEGRATION: DAL (verifySession, getCurrentUser), Next.js Link
+// ============================================================

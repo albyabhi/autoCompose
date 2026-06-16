@@ -251,3 +251,17 @@ async function resolveUserIdFromContext(ctx: Context): Promise<string | null> {
   if (!user) return null;
   return (user as { _id: unknown })._id?.toString() ?? null;
 }
+
+// ============================================================
+// FILE: src/modules/telegram/flows/compose.ts
+// ============================================================
+// PURPOSE: Implements the multi-step email composition flow via Telegram bot.
+// HOW IT WORKS: startCompose() resets state to "selecting_category" and shows the
+//   category keyboard. handleCategorySelection() saves the chosen category and prompts
+//   for details. handlePromptMessage() validates the prompt (10-5000 chars), loads the
+//   user's preferred model, sends a "generating" placeholder, calls generateFromTelegram(),
+//   and edits the placeholder with the result + review keyboard. handleRegenerate()
+//   re-generates using the same prompt. handleMainMenu() clears state and shows the
+//   main menu. resolveUserIdFromContext() looks up the user by their Telegram chatId.
+// INTEGRATION: AI bridge, state module, keyboards, content cleaner, audit logger
+// ============================================================

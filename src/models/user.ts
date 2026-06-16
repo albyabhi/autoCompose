@@ -100,3 +100,17 @@ userSchema.index(
 
 export const User =
   mongoose.models.User ?? mongoose.model<IUser>("User", userSchema);
+
+// ============================================================
+// FILE: src/models/user.ts
+// ============================================================
+// PURPOSE: Mongoose schema and model for user accounts.
+// HOW IT WORKS: Defines the User document with fields for auth (email,
+//   passwordHash, provider), profile (name, avatar), role (user/admin),
+//   onboarding status, and Telegram linking (chatId, username, login codes).
+//   Indexes on email, role, and telegram.chatId optimize common queries.
+//   Telegram login codes use select:false to hide from default queries.
+// FIELDS: name, email, passwordHash, avatar, role, provider, onboardingCompleted,
+//   telegram (chatId, username, linkedAt, enabled), telegramLoginCode
+// INTEGRATION: Used by auth.ts, session.ts, DAL, and Telegram link service
+// ============================================================

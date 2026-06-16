@@ -87,3 +87,16 @@ export class NvidiaNIMProvider extends BaseAIProvider {
     }
   }
 }
+
+// ============================================================
+// FILE: src/modules/ai/providers/nvidia.ts
+// ============================================================
+// PURPOSE: NVIDIA NIM API provider implementation using OpenAI-compatible SDK.
+// HOW IT WORKS: Extends BaseAIProvider and uses the OpenAI client configured
+//   with NVIDIA's API key and base URL. complete() maps the modelKey to the
+//   full model identifier, builds the message array (system + history + user),
+//   calls the chat completions API with temperature/maxTokens defaults, and
+//   returns the response with timing and token usage metrics. Logs success/failure
+//   for monitoring. Throws AIProviderError on API failures.
+// INTEGRATION: NVIDIA NIM API via OpenAI SDK, configured in config/index.ts
+// ============================================================

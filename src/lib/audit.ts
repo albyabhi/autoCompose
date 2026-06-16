@@ -37,3 +37,15 @@ export async function recordAudit(entry: AuditEntry): Promise<void> {
     logger.error("Failed to record audit log", error instanceof Error ? { message: error.message } : error);
   }
 }
+
+// ============================================================
+// FILE: src/lib/audit.ts
+// ============================================================
+// PURPOSE: Records audit trail entries for significant user actions.
+// HOW IT WORKS: recordAudit() takes an action type, entity info, and metadata,
+//   then creates an AuditLog document in MongoDB. It also logs the event via
+//   the logger. Failures are caught and logged but do not propagate - audit
+//   logging is fire-and-forget to avoid disrupting the main operation.
+// INTEGRATION: MongoDB (AuditLog model), used by email, session, auth, and
+//   Telegram modules to track email generation, sending, and auth events
+// ============================================================

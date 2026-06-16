@@ -70,3 +70,16 @@ export function sendConfirmKeyboard(): InlineKeyboardMarkup {
     ],
   };
 }
+
+// ============================================================
+// FILE: src/modules/telegram/keyboards.ts
+// ============================================================
+// PURPOSE: Defines inline keyboard layouts and callback data constants for the bot.
+// HOW IT WORKS: CB is a constants object mapping action names to callback data strings
+//   (e.g., "tg:menu:home", "tg:cat:job_application"). mainMenuKeyboard() shows
+//   Compose + Help buttons. categoryKeyboard() shows 7 email category buttons in
+//   a 2-column grid. reviewKeyboard() shows Send/To me + Regenerate/Menu after
+//   email generation. sendConfirmKeyboard() shows confirm/cancel for the send flow.
+//   All return InlineKeyboardMarkup objects for grammY.
+// INTEGRATION: Used by commands, callbacks, compose flow, and send flow
+// ============================================================

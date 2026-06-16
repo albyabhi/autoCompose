@@ -16,3 +16,13 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/login/page.tsx
+// ============================================================
+// PURPOSE: Login page — displays the authentication form.
+// HOW IT WORKS: Renders a centered auth page with the AutoCompose logo/link
+//   and the LoginForm component wrapped in Suspense. The form handles email +
+//   password login via NextAuth signIn(). On success, redirects to the home page.
+// INTEGRATION: LoginForm component, NextAuth signIn
+// ============================================================

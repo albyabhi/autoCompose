@@ -32,3 +32,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
+
+// ============================================================
+// FILE: src/components/ui/button.tsx
+// ============================================================
+// PURPOSE: A reusable button component with variant styles and loading state.
+// HOW IT WORKS: Uses forwardRef to wrap a native <button>, mapping a variant prop to CSS class names and rendering a spinner span when loading. The button is disabled while loading or when the disabled prop is set.
+// PROPS: variant ("primary" | "secondary" | "danger" | "ghost"), loading (boolean), plus all native button HTML attributes.
+// INTEGRATION: React (forwardRef), no external dependencies.
+// ============================================================

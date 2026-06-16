@@ -35,3 +35,14 @@ export interface SessionListOptions {
   search?: string;
   isArchived?: boolean;
 }
+
+// ============================================================
+// FILE: src/modules/session/types.ts
+// ============================================================
+// PURPOSE: TypeScript interfaces for session data transfer objects.
+// HOW IT WORKS: SessionData is the normalized session shape returned by
+//   service functions (id, title, category, metadata, isArchived, optional
+//   messageCount/lastMessageAt). MessageData is the message shape. PaginatedResult<T>
+//   is a generic pagination envelope. SessionListOptions defines query filters.
+// INTEGRATION: Used by session service, API routes, and frontend hooks
+// ============================================================

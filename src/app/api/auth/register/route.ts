@@ -91,3 +91,15 @@ export async function POST(request: NextRequest) {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/auth/register/route.ts
+// ============================================================
+// PURPOSE: API endpoint for new user registration (POST /api/auth/register).
+// HOW IT WORKS: Validates the request body against a strict schema (name,
+//   email, password with uppercase/lowercase/number/special char requirements).
+//   Checks for duplicate emails, hashes the password with bcrypt (12 rounds),
+//   creates the User document, and returns the new user's ID/name/email.
+//   Returns 409 for duplicate emails.
+// INTEGRATION: User model, bcryptjs, Zod validation
+// ============================================================

@@ -58,3 +58,15 @@ export function useCurrentUser(): UseCurrentUserResult {
 
   return { user, isLoading, isAuthenticated, refetch };
 }
+
+// ============================================================
+// FILE: src/hooks/use-current-user.ts
+// ============================================================
+// PURPOSE: React hook that provides the enriched current user data on the client.
+// HOW IT WORKS: Combines NextAuth session data with a fetch to /api/auth/me for
+//   additional user fields (role, onboardingCompleted, profileCompleted, avatar).
+//   On initial auth, triggers a refetch to get the enriched data. The refetch()
+//   function can be called to refresh after profile updates. Returns a merged
+//   CurrentUser object with session data as primary and API data as fallback.
+// INTEGRATION: NextAuth session, /api/auth/me endpoint
+// ============================================================

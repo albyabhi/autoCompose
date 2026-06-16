@@ -86,3 +86,18 @@ export function resolveGenerationCategory(
 ): EmailCategory {
   return sessionCategory ?? requestedCategory;
 }
+
+// ============================================================
+// FILE: src/modules/email/categories.ts
+// ============================================================
+// PURPOSE: Defines the 7 email categories and their AI prompt policies.
+// HOW IT WORKS: EMAIL_CATEGORIES is the canonical list of supported types
+//   (job_application, leave_request, sick_leave, resignation, complaint,
+//   meeting_request, custom). CATEGORY_POLICIES maps each category to its
+//   display label, which profile sections to inject into prompts, guidance
+//   strings for the UI, and a specific AI instruction that shapes the
+//   generated email. resolveGenerationCategory() merges requested and
+//   session categories, preferring the session's category.
+// INTEGRATION: Used by AI provider (prompt building), email service,
+//   frontend model selector, and session model validation
+// ============================================================

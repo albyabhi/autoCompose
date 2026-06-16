@@ -13,3 +13,13 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/register/page.tsx
+// ============================================================
+// PURPOSE: Registration page — displays the account creation form.
+// HOW IT WORKS: Renders a centered auth page with the AutoCompose logo/link
+//   and the RegisterForm component. The form validates input with Zod,
+//   POSTs to /api/auth/register, then auto-signs in via NextAuth signIn().
+// INTEGRATION: RegisterForm component, /api/auth/register, NextAuth signIn
+// ============================================================

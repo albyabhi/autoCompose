@@ -67,3 +67,14 @@ export async function DELETE(
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/sessions/[id]/route.ts
+// ============================================================
+// PURPOSE: API endpoints for getting, updating, and soft-deleting individual sessions.
+// HOW IT WORKS: GET returns the session with its messages. PATCH updates title/metadata
+//   with audit logging. DELETE soft-sets isDeleted=true with audit logging. All
+//   operations enforce ownership via userId. Route params use the Next.js 15
+//   async params pattern.
+// INTEGRATION: Session service, session validation, audit logger, auth
+// ============================================================

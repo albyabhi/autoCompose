@@ -29,3 +29,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+
+// ============================================================
+// FILE: src/components/auth/auth-guard.tsx
+// ============================================================
+// PURPOSE: Client-side component that protects routes by requiring authentication.
+// HOW IT WORKS: Uses NextAuth's useSession to check auth status. Shows a loading
+//   spinner while the session is loading. Redirects to /login if unauthenticated.
+//   Renders children only when authenticated. Prevents flash of protected content.
+// PROPS: children (React nodes to render when authenticated)
+// INTEGRATION: NextAuth session, Next.js router
+// ============================================================

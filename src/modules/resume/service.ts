@@ -436,3 +436,19 @@ export async function deleteResume(userId: string): Promise<void> {
 
   logger.info("Resume deleted", { userId });
 }
+
+// ============================================================
+// FILE: src/modules/resume/service.ts
+// ============================================================
+// PURPOSE: Parses uploaded resumes (PDF/DOCX/TXT) and extracts structured data using AI.
+// HOW IT WORKS: extractTextFromFile() handles format-specific text extraction:
+//   PDF via pdfjs-dist (with DOMMatrix polyfill for Node), DOCX via mammoth,
+//   TXT as raw string. parseResumeWithAI() first uses regex to extract simple
+//   fields (email, phone, LinkedIn, GitHub, portfolio), then makes a single
+//   AI call with a comprehensive prompt to extract structured data (name,
+//   skills, education, experience, projects). Results are merged with regex
+//   fallbacks and validated against a Zod schema. uploadAndParseResume()
+//   orchestrates the full flow: extract text -> parse -> upsert profile -> store
+//   resume data. getResume() and deleteResume() provide retrieval and cleanup.
+// INTEGRATION: AI provider (NVIDIA NIM), Profile model, pdfjs-dist, mammoth
+// ============================================================

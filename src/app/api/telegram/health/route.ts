@@ -52,3 +52,14 @@ export async function GET() {
 
   return NextResponse.json(result);
 }
+
+// ============================================================
+// FILE: src/app/api/telegram/health/route.ts
+// ============================================================
+// PURPOSE: Health check endpoint for Telegram integration (GET /api/telegram/health).
+// HOW IT WORKS: Returns a diagnostic object with: whether Telegram is enabled,
+//   bot token/secret configuration status, bot username, bot info (fetched via
+//   getMe API call), and MongoDB connectivity status. Used for monitoring
+//   and debugging Telegram integration issues.
+// INTEGRATION: grammY Bot API, MongoDB, config
+// ============================================================

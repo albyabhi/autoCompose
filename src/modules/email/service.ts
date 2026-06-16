@@ -167,3 +167,19 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     sessionId: sessionIdToUse,
   };
 }
+
+// ============================================================
+// FILE: src/modules/email/service.ts
+// ============================================================
+// PURPOSE: Core business logic for generating AI-powered emails.
+// HOW IT WORKS: generateEmail() orchestrates the full flow: (1) Resolves
+//   the email category (session overrides request), (2) Loads user profile
+//   and builds AI context with selected sections, (3) For existing sessions,
+//   loads bounded conversation history (max 8 messages, 6000 chars), (4) For
+//   new sessions, creates one with an auto-generated title, (5) Calls the
+//   AI provider with system prompt + history + user prompt, (6) Saves the
+//   EmailTemplate record and Message entries (user + assistant), (7) Logs
+//   an audit entry with full metadata. Returns the generated content.
+// INTEGRATION: AI provider factory, Profile/Session/Message/EmailTemplate models,
+//   context builder, history budget, audit logging
+// ============================================================

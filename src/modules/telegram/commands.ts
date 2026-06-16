@@ -180,3 +180,18 @@ export async function handleStatus(ctx: Context): Promise<void> {
 export async function handleComposeCommand(ctx: Context): Promise<void> {
   await startCompose(ctx);
 }
+
+// ============================================================
+// FILE: src/modules/telegram/commands.ts
+// ============================================================
+// PURPOSE: Handles Telegram bot slash commands (/start, /menu, /cancel, /help, /status).
+// HOW IT WORKS: handleStart() processes the /start command with deep-link login codes:
+//   if a payload is present, it validates the 8-char code against bcrypt hashes in
+//   the User model, links the Telegram account on success, and shows an error on
+//   failure. Without payload, it shows welcome text with linking instructions.
+//   handleMenu() delegates to the compose flow's main menu. handleCancel() clears
+//   conversation state and shows the menu. handleHelp() shows command list.
+//   handleStatus() shows account info (link date, default model, Gmail config).
+//   consumeLoginCode() scans all users with non-expired codes and compares via bcrypt.
+// INTEGRATION: User model, Profile model, state module, compose flow, keyboards
+// ============================================================

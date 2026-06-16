@@ -47,3 +47,14 @@ export async function generateFromTelegram(params: TelegramGenerateParams): Prom
 
   return result;
 }
+
+// ============================================================
+// FILE: src/modules/telegram/ai-bridge.ts
+// ============================================================
+// PURPOSE: Bridge between Telegram bot and the email generation service.
+// HOW IT WORKS: generateFromTelegram() applies Telegram-specific rate limiting
+//   (20 requests per hour per user), then delegates to the core generateEmail()
+//   service with userAgent set to "telegram-bot" for audit tracking. Records
+//   a telegram.email_generated audit entry with the template ID and model used.
+// INTEGRATION: Email service (generateEmail), rate limiter, audit logger
+// ============================================================

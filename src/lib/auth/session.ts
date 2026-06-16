@@ -38,3 +38,16 @@ async function hydrateUser(userId: string): Promise<CurrentUser> {
     avatar: user.avatar,
   };
 }
+
+// ============================================================
+// FILE: src/lib/auth/session.ts
+// ============================================================
+// PURPOSE: Server-only session utilities for checking auth and hydrating user data.
+// HOW IT WORKS: getServerSession() is a cached wrapper around NextAuth's auth().
+//   requireAuth() checks the session and throws UnauthorizedError if missing,
+//   then hydrates the full user from MongoDB (User + Profile documents).
+//   hydrateUser() combines user data and profile existence into a CurrentUser
+//   object. All functions use React.cache() for per-request deduplication.
+// [SECURITY] Server-only - contains authentication logic
+// INTEGRATION: NextAuth, User model, Profile model
+// ============================================================

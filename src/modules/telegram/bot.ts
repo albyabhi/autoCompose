@@ -40,3 +40,16 @@ export function ensureBotMiddleware(): Promise<Bot> {
 export function isTelegramEnabled(): boolean {
   return getConfig().telegram.enabled;
 }
+
+// ============================================================
+// FILE: src/modules/telegram/bot.ts
+// ============================================================
+// PURPOSE: Initializes and caches the grammY Bot instance for Telegram integration.
+// HOW IT WORKS: initBot() creates a Bot with the configured token, calls bot.init()
+//   to fetch bot info, and registers a middleware that delegates all updates to
+//   handleUpdate(). The bot instance is cached in a promise singleton to avoid
+//   re-initialization. getBot() returns the cached instance. ensureBotMiddleware()
+//   is an alias for getBot(). isTelegramEnabled() checks if Telegram env vars are set.
+// [SECURITY] Server-only - bot token never exposed to client
+// INTEGRATION: grammY Bot SDK, config, webhook handler
+// ============================================================

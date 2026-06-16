@@ -133,3 +133,17 @@ export async function clearStatesForChatIds(chatIds: string[]): Promise<number> 
   const result = await TelegramState.deleteMany({ chatId: { $in: chatIds } });
   return result.deletedCount ?? 0;
 }
+
+// ============================================================
+// FILE: src/modules/telegram/state.ts
+// ============================================================
+// PURPOSE: Manages multi-step conversation state for Telegram bot interactions.
+// HOW IT WORKS: Provides loadState/saveState/clearState for the state machine.
+//   loadStateForUser() returns the current state or an idle default. saveState()
+//   applies a partial patch to the state document with optimistic concurrency
+//   control via version number - if expectedVersion is provided and doesn't match,
+//   it throws STATE_CONFLICT. Fields are set/unset dynamically based on the patch.
+//   States auto-expire after 24 hours via TTL index. clearState() deletes the
+//   state document entirely.
+// INTEGRATION: TelegramState model, used by webhook, compose flow, and send flow
+// ============================================================

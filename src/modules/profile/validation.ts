@@ -124,3 +124,18 @@ export const profileCreateSchema = z.object({
 export type ResumeData = z.infer<typeof resumeSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ProfileCreateInput = z.infer<typeof profileCreateSchema>;
+
+// ============================================================
+// FILE: src/modules/profile/validation.ts
+// =================================================>
+// PURPOSE: Zod schemas for validating profile create/update inputs and resume data.
+// HOW IT WORKS: personalSchema validates name (required) and optional phone/location.
+//   professionalSchema uses superRefine to enforce type-specific required fields
+//   (college+degree for students, designation+organization for professionals) and
+//   transforms via normalizeProfessionalForSave. preferencesSchema validates
+//   formality, tone, language, and model choice. emailCredentialsSchema validates
+//   Gmail address + 16-char app password (with whitespace stripped). resumeSchema
+//   validates the full parsed resume structure. profileUpdateSchema and
+//   profileCreateSchema compose these into request-level schemas.
+// INTEGRATION: Used by profile API routes and service functions
+// ============================================================

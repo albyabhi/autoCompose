@@ -22,3 +22,12 @@ export function AppShell({ children, title }: AppShellProps) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/layout/components/app-shell.tsx
+// ============================================================
+// PURPOSE: The top-level layout wrapper providing header, sidebar, and main content area.
+// HOW IT WORKS: Reads the sidebarOpen state from the layout store and toggles a CSS class on the body container. Renders the Header, Sidebar, and a main content area for children.
+// PROPS: children (ReactNode), title (string).
+// INTEGRATION: layout-store (Zustand), Header, Sidebar components.
+// ============================================================

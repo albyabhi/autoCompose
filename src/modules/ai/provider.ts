@@ -58,3 +58,17 @@ Instructions: ${prompt}
 Generate a professional email template based on the above.`;
   }
 }
+
+// ============================================================
+// FILE: src/modules/ai/provider.ts
+// ============================================================
+// PURPOSE: Abstract base class that all AI providers must extend.
+// HOW IT WORKS: Defines the complete() abstract method and provides shared
+//   prompt-building logic. buildSystemPrompt() assembles the system message
+//   with: (1) role definition, (2) category-specific AI instructions from
+//   CATEGORY_POLICIES, (3) user profile context sections, (4) output rules
+//   (no markdown, no subject prefix, proper email formatting), and (5)
+//   language/signature preferences. buildUserPrompt() wraps the user's
+//   instructions with category context.
+// INTEGRATION: Extended by NvidiaNIMProvider, used by email service
+// ============================================================

@@ -71,3 +71,15 @@ export default function SessionsPage() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/app/(app)/sessions/page.tsx
+// ============================================================
+// PURPOSE: Sessions list page — displays all user sessions with creation/management.
+// HOW IT WORKS: Client component that fetches sessions via useSessions() hook (50
+//   page size). Shows skeleton loading state, error message, or empty state with
+//   "Create Session" CTA. When sessions exist, renders a list of SessionCard
+//   components. A "New Session" button opens the NewSessionDialog modal. Sessions
+//   are fetched from /api/sessions via TanStack Query.
+// INTEGRATION: useSessions hook, SessionCard, NewSessionDialog, API client
+// ============================================================

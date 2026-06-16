@@ -59,3 +59,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "INTERNAL" }, { status: 500 });
   }
 }
+
+// ============================================================
+// FILE: src/app/api/telegram/webhook/route.ts
+// ============================================================
+// PURPOSE: Receives and processes incoming Telegram bot webhook updates.
+// HOW IT WORKS: Verifies the X-Telegram-Bot-API-Secret-Token header using
+//   constant-time comparison to prevent timing attacks. If the secret is
+//   invalid, records an audit entry and returns 401. Parses the JSON body
+//   and passes it to the bot's handleUpdate() middleware. Returns 200 on
+//   success, 500 on processing errors. Uses runtime="nodejs" for crypto
+//   and force-dynamic to prevent caching.
+// [SECURITY] Constant-time secret comparison, IP logging, audit trail
+// INTEGRATION: grammY Bot, config (webhook secret), audit logger
+// ============================================================

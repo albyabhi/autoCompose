@@ -45,3 +45,16 @@ export function parseEmailContent(content: string): ParsedEmailContent {
     body: stripSubjectLine(cleaned),
   };
 }
+
+// ============================================================
+// FILE: src/modules/email/content.ts
+// ============================================================
+// PURPOSE: Utilities for parsing and cleaning AI-generated email content.
+// HOW IT WORKS: cleanAIContent() removes markdown bullet prefixes (* or -).
+//   extractSubject() reads the first non-empty line; if it starts with
+//   "Subject:", the value is extracted; otherwise the first line becomes
+//   the subject (truncated to 200 chars). stripSubjectLine() removes the
+//   subject prefix and trailing blank line from the body. parseEmailContent()
+//   combines these into a { subject, body } object.
+// INTEGRATION: Used by Telegram send flow and frontend to split AI output
+// ============================================================

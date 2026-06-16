@@ -79,3 +79,12 @@ export function SessionList({ search, isArchived = false, onClose }: SessionList
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/sessions/components/session-list.tsx
+// ============================================================
+// PURPOSE: An infinitely-scrolling list of session cards used in the sidebar.
+// HOW IT works: Uses useInfiniteSessions to load pages of sessions and attaches an IntersectionObserver to the last rendered card. When the sentinel enters the viewport, fetchNextPage is called automatically. Shows SkeletonList while loading, an EmptyState when no sessions exist, and SkeletonList for the next-page loading indicator.
+// PROPS: search (string), isArchived (boolean), onNewSession (() => void), onClose (() => void).
+// INTEGRATION: useInfiniteSessions hook, SessionCard, SkeletonList, EmptyState.
+// ============================================================

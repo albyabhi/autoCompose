@@ -22,3 +22,16 @@ export const sendEmailSchema = z.object({
 
 export type GenerateEmailInput = z.infer<typeof generateEmailSchema>;
 export type SendEmailInput = z.infer<typeof sendEmailSchema>;
+
+// ============================================================
+// FILE: src/modules/email/validation.ts
+// ============================================================
+// PURPOSE: Zod schemas for validating email generation and sending inputs.
+// HOW IT WORKS: generateEmailSchema validates the prompt (10-5000 chars),
+//   category (must be one of 7 types, defaults to "custom"), modelId
+//   (must be a valid model key, defaults to "deepseek"), temperature
+//   (0-2, default 0.7), maxTokens (64-4096, default 1024), and optional
+//   sessionId. sendEmailSchema validates recipient email, subject (1-200
+//   chars), and body (1-20000 chars). Types are inferred for use elsewhere.
+// INTEGRATION: Used by API routes (generate, send-email) for request validation
+// ============================================================

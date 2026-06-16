@@ -98,3 +98,17 @@ export function isProfessionalFieldVisible(
 ): boolean {
   return !fieldType || fieldType === selectedType;
 }
+
+// ============================================================
+// FILE: src/modules/profile/professional.ts
+// ============================================================
+// PURPOSE: Utilities for managing student vs working professional profile types.
+// HOW IT WORKS: inferProfessionalType() detects the type from data fields (student
+//   if college/degree present, working_professional if designation/organization).
+//   isProfessionalComplete() checks if required fields for the detected type are
+//   filled. normalizeProfessionalForSave() clears irrelevant fields based on type
+//   (e.g., clears work fields for students). getActiveProfessionalEntries() returns
+//   display-ready entries for UI rendering. isProfessionalFieldVisible() controls
+//   field visibility in forms based on selected type.
+// INTEGRATION: Used by profile service, context builder, and profile form component
+// ============================================================

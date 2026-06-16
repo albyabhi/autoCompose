@@ -61,3 +61,17 @@ sessionSchema.index({ title: "text", "metadata.tags": "text" });
 export const Session =
   mongoose.models.Session ??
   mongoose.model<ISession>("Session", sessionSchema);
+
+// ============================================================
+// FILE: src/models/session.ts
+// ============================================================
+// PURPOSE: Mongoose schema for email generation sessions (conversation containers).
+// HOW IT WORKS: Each session groups messages for a specific email category.
+//   Fields include title, category (from 7 predefined types), userId for
+//   ownership, and soft-delete/archive flags. Compound indexes on
+//   userId+isDeleted+createdAt and userId+isArchived+createdAt enable
+//   efficient listing queries. A text index on title and metadata.tags
+//   supports search.
+// FIELDS: title, category, userId, metadata, isArchived, isDeleted, deletedAt
+// INTEGRATION: Used by session service, message model, and frontend session list
+// ============================================================

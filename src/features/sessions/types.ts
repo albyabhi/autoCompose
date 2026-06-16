@@ -31,3 +31,11 @@ export interface PaginatedResult<T> {
 export interface SessionWithMessages extends SessionData {
   messages: MessageData[];
 }
+
+// ============================================================
+// FILE: src/features/sessions/types.ts
+// ============================================================
+// PURPOSE: TypeScript type definitions for sessions, messages, and paginated query results.
+// HOW IT works: Defines SessionData (id, title, category, metadata, archive state, timestamps), MessageData (role, content, model used), PaginatedResult<T> (items, total, page info), and SessionWithMessages (session with embedded messages). These types are shared across API, hooks, and components.
+// INTEGRATION: No external dependencies; consumed by sessions API, hooks, and components.
+// ============================================================

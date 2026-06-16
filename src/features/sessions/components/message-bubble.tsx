@@ -70,3 +70,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/sessions/components/message-bubble.tsx
+// ============================================================
+// PURPOSE: Renders a single chat message (user or assistant) with an optional "Send via Email" action for AI-generated emails.
+// HOW IT works: Displays the role label, model badge, and cleaned content. For assistant messages, parses the email subject and body via parseEmailContent, and shows a "Send via Email" button that opens SendEmailDialog if Gmail credentials are configured. Otherwise shows a link to settings.
+// PROPS: message (MessageData).
+// INTEGRATION: useProfile hook, cleanAIContent/parseEmailContent, SendEmailDialog, MessageData type.
+// ============================================================

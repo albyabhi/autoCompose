@@ -85,3 +85,12 @@ export function SessionView({ id }: SessionViewProps) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/sessions/components/session-view.tsx
+// ============================================================
+// PURPOSE: Full detail view of a single session showing its messages and action buttons.
+// HOW IT works: Fetches the session and its messages via useSession. Shows a skeleton while loading, an EmptyState on error, or the session header (title, category) with "Continue" and "Edit Prompt & Generate" buttons. Messages are rendered as MessageBubble components; if none exist, prompts the user to start writing.
+// PROPS: id (string).
+// INTEGRATION: useSession hook, MessageBubble, Button, EmptyState, SkeletonList, Next.js useRouter.
+// ============================================================

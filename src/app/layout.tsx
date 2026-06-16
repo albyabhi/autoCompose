@@ -23,3 +23,14 @@ export default function RootLayout({
     </html>
   );
 }
+
+// ============================================================
+// FILE: src/app/layout.tsx
+// ============================================================
+// PURPOSE: Root layout for the entire application — wraps all pages with providers.
+// HOW IT WORKS: Server component that renders the <html> and <body> tags.
+//   Wraps children with NextAuth SessionProvider (JWT session management) and
+//   app-level Providers (React Query, theme context, etc.). Sets global metadata
+//   for SEO (title, description). Imports global CSS styles.
+// INTEGRATION: SessionProvider, Providers, globals.css
+// ============================================================

@@ -43,3 +43,16 @@ export function decrypt(stored: string): string {
     decipher.final(),
   ]).toString("utf8");
 }
+
+// ============================================================
+// FILE: src/lib/crypto.ts
+// ============================================================
+// PURPOSE: Provides AES-256-GCM encryption/decryption for sensitive data (Gmail passwords).
+// HOW IT WORKS: Derives a 32-byte encryption key from the auth secret using
+//   scrypt. encrypt() generates a random 12-byte IV, encrypts the plaintext,
+//   and returns a versioned string: "v1:<iv>:<authTag>:<ciphertext>". decrypt()
+//   parses this format, validates hex encoding, and decrypts with auth tag
+//   verification to detect tampering.
+// [SECURITY] Server-only - handles encrypted credential storage
+// INTEGRATION: Uses auth secret from config as encryption key source
+// ============================================================

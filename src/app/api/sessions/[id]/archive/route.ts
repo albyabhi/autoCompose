@@ -28,3 +28,13 @@ export async function PATCH(
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/sessions/[id]/archive/route.ts
+// ============================================================
+// PURPOSE: API endpoint for archiving/unarchiving a session (PATCH /api/sessions/:id/archive).
+// HOW IT WORKS: Reads the "archived" boolean from the request body, calls
+//   toggleArchive() to update the session's isArchived flag, and records
+//   an audit entry (session.archived or session.unarchived). Enforces ownership.
+// INTEGRATION: Session service, audit logger, auth
+// ============================================================

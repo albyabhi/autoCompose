@@ -44,3 +44,15 @@ export interface ProfileReadiness {
   selectedSections: ProfileSection[];
   missingSections: ProfileSection[];
 }
+
+// ============================================================
+// FILE: src/modules/profile/types.ts
+// ============================================================
+// PURPOSE: TypeScript interfaces for profile data transfer objects.
+// HOW IT WORKS: ProfileData is the normalized profile shape with personal,
+//   professional, preferences, and jobApplication sections. ProfileContext
+//   is the AI-ready version with formatted sections string, character count,
+//   signature, formality/tone preferences. ProfileReadiness tracks which
+//   profile sections are complete vs missing for a given email category.
+// INTEGRATION: Used by profile service, context builder, and frontend hooks
+// ============================================================

@@ -33,3 +33,12 @@ export function SkeletonList({ count = 5 }: { count?: number }) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/ui/skeleton.tsx
+// ============================================================
+// PURPOSE: Placeholder loading components that display animated skeleton shapes while content loads.
+// HOW IT WORKS: Skeleton renders a single div with configurable width/height and a CSS skeleton animation class. SkeletonCard composes three Skeleton bars inside a card shape, and SkeletonList renders multiple SkeletonCards.
+// PROPS: width/height (string) on Skeleton; count (number) on SkeletonList.
+// INTEGRATION: React, no external dependencies.
+// ============================================================

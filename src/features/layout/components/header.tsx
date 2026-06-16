@@ -38,3 +38,12 @@ export function Header({ title }: HeaderProps) {
     </header>
   );
 }
+
+// ============================================================
+// FILE: src/features/layout/components/header.tsx
+// ============================================================
+// PURPOSE: The top navigation bar with logo, optional page title, mobile sidebar toggle, and user avatar.
+// HOW IT WORKS: Fetches the current user from useCurrentUser and opens the mobile sidebar via the layout store. Renders a hamburger button (mobile), logo link to /dashboard, a breadcrumb-style title divider, and a UserButton when logged in.
+// PROPS: title (string).
+// INTEGRATION: useCurrentUser hook, layout-store, UserButton, Next.js Link.
+// ============================================================

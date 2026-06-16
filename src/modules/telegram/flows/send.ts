@@ -371,3 +371,18 @@ async function resolveUserIdFromContext(ctx: Context): Promise<string | null> {
   if (!user) return null;
   return (user as { _id: unknown })._id?.toString() ?? null;
 }
+
+// ============================================================
+// FILE: src/modules/telegram/flows/send.ts
+// ============================================================
+// PURPOSE: Implements the multi-step email sending flow via Telegram bot.
+// HOW IT WORKS: handleSendStart() validates credentials and moves to "awaiting_recipient".
+//   handleSendToMe() shortcuts to subject prompt using the user's Gmail address.
+//   handleRecipientInput() validates the email and moves to "awaiting_subject".
+//   handleSubjectInput() accepts custom subject or /skip for auto-detected one, then
+//   shows confirmation preview. handleSendConfirm() dispatches the email via
+//   dispatchSendEmail(), records audit, and shows success/failure. handleSendCancel()
+//   clears state and returns to menu. All steps rate-limit sends to 10/hour.
+// [SECURITY] Credentials decrypted transiently for SMTP only
+// INTEGRATION: Email dispatch, state module, keyboards, rate limiter, audit logger
+// ============================================================

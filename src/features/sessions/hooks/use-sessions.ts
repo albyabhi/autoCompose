@@ -96,3 +96,11 @@ export function useToggleArchive() {
     },
   });
 }
+
+// ============================================================
+// FILE: src/features/sessions/hooks/use-sessions.ts
+// ============================================================
+// PURPOSE: React Query hooks for querying, creating, updating, deleting, and archiving sessions.
+// HOW IT works: useSessions fetches paginated sessions; useInfiniteSessions uses useInfiniteQuery for scrollable lists with auto-pagination. useSession fetches a single session with messages. Mutations (create/update/delete/toggleArchive) invalidate the sessions query cache on success, and useUpdateSession also optimistically patches the individual session cache.
+// INTEGRATION: @tanstack/react-query, sessions API client, CreateSessionInput/UpdateSessionInput types.
+// ============================================================

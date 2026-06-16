@@ -38,3 +38,17 @@ export function getRateLimitStatus(key: string): { remaining: number; resetAt: n
     resetAt: entry.resetAt,
   };
 }
+
+// ============================================================
+// FILE: src/lib/rate-limit.ts
+// ============================================================
+// PURPOSE: In-memory sliding-window rate limiter for API endpoint protection.
+// HOW IT WORKS: Maintains a Map of keyed entries with request counts and reset
+//   timestamps. checkRateLimit() throws RateLimitError when the count exceeds
+//   maxRequests (default 10) within the time window (default 60 seconds).
+//   If the window has expired, the counter resets. getRateLimitStatus() returns
+//   remaining requests without throwing, useful for setting response headers.
+// NOTE: In-memory only - resets on server restart. Not suitable for distributed
+//   deployments without an external store like Redis.
+// INTEGRATION: Used by API routes and Telegram rate limiter
+// ============================================================

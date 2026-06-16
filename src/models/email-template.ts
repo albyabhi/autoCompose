@@ -54,3 +54,15 @@ emailTemplateSchema.index({ userId: 1, createdAt: -1 });
 export const EmailTemplate =
   mongoose.models.EmailTemplate ??
   mongoose.model<IEmailTemplate>("EmailTemplate", emailTemplateSchema);
+
+// ============================================================
+// FILE: src/models/email-template.ts
+// ============================================================
+// PURPOSE: Mongoose schema for storing generated email templates/history.
+// HOW IT WORKS: Records each generated email with its category, original prompt,
+//   generated content, model used, and optional userId. Provides an audit trail
+//   of all email generations. Indexes on createdAt and userId+createdAt support
+//   retrieval of recent templates and user-specific history.
+// FIELDS: category, prompt, generatedEmail, modelUsed, userId, metadata
+// INTEGRATION: Used by email service to store generation results
+// ============================================================

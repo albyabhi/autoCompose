@@ -166,3 +166,16 @@ export function GenerateForm() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/generate-form.tsx
+// ============================================================
+// PURPOSE: Main email generation form with category, model, and prompt inputs.
+// HOW IT WORKS: Manages form state for prompt, category, and model selection.
+//   Supports cloning prompts from existing sessions via URL params. On submit,
+//   calls /api/generate and displays the result. Shows profile readiness warnings
+//   for missing sections. Uses the user's preferred model from profile as default.
+//   Invalidates sessions cache on success and navigates to the new session.
+// PROPS: None (standalone page component)
+// INTEGRATION: Email categories, AI types, profile hook, session hook, API client
+// ============================================================

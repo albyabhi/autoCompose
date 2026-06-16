@@ -144,3 +144,12 @@ export function SessionCard({ session, onClose }: SessionCardProps) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/sessions/components/session-card.tsx
+// ============================================================
+// PURPOSE: A clickable card representing a single session with actions menu (rename, archive, delete).
+// HOW IT works: Displays the session title, category label, relative date (Today/Yesterday/n), and message count. Clicking navigates to /sessions/:id. The overflow menu offers rename (inline edit), archive/unarchive, and delete via useDeleteSession/useToggleArchive/useUpdateSession mutations.
+// PROPS: session (SessionData), onClose (() => void).
+// INTEGRATION: useDeleteSession/useToggleArchive/useUpdateSession hooks, Next.js useRouter/usePathname.
+// ============================================================

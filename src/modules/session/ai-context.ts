@@ -9,3 +9,13 @@ export function buildConversationHistory(
     content: msg.content,
   }));
 }
+
+// ============================================================
+// FILE: src/modules/session/ai-context.ts
+// ============================================================
+// PURPOSE: Converts Mongoose message documents to OpenAI chat completion format.
+// HOW IT WORKS: buildConversationHistory() maps IMessage[] to ChatCompletionMessageParam[],
+//   translating the "assistant" role to "assistant" for the OpenAI API. This adapter
+//   bridges the database model and the AI provider's expected input format.
+// INTEGRATION: Used by email service and Telegram AI bridge for multi-turn completions
+// ============================================================

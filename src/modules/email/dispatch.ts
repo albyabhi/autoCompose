@@ -169,3 +169,18 @@ export async function dispatchSendEmail(
     };
   }
 }
+
+// ============================================================
+// FILE: src/modules/email/dispatch.ts
+// ============================================================
+// PURPOSE: High-level email sending orchestrator with validation, auth, and audit.
+// HOW IT WORKS: dispatchSendEmail() validates the recipient email, subject length,
+//   and body length. Applies rate limiting if configured. Fetches the user's
+//   encrypted Gmail credentials from their Profile, decrypts the app password
+//   using crypto.ts, and calls sender.ts to send via SMTP. Records audit entries
+//   for both success (email.sent) and failure (email.send_failed). Returns a
+//   typed result discriminated by ok:true/false with specific error codes.
+// [SECURITY] Decrypts credentials in memory only, never persists plaintext
+// INTEGRATION: Profile model (encrypted credentials), crypto.ts, sender.ts,
+//   rate limiter, audit logger. Used by Telegram send flow and API route.
+// ============================================================

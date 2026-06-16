@@ -53,3 +53,14 @@ export async function disconnectDB(): Promise<void> {
     logger.info("MongoDB disconnected");
   }
 }
+
+// ============================================================
+// FILE: src/lib/db.ts
+// ============================================================
+// PURPOSE: Provides a cached MongoDB connection singleton using Mongoose.
+// HOW IT WORKS: Maintains a global cache (survives hot reloads) so only one
+//   connection is opened per process. connectDB() returns the existing
+//   connection if available, otherwise creates a new one with configured
+//   pool sizes and timeouts. disconnectDB() cleanly tears down the connection.
+// INTEGRATION: MongoDB via Mongoose, reads config from src/config/index.ts
+// ============================================================

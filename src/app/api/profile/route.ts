@@ -40,3 +40,14 @@ export async function PATCH(request: NextRequest) {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/profile/route.ts
+// ============================================================
+// PURPOSE: API endpoint for reading and updating user profiles (GET/PATCH /api/profile).
+// HOW IT WORKS: GET returns the sanitized profile (no raw text or encrypted passwords)
+//   plus per-category readiness status showing which sections are complete. PATCH
+//   validates partial updates against profileUpdateSchema and merges them into the
+//   existing profile. Both return the sanitized profile and readiness map.
+// INTEGRATION: Profile service, context builder (sanitization + readiness), auth
+// ============================================================

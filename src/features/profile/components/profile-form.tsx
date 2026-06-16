@@ -308,3 +308,12 @@ export function ProfileForm() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/profile/components/profile-form.tsx
+// ============================================================
+// PURPOSE: A multi-section settings form for editing the user's personal, professional, preferences, and job application profile data.
+// HOW IT WORKS: Loads the profile via useProfile, determines which sections are relevant to the current email category from URL params, and renders a SectionForm for each. Each section tracks local dirty state, validates required fields, and calls useUpdateProfile on save. Also includes AiSettingsSection and EmailCredentialsSection at the bottom.
+// PROPS: None (self-contained page component).
+// INTEGRATION: useProfile/useUpdateProfile hooks, CATEGORY_POLICIES, isProfessionalFieldVisible, AiSettingsSection, EmailCredentialsSection, SkeletonList.
+// ============================================================

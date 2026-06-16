@@ -134,3 +134,16 @@ export function LoginForm() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/auth/login-form.tsx
+// ============================================================
+// PURPOSE: Login form component with email/password fields and validation.
+// HOW IT WORKS: Uses React's useActionState to handle form submission. The
+//   loginAction function validates email format and password length, then calls
+//   signIn("credentials") with redirect:false. On success, navigates to the
+//   callback URL (from search params or /dashboard). Shows field-level and
+//   form-level error messages. Supports pending state for loading UI.
+// PROPS: None (standalone page component)
+// INTEGRATION: NextAuth signIn, React useActionState, Next.js router
+// ============================================================

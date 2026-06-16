@@ -27,3 +27,11 @@ export function useUpdateProfile() {
     },
   });
 }
+
+// ============================================================
+// FILE: src/features/profile/hooks/use-profile.ts
+// ============================================================
+// PURPOSE: React Query hooks for fetching and updating the user profile.
+// HOW IT WORKS: useProfile wraps a query on the "profile" key calling fetchProfile. useUpdateProfile wraps a mutation that calls updateProfile with a section name and data object, then invalidates the profile query cache on success.
+// INTEGRATION: @tanstack/react-query, profile API client (fetchProfile, updateProfile).
+// ============================================================

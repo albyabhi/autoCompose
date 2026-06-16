@@ -94,3 +94,12 @@ export function NewSessionDialog({ open, onClose }: NewSessionDialogProps) {
     </>
   );
 }
+
+// ============================================================
+// FILE: src/features/sessions/components/new-session-dialog.tsx
+// ============================================================
+// PURPOSE: A modal dialog for creating a new email composition session with title and category.
+// HOW IT works: Renders a form with a title input and category dropdown (from CATEGORY_OPTIONS). On submit, calls useCreateSession to create the session, resets the form, closes the dialog, and navigates to the new session's detail page. Returns null when not open.
+// PROPS: open (boolean), onClose (() => void).
+// INTEGRATION: useCreateSession hook, CATEGORY_OPTIONS/EmailCategory from email categories module, Next.js useRouter.
+// ============================================================

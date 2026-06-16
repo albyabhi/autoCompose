@@ -15,3 +15,12 @@ export function EmptyState({ icon = "✦", title, description, action }: EmptySt
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/ui/empty-state.tsx
+// ============================================================
+// PURPOSE: Displays a friendly placeholder when there is no data to show.
+// HOW IT WORKS: Renders a centered container with an icon, title, description text, and an optional action node (e.g., a button). The layout is styled via the "empty-state" CSS class.
+// PROPS: icon (string), title (string), description (string), action (ReactNode).
+// INTEGRATION: React, no external dependencies.
+// ============================================================

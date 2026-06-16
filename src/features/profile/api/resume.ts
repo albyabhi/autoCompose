@@ -78,3 +78,11 @@ export async function uploadResume(
 export async function deleteResume(): Promise<{ deleted: boolean }> {
   return api.delete<{ deleted: boolean }>("/api/profile/resume");
 }
+
+// ============================================================
+// FILE: src/features/profile/api/resume.ts
+// ============================================================
+// PURPOSE: API client for fetching, uploading (streaming), and deleting a parsed resume.
+// HOW IT works: fetchResume does a GET to /api/profile/resume. uploadResume sends a FormData POST with the file and modelId, then reads the response body as a stream, parsing JSON lines for progress events, success, or error. deleteResume sends a DELETE request.
+// INTEGRATION: @/lib/api-client, ModelId type from @/modules/ai/types.
+// ============================================================

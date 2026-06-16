@@ -86,3 +86,12 @@ export function Sidebar() {
     </>
   );
 }
+
+// ============================================================
+// FILE: src/features/layout/components/sidebar.tsx
+// ============================================================
+// PURPOSE: The application sidebar containing navigation links and a session list.
+// HOW IT WORKS: Reads sidebar open/closed state from the layout store, highlights the active nav item via usePathname, and renders a mobile backdrop overlay when open. The sessions section includes a "New" button that opens the NewSessionDialog, plus an embedded SessionList.
+// PROPS: None (self-contained, reads state from store).
+// INTEGRATION: layout-store, SessionList, NewSessionDialog, Next.js Link/usePathname.
+// ============================================================

@@ -37,3 +37,17 @@ export const getUserProfileContext = cache(async (category: EmailCategory = "cus
     return null;
   }
 });
+
+// ============================================================
+// FILE: src/lib/dal.ts
+// ============================================================
+// PURPOSE: Server-only Data Access Layer providing cached, auth-aware data functions.
+// HOW IT WORKS: Wraps NextAuth session checks with React.cache() for request
+//   deduplication. verifySession() checks auth and redirects to /login if
+//   unauthenticated. getCurrentUser() retrieves the full user document.
+//   getUserProfileContext() fetches the user's profile and builds an AI-ready
+//   context object based on the email category. All functions are cached per
+//   request to avoid redundant DB calls.
+// [SECURITY] Server-only module - never expose to client bundle
+// INTEGRATION: NextAuth sessions, Profile module, Context builder
+// ============================================================

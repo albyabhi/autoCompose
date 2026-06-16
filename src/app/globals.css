@@ -8,6 +8,18 @@
   --yellow: #ffd700;
   --pink: #ff4d6d;
   --blue: #4361ee;
+
+/* ============================================================
+   FILE: src/app/globals.css
+   ============================================================
+   PURPOSE: Global styles for the neubrutalist design system.
+   HOW IT WORKS: Defines CSS custom properties (colors, fonts, spacing, shadows,
+     border widths) and provides utility classes for the neubrutalist aesthetic:
+     thick black borders, hard shadows, bold typography, and high-contrast colors.
+     Includes component styles (buttons, forms, cards, modals, toasts) and
+     responsive layouts (grid, flex). Uses Space Grotesk as the primary font.
+   INTEGRATION: Imported by root layout.tsx, used by all components
+   ============================================================ */
   --green: #06d6a0;
   --orange: #ff9f1c;
   --surface: #f8f9fa;

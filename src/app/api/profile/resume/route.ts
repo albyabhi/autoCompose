@@ -103,3 +103,14 @@ export async function DELETE() {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/profile/resume/route.ts
+// ============================================================
+// PURPOSE: API endpoint for uploading, retrieving, and deleting parsed resumes.
+// HOW IT WORKS: POST accepts multipart FormData with a file (PDF/DOCX/TXT, max 10MB)
+//   and optional modelId. Uses Server-Sent Events (NDJSON) to stream progress updates
+//   during parsing. GET returns the stored resume data. DELETE removes the resume
+//   from the profile. File type and size are validated before processing.
+// INTEGRATION: Resume service (uploadAndParseResume), auth, AI types
+// ============================================================

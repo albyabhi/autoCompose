@@ -80,3 +80,16 @@ auditLogSchema.index({ userId: 1, createdAt: -1 });
 export const AuditLog =
   mongoose.models.AuditLog ??
   mongoose.model<IAuditLog>("AuditLog", auditLogSchema);
+
+// ============================================================
+// FILE: src/models/audit-log.ts
+// ============================================================
+// PURPOSE: Mongoose schema for immutable audit trail of significant application events.
+// HOW IT WORKS: Stores action type (from 32 predefined actions), entity reference,
+//   user ID, metadata, IP, and user agent. Only createdAt is tracked (no updatedAt).
+//   Indexes on action, userId, and createdAt enable efficient querying for
+//   monitoring, debugging, and compliance. Actions cover email generation/sending,
+//   auth events, session management, and Telegram interactions.
+// FIELDS: action, entityType, entityId, userId, metadata, ip, userAgent, createdAt
+// INTEGRATION: Written by audit.ts recordAudit(), queried for monitoring/debugging
+// ============================================================

@@ -65,3 +65,15 @@ export async function handleCallback(ctx: Context): Promise<void> {
   await answerCb(ctx);
   await replyHtml(ctx, "Unknown action. Use /menu to return to the main menu.");
 }
+
+// ============================================================
+// FILE: src/modules/telegram/callbacks.ts
+// ============================================================
+// PURPOSE: Routes inline keyboard button presses to their respective handlers.
+// HOW IT WORKS: Parses the callback data string and matches it against predefined
+//   CB constants (menu, compose, cancel, regenerate, sendStart, sendToMe, sendConfirm).
+//   Category selections use a prefix-based match (tg:cat:*) and extract the category
+//   value. Each callback delegates to the appropriate flow handler in compose.ts
+//   or send.ts. Unknown callbacks get an "Unknown action" response.
+// INTEGRATION: Compose flow, send flow, keyboards (CB constants), reply helper
+// ============================================================

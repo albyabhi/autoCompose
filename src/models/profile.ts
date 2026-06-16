@@ -159,3 +159,20 @@ const profileSchema = new Schema<IProfile>(
 
 export const Profile =
   mongoose.models.Profile ?? mongoose.model<IProfile>("Profile", profileSchema);
+
+// ============================================================
+// FILE: src/models/profile.ts
+// ============================================================
+// PURPOSE: Mongoose schema for user profiles containing personal, professional,
+//   and preference data used to personalize AI-generated emails.
+// HOW IT WORKS: Stores structured user data across 5 sections: personal info
+//   (name, phone, location), professional details (student or working professional),
+//   writing preferences (formality, tone, language, preferred model), job application
+//   links, Gmail credentials (encrypted), and parsed resume data (skills, education,
+//   experience, projects). The resume section is populated by the resume parser
+//   and injected into AI prompts via the context builder.
+// FIELDS: userId (unique), personal, professional, preferences, jobApplication,
+//   emailCredentials (encrypted), resume (parsed structure)
+// INTEGRATION: Used by profile service, context builder, email dispatch, and
+//   resume parser. emailCredentials.encryptedAppPassword is decrypted by crypto.ts
+// ============================================================

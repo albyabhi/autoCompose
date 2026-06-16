@@ -44,3 +44,15 @@ declare module "nodemailer" {
   const nodemailer: { createTransport: typeof createTransport };
   export default nodemailer;
 }
+
+// ============================================================
+// FILE: src/types/nodemailer.d.ts
+// ============================================================
+// PURPOSE: Local type declarations for the nodemailer package.
+// HOW IT WORKS: Declares types for SendMailOptions (to, subject, text, html,
+//   headers), SentMessageInfo (messageId, envelope, accepted, rejected),
+//   Transporter (sendMail, close, verify), TransportOptions (host, port,
+//   secure, auth, timeouts). Provides minimal typing without requiring
+//   @types/nodemailer installation.
+// INTEGRATION: Used by email sender module for type safety
+// ============================================================

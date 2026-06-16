@@ -61,3 +61,15 @@ export function UserButton() {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/auth/user-button.tsx
+// ============================================================
+// PURPOSE: User avatar/menu button for the header with dropdown navigation.
+// HOW IT WORKS: Displays the user's initials in a circle avatar and their name.
+//   Clicking toggles a dropdown menu with user info, Settings link, and Sign out
+//   button. The backdrop closes the menu on outside click. Shows nothing if
+//   no session. Uses initials from the user's name (or email fallback).
+// PROPS: None (reads from session)
+// INTEGRATION: NextAuth session, signOut, Next.js Link
+// ============================================================

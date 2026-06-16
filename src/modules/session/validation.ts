@@ -41,3 +41,15 @@ export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
 export type AddMessageInput = z.infer<typeof addMessageSchema>;
 export type ListSessionsInput = z.infer<typeof listSessionsSchema>;
+
+// ============================================================
+// FILE: src/modules/session/validation.ts
+// ============================================================
+// PURPOSE: Zod schemas for validating session CRUD and list inputs.
+// HOW IT WORKS: createSessionSchema requires title (1-200 chars) and category
+//   (defaults to "custom"). updateSessionSchema makes title optional.
+//   addMessageSchema validates prompt (1-5000 chars), modelId, and optional
+//   temperature/maxTokens. listSessionsSchema handles pagination (page,
+//   pageSize 1-100), search, and isArchived with type coercion for query params.
+// INTEGRATION: Used by session API routes and service functions
+// ============================================================

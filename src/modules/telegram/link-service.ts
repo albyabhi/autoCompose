@@ -150,3 +150,16 @@ function generateBase36Code(length = 8): string {
 }
 
 export { CODE_TTL_MS };
+
+// ============================================================
+// FILE: src/modules/telegram/link-service.ts
+// ============================================================
+// PURPOSE: Manages Telegram account linking, login code generation, and unlinking.
+// HOW IT WORKS: generateLoginCode() creates a random 8-char base36 code, bcrypt-hashes
+//   it, stores the hash + expiry (10min) on the User document, and returns the plaintext
+//   code + deep link URL. revokeLoginCode() clears the stored hash. unlinkTelegram()
+//   removes telegram data from User, cleans up TelegramState/TelegramUpdate, and records
+//   audit. getTelegramStatus() returns link status. Rate limited to 5 code generations/hr.
+// [SECURITY] Login codes are bcrypt-hashed at rest; plaintext only returned once
+// INTEGRATION: User model, TelegramState/Update models, bcryptjs, audit, config
+// ============================================================

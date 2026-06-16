@@ -100,3 +100,16 @@ export interface AIProvider {
   readonly name: string;
   complete(request: AICompletionRequest): Promise<AICompletionResponse>;
 }
+
+// ============================================================
+// FILE: src/modules/ai/types.ts
+// ============================================================
+// PURPOSE: Defines all TypeScript types, constants, and Zod schemas for the AI module.
+// HOW IT WORKS: MODEL_IDS maps friendly keys (deepseek, nemotron, etc.) to NVIDIA NIM
+//   model identifiers. MODEL_LABELS provides display names and descriptions for 8 models.
+//   MODEL_DEFAULTS overrides temperature/maxTokens for specific models. ProfileContext
+//   carries user profile data for prompt enrichment. AICompletionRequest/Response define
+//   the standard interface for AI completions. AIProvider is the contract that providers
+//   must implement.
+// INTEGRATION: Used by all AI module files, email service, and Telegram AI bridge
+// ============================================================

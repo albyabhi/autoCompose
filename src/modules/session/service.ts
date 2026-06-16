@@ -227,3 +227,17 @@ export async function getMessageHistory(
     content: m.content,
   }));
 }
+
+// ============================================================
+// FILE: src/modules/session/service.ts
+// ============================================================
+// PURPOSE: CRUD operations for email generation sessions with pagination and search.
+// HOW IT WORKS: Provides createSession(), getSession(), listSessions(),
+//   updateSession(), deleteSession() (soft-delete), and toggleArchive().
+//   listSessions() supports pagination, text search on title, and archive
+//   filtering. It also aggregates message counts per session in a single
+//   query for efficient list rendering. getMessageHistory() fetches the
+//   most recent N messages (limited by HISTORY_MESSAGE_LIMIT) for AI context.
+//   All operations enforce ownership via userId filtering.
+// INTEGRATION: Session and Message models, history-budget for message limits
+// ============================================================

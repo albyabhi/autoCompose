@@ -51,3 +51,13 @@ export async function GET(request: NextRequest) {
     return failure(error);
   }
 }
+
+// ============================================================
+// FILE: src/app/api/sessions/route.ts
+// ============================================================
+// PURPOSE: API endpoint for creating and listing email generation sessions.
+// HOW IT WORKS: POST creates a new session with validated title, category, and
+//   optional metadata. Records an audit entry. GET returns paginated sessions
+//   with optional search and archive filtering. Both enforce ownership via userId.
+// INTEGRATION: Session service, session validation, audit logger, auth
+// ============================================================

@@ -45,3 +45,16 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ messageId:
     transporter.close();
   }
 }
+
+// ============================================================
+// FILE: src/modules/email/sender.ts
+// ============================================================
+// PURPOSE: Low-level Gmail SMTP email sender using nodemailer.
+// HOW IT WORKS: buildTransporter() creates a nodemailer transport configured
+//   for Gmail's SMTP server (port 465, SSL). sendEmail() formats the "from"
+//   field with optional sender name, sends the email as plain text, and
+//   returns the messageId. The transporter is always closed in the finally
+//   block to prevent connection leaks.
+// [SECURITY] Server-only - receives decrypted app passwords transiently
+// INTEGRATION: Gmail SMTP (smtp.gmail.com:465), called by dispatch module
+// ============================================================

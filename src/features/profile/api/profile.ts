@@ -72,3 +72,11 @@ export async function removeEmailCredentials(): Promise<ProfileResponse> {
     emailCredentials: null,
   });
 }
+
+// ============================================================
+// FILE: src/features/profile/api/profile.ts
+// ============================================================
+// PURPOSE: API client functions for reading and updating the user profile, including email credentials.
+// HOW IT WORKS: Uses the shared api client to GET /api/profile for the full profile and readiness data, PATCH /api/profile to update any section, and PATCH again to set or remove email credentials. All functions return typed ProfileResponse objects.
+// INTEGRATION: @/lib/api-client, EmailCategory/ProfileSection types, ProfessionalType type.
+// ============================================================

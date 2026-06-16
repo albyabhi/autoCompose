@@ -103,3 +103,17 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/components/response-display.tsx
+// ============================================================
+// PURPOSE: Displays the AI-generated email with copy, send, and retry actions.
+// HOW IT WORKS: Shows loading spinner during generation, error state on failure,
+//   empty state before first generation, and the formatted email on success.
+//   Parses the email content to extract subject/body for the send dialog.
+//   Copy button writes cleaned content to clipboard. Send button opens the
+//   SendEmailDialog if Gmail credentials are configured, otherwise shows a
+//   link to Settings. Shows model used as a badge.
+// PROPS: content (string|null), modelUsed (string|null), loading, error
+// INTEGRATION: Email content parser, profile hook (credential check), SendEmailDialog
+// ============================================================
