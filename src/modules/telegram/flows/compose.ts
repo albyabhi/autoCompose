@@ -8,7 +8,7 @@ import { isEmailCategory, EmailCategory } from "@/modules/email/categories";
 import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
 import { categoryKeyboard, reviewKeyboard, mainMenuKeyboard } from "@/modules/telegram/keyboards";
-import { cleanAIContent } from "@/modules/email/content";
+import { cleanAIContent, extractSubject, stripSubjectLine } from "@/modules/email/content";
 import { escapeHtml, describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
 import { replyHtml, editHtml, answerCb } from "@/modules/telegram/reply";
 import { recordAudit } from "@/lib/audit";
@@ -110,20 +110,24 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
     });
 
     const cleaned = cleanAIContent(result.content);
-    const body = cleaned.length > TELEGRAM_MAX_MESSAGE
-      ? `${cleaned.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
-      : cleaned;
+    const subject = extractSubject(cleaned);
+    const strippedBody = stripSubjectLine(cleaned);
+    const body = strippedBody.length > TELEGRAM_MAX_MESSAGE
+      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
+      : strippedBody;
 
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
         { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
       );
     } else {
       await replyHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
         { reply_markup: reviewKeyboard() }
       );
     }
@@ -189,19 +193,23 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
       draftSnapshot: result.content,
     });
     const cleaned = cleanAIContent(result.content);
-    const body = cleaned.length > TELEGRAM_MAX_MESSAGE
-      ? `${cleaned.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
-      : cleaned;
+    const subject = extractSubject(cleaned);
+    const strippedBody = stripSubjectLine(cleaned);
+    const body = strippedBody.length > TELEGRAM_MAX_MESSAGE
+      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
+      : strippedBody;
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
         { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
       );
     } else {
       await replyHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n${escapeHtml(body)}`,
+        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
         { reply_markup: reviewKeyboard() }
       );
     }

@@ -25,7 +25,9 @@ export abstract class BaseAIProvider implements AIProvider {
     sections.push("OUTPUT RULES:");
     sections.push("- Return ONLY the email template");
     sections.push("- No explanations, reasoning, or notes");
-    sections.push("- No subject line prefixes like \"Subject:\"");
+    sections.push("- The FIRST LINE must be the email subject only \u2014 a concise summary of the email's purpose (e.g. \"Sick Leave Request\" or \"Meeting Tomorrow\"). Do NOT put a greeting or salutation as the subject.");
+    sections.push("- After the subject line, add a blank line, then start the email body with the appropriate greeting/salutation.");
+    sections.push("- Do NOT use \"Subject:\" prefix on the subject line.");
     sections.push("- No markdown formatting \u2014 never use asterisks (*) for bold, italics, or lists");
     sections.push("- Use proper email formatting with clear paragraphs");
     sections.push("- Include appropriate salutation and closing");

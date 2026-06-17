@@ -22,20 +22,19 @@ export function extractSubject(content: string): string {
 
 export function stripSubjectLine(content: string): string {
   const lines = content.split("\n");
-  let stripped = 0;
-  for (let i = 0; i < lines.length; i += 1) {
-    const trimmed = lines[i]!.trim();
-    if (stripped === 0 && SUBJECT_PREFIX.test(trimmed)) {
-      stripped += 1;
-      continue;
+  let subjectIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i]!.trim().length > 0) {
+      subjectIdx = i;
+      break;
     }
-    if (stripped === 1 && trimmed === "") {
-      stripped += 1;
-      continue;
-    }
-    break;
   }
-  return lines.slice(stripped).join("\n").trim();
+  if (subjectIdx === -1) return content;
+  let result = lines.slice(subjectIdx + 1);
+  if (result.length > 0 && result[0]!.trim() === "") {
+    result = result.slice(1);
+  }
+  return result.join("\n").trim();
 }
 
 export function parseEmailContent(content: string): ParsedEmailContent {

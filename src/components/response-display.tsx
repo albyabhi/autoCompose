@@ -59,9 +59,15 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
         {modelUsed && <span className="response-model">via {modelUsed}</span>}
       </div>
       <div className="response-content">
-        {cleanAIContent(content).split("\n").map((line, i) => (
-          <p key={i}>{line || "\u00A0"}</p>
-        ))}
+        <div className="response-subject">
+          <span className="response-subject-label">Subject:</span>
+          <span className="response-subject-text">{subject}</span>
+        </div>
+        <div className="response-body">
+          {body.split("\n").map((line, i) => (
+            <p key={i}>{line || "\u00A0"}</p>
+          ))}
+        </div>
       </div>
       <div className="response-actions">
         <button

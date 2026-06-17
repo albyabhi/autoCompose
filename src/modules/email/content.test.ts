@@ -21,7 +21,7 @@ describe("parseEmailContent", () => {
     const content = "Quick question about the design doc\n\nHey,\n\nCould you share the latest version?\n";
     const parsed = parseEmailContent(content);
     expect(parsed.subject).toBe("Quick question about the design doc");
-    expect(parsed.body).toBe("Quick question about the design doc\n\nHey,\n\nCould you share the latest version?");
+    expect(parsed.body).toBe("Hey,\n\nCould you share the latest version?");
   });
 
   it("strips a leading blank line after the subject line", () => {
