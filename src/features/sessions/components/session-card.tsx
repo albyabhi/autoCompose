@@ -96,11 +96,14 @@ export function SessionCard({ session, onClose }: SessionCardProps) {
         </div>
       ) : (
         <button className="session-card__main" onClick={handleOpen}>
-          <span className="session-card__title">{session.title}</span>
+          <span className="session-card__title">
+            {session.title}
+            {session.type === "batch" && <span className="session-card__batch-badge">Batch</span>}
+          </span>
           <span className="session-card__meta">
             <span className="session-card__category">{categoryLabel}</span>
             <span className="session-card__date">{timeAgo}</span>
-            {session.messageCount !== undefined && (
+            {session.messageCount !== undefined && session.type !== "batch" && (
               <span className="session-card__count">{session.messageCount} msgs</span>
             )}
           </span>

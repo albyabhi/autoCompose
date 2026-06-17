@@ -2,10 +2,13 @@ import mongoose, { Schema, Document } from "mongoose";
 import type { EmailCategory } from "./email-template";
 import { EMAIL_CATEGORIES } from "@/modules/email/categories";
 
+export type SessionType = "single" | "batch";
+
 export interface ISession extends Document {
   title: string;
   category: EmailCategory;
   userId: string;
+  type: SessionType;
   metadata: Record<string, unknown>;
   isArchived: boolean;
   isDeleted: boolean;
@@ -20,6 +23,11 @@ const sessionSchema = new Schema<ISession>(
       type: String,
       required: [true, "Title is required"],
       maxlength: [200, "Title cannot exceed 200 characters"],
+    },
+    type: {
+      type: String,
+      enum: ["single", "batch"],
+      default: "single",
     },
     category: {
       type: String,

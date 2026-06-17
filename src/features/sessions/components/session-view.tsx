@@ -5,6 +5,7 @@ import { SkeletonList } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { MessageBubble } from "./message-bubble";
+import { BatchSessionView } from "@/features/batch/components/batch-session-view";
 import { useRouter } from "next/navigation";
 
 interface SessionViewProps {
@@ -34,6 +35,16 @@ export function SessionView({ id }: SessionViewProps) {
             Back to Sessions
           </Button>
         }
+      />
+    );
+  }
+
+  if (session.type === "batch") {
+    return (
+      <BatchSessionView
+        sessionId={session.id}
+        title={session.title}
+        category={session.category}
       />
     );
   }

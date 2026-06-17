@@ -2682,3 +2682,518 @@ body {
   font-weight: 700;
   color: var(--black);
 }
+
+/* =========== MODE TOGGLE =========== */
+
+.compose-page {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.compose-page__toggle {
+  display: flex;
+  gap: 0;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  align-self: center;
+}
+
+.compose-page__toggle-btn {
+  padding: 8px 24px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.compose-page__toggle-btn:not(:last-child) {
+  border-right: var(--border-w) solid var(--black);
+}
+
+.compose-page__toggle-btn--active {
+  background: var(--black);
+  color: var(--white);
+}
+
+.compose-page__toggle-btn:hover:not(.compose-page__toggle-btn--active) {
+  background: var(--yellow);
+}
+
+/* =========== BATCH COMPOSE =========== */
+
+.batch-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.batch-compose__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batch-compose__title {
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.batch-compose__controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.batch-compose__hint {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.batch-compose__loading,
+.batch-compose__creating {
+  text-align: center;
+  padding: 24px;
+  font-weight: 700;
+  color: #555;
+}
+
+/* =========== BATCH TOOLBAR =========== */
+
+.batch-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.batch-toolbar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.batch-toolbar__label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.batch-toolbar__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.batch-toolbar__input {
+  width: 70px;
+  padding: 10px 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.batch-toolbar__input:focus {
+  outline: 4px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.batch-toolbar__select {
+  min-width: 160px;
+  padding: 10px 36px 10px 12px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23000' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.batch-toolbar__select:focus {
+  outline: 4px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.batch-toolbar__count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  padding: 10px 0;
+}
+
+/* =========== BULK CARD LIST =========== */
+
+.bulk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========== BULK CARD =========== */
+
+.bulk-card {
+  background: var(--white);
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bulk-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bulk-card__order {
+  font-size: 14px;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bulk-card__status {
+  flex-shrink: 0;
+}
+
+.bulk-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bulk-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bulk-card__label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #555;
+}
+
+.bulk-card__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 2px solid #eee;
+}
+
+.bulk-card__error {
+  font-size: 12px;
+  color: var(--pink);
+  font-weight: 700;
+  padding: 8px 12px;
+  background: #fff0f0;
+  border: 2px solid var(--pink);
+  border-radius: 6px;
+}
+
+.bulk-card__readonly {
+  display: block;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--surface);
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  color: #333;
+}
+
+.bulk-card__readonly--truncated {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* =========== BULK CARD BADGES =========== */
+
+.bulk-card__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 2px solid var(--black);
+  border-radius: 4px;
+}
+
+.bulk-card__badge--generated { background: var(--blue); color: var(--white); }
+.bulk-card__badge--sent { background: var(--green); color: var(--black); }
+.bulk-card__badge--failed { background: var(--pink); color: var(--white); }
+
+.bulk-card__spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--black);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========== BULK UTILITIES =========== */
+
+.bulk-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bulk-table__empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #888;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.bulk-table__add-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 800;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform 0.1s, box-shadow 0.1s;
+  align-self: flex-start;
+}
+
+.bulk-table__add-row:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.bulk-table__add-row:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* =========== BULK CARD BUTTONS =========== */
+
+.bulk-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 2px solid var(--black);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--white);
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 2px 2px 0 #000;
+  line-height: 1;
+}
+
+.bulk-card__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.bulk-card__btn:not(:disabled):hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.bulk-card__btn:not(:disabled):active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.bulk-card__btn--generate { background: var(--green); color: var(--black); }
+.bulk-card__btn--preview { background: var(--blue); color: var(--white); }
+.bulk-card__btn--regen { background: var(--white); color: var(--black); }
+.bulk-card__btn--delete { background: var(--white); color: var(--pink); }
+
+/* =========== BULK SEND BAR =========== */
+
+.bulk-send-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow);
+  flex-wrap: wrap;
+}
+
+.bulk-send-bar__stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  flex-wrap: wrap;
+}
+
+.bulk-send-bar__dot {
+  color: #ccc;
+}
+
+.bulk-send-bar__generated {
+  color: var(--blue);
+}
+
+.bulk-send-bar__sent {
+  color: var(--green);
+}
+
+.bulk-send-bar__failed {
+  color: var(--pink);
+}
+
+.bulk-send-bar__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.bulk-send-bar__bar {
+  flex: 1;
+  height: 12px;
+  background: var(--surface);
+  border: 2px solid var(--black);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bulk-send-bar__fill {
+  height: 100%;
+  background: var(--blue);
+  transition: width 0.3s ease;
+}
+
+.bulk-send-bar__label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =========== BATCH SESSION BADGE =========== */
+
+.session-card__batch-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 2px solid var(--black);
+  border-radius: 4px;
+  background: var(--yellow);
+  color: var(--black);
+  vertical-align: middle;
+}
+
+/* =========== FIELD READONLY (Preview) =========== */
+
+.field-input-readonly {
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 14px;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: #555;
+}
+
+/* =========== MOBILE RESPONSIVE =========== */
+
+@media (max-width: 768px) {
+  .batch-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .batch-toolbar__row {
+    flex-wrap: wrap;
+  }
+
+  .bulk-card {
+    padding: 16px;
+  }
+
+  .bulk-card__actions {
+    justify-content: stretch;
+  }
+
+  .bulk-card__btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .bulk-send-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bulk-send-bar__progress {
+    flex-direction: column;
+  }
+
+  .compose-page {
+    padding: 12px 12px 96px;
+  }
+}

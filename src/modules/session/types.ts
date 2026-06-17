@@ -2,6 +2,7 @@ export interface SessionData {
   id: string;
   title: string;
   category: string;
+  type?: "single" | "batch";
   userId: string;
   metadata: Record<string, unknown>;
   isArchived: boolean;
