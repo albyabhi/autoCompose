@@ -181,6 +181,20 @@ export async function deleteSession(
   logger.info("Session soft-deleted", { sessionId, userId });
 }
 
+export async function clearAllSessions(
+  userId: string
+): Promise<{ clearedCount: number }> {
+  await connectDB();
+
+  const result = await Session.updateMany(
+    { userId, isDeleted: false },
+    { $set: { isDeleted: true, deletedAt: new Date() } }
+  );
+
+  logger.info("All sessions cleared", { userId, clearedCount: result.modifiedCount });
+  return { clearedCount: result.modifiedCount };
+}
+
 export async function toggleArchive(
   sessionId: string,
   userId: string,

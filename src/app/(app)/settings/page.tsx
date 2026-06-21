@@ -1,6 +1,7 @@
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { ResumeWidget } from "@/features/profile/components/resume-widget";
 import { TelegramCard } from "@/components/settings/telegram-card";
+import { ClearSessionsCard } from "@/components/settings/clear-sessions-card";
 
 export default function SettingsPage() {
   return (
@@ -12,6 +13,7 @@ export default function SettingsPage() {
       <TelegramCard />
       <ProfileForm />
       <ResumeWidget />
+      <ClearSessionsCard />
     </div>
   );
 }

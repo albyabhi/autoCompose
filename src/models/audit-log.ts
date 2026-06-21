@@ -14,6 +14,7 @@ export type AuditAction =
   | "session.created"
   | "session.updated"
   | "session.deleted"
+  | "session.bulk_deleted"
   | "session.archived"
   | "session.unarchived"
   | "email.sent"

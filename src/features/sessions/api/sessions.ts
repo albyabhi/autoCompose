@@ -30,6 +30,10 @@ export async function updateSession(id: string, input: UpdateSessionInput): Prom
   return api.patch<SessionData>(`/api/sessions/${id}`, input);
 }
 
+export async function clearAllSessions(): Promise<{ clearedCount: number }> {
+  return api.post<{ clearedCount: number }>("/api/sessions/clear");
+}
+
 export async function deleteSession(id: string): Promise<{ deleted: boolean }> {
   return api.delete<{ deleted: boolean }>(`/api/sessions/${id}`);
 }

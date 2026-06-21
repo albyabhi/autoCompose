@@ -13,6 +13,7 @@ import {
   updateSession,
   deleteSession,
   toggleArchive,
+  clearAllSessions,
 } from "../api/sessions";
 import type { SessionData, SessionWithMessages } from "../types";
 import type { CreateSessionInput, UpdateSessionInput } from "@/modules/session/validation";
@@ -72,6 +73,16 @@ export function useUpdateSession() {
       qc.setQueryData([...SESSIONS_KEY, data.id], (old: SessionWithMessages | undefined) =>
         old ? { ...old, ...data } : old
       );
+    },
+  });
+}
+
+export function useClearAllSessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearAllSessions(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: SESSIONS_KEY });
     },
   });
 }
