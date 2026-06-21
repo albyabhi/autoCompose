@@ -10,26 +10,34 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 ┌──────────────────────────────────────────────────────────────────┐
 │                        UI Layer                                   │
 │  AppShell (Header + Sidebar) → Feature Pages                     │
-│    ├── / (compose)          │  GenerateForm + ResponseDisplay     │
+│    ├── / (compose)          │  ComposePage (Single/Batch toggle) │
 │    ├── /dashboard           │  Workspace home                    │
-│    ├── /sessions/[id]       │  SessionView + message history     │
+│    ├── /sessions/[id]       │  SessionView or BatchSessionView   │
 │    └── /settings            │  ProfileForm (4 sections)          │
 │  AuthGuard wraps all (app) routes                                │
 └──────────────────────────────┬───────────────────────────────────┘
                                │ API calls via TanStack Query
 ┌──────────────────────────────▼───────────────────────────────────┐
 │                     API Routes (Next.js)                          │
-│  POST /api/generate    → rate-limit → validate → service → AI    │
-│  POST /api/sessions    → requireAuth → createSession             │
-│  GET  /api/sessions    → requireAuth → listSessions (paginated)  │
-│  GET  /api/sessions/:id → requireAuth → getSession + messages    │
+│  POST /api/generate      → rate-limit → validate → service → AI  │
+│  POST /api/sessions      → requireAuth → createSession           │
+│  GET  /api/sessions      → requireAuth → listSessions (paginated)│
+│  GET  /api/sessions/:id  → requireAuth → getSession + messages   │
 │  PATCH /api/sessions/:id → requireAuth → updateSession           │
-│  DELETE /api/sessions/:id → requireAuth → deleteSession (soft)  │
+│  DELETE /api/sessions/:id → requireAuth → deleteSession (soft)   │
 │  PATCH /api/sessions/:id/archive → requireAuth → toggleArchive   │
 │  GET  /api/sessions/:id/messages → requireAuth → getMessages     │
 │  GET  /api/profile      → requireAuth → getProfile               │
 │  PATCH /api/profile     → requireAuth → updateProfile            │
 │  POST /api/send-email   → requireAuth → rate-limit → decrypt → SMTP│
+│  POST /api/bulk/session → requireAuth → create batch session     │
+│  POST /api/bulk/entries → requireAuth → create bulk entries      │
+│  GET  /api/bulk/entries → requireAuth → list bulk entries        │
+│  PATCH /api/bulk/entries/:id → requireAuth → update entry        │
+│  DELETE /api/bulk/entries/:id → requireAuth → delete entry       │
+│  PATCH /api/bulk/entries/batch → requireAuth → batch update cat  │
+│  POST /api/bulk/generate → requireAuth → rate-limit → AI gen     │
+│  POST /api/bulk/send     → requireAuth → decrypt → SMTP          │
 │  GET  /api/auth/me      → getCurrentUser (enriched)              │
 └──────────────────────────────┬───────────────────────────────────┘
           ┌────────────────────┼────────────────────┐
@@ -49,7 +57,7 @@ src/
 ├── app/                          # Next.js App Router
 │   ├── (app)/                    # Route group — all authenticated pages
 │   │   ├── layout.tsx            # AuthGuard + AppShell (shared)
-│   │   ├── page.tsx              # / — Compose page
+│   │   ├── page.tsx              # / — ComposePage (single or batch via ?mode=)
 │   │   ├── dashboard/page.tsx    # /dashboard
 │   │   ├── sessions/
 │   │   │   ├── page.tsx          # /sessions — history list
@@ -64,6 +72,13 @@ src/
 │   │   ├── profile/route.ts      # GET/PATCH profile
 │   │   ├── profile/resume/route.ts  # GET/POST/DELETE resume
 │   │   ├── send-email/route.ts   # POST /api/send-email
+│   │   ├── bulk/                 # Batch email endpoints
+│   │   │   ├── session/route.ts  # POST /api/bulk/session
+│   │   │   ├── entries/route.ts  # GET+POST /api/bulk/entries
+│   │   │   ├── entries/[id]/route.ts # PATCH+DELETE /api/bulk/entries/:id
+│   │   │   ├── entries/batch/route.ts # PATCH /api/bulk/entries/batch
+│   │   │   ├── generate/route.ts # POST /api/bulk/generate
+│   │   │   └── send/route.ts     # POST /api/bulk/send
 │   │   └── sessions/             # Session CRUD + messages
 │   ├── globals.css               # Neubrutalist design system
 │   ├── layout.tsx                # Root layout (providers)
@@ -84,6 +99,7 @@ src/
 │   │   ├── skeleton.tsx          # Loading placeholders
 │   │   ├── empty-state.tsx       # Empty state with icon + action
 │   │   └── index.ts
+│   ├── compose-page.tsx          # Single/Batch mode toggle + routing
 │   ├── generate-form.tsx         # Prompt input + category + model selector
 │   ├── model-selector.tsx
 │   ├── response-display.tsx      # Loading/error/empty/success states
@@ -107,6 +123,17 @@ src/
 │   │       ├── session-view.tsx   # Full session with messages
 │   │       ├── message-bubble.tsx # Role/content + Send via Email action
 │   │       └── new-session-dialog.tsx
+│   ├── batch/                    # Batch email generation
+│   │   ├── types.ts              # BulkEntryData, BulkEntryStatus, CreateEntryPayload
+│   │   ├── api/bulk.ts           # Fetch wrappers for bulk endpoints
+│   │   ├── hooks/use-bulk.ts     # TanStack Query hooks (polling on active jobs)
+│   │   └── components/
+│   │       ├── batch-compose-view.tsx  # Batch compose UI (toolbar + table)
+│   │       ├── batch-session-view.tsx  # Batch session detail view
+│   │       ├── bulk-table.tsx          # Entries list with empty state
+│   │       ├── bulk-row.tsx            # Single entry card (edit/generate/preview/send/delete)
+│   │       ├── bulk-send-bar.tsx       # Send All with progress bar + abort
+│   │       └── bulk-preview-dialog.tsx # Preview + send individual entry
 │   └── profile/                  # Profile management
 │       ├── api/profile.ts
 │       ├── hooks/use-profile.ts
@@ -139,8 +166,9 @@ src/
 │   ├── profile.ts
 │   ├── email-template.ts
 │   ├── audit-log.ts
-│   ├── session.ts                # title, category, userId, isArchived, isDeleted
-│   └── message.ts                # sessionId, role, content, modelUsed
+│   ├── session.ts                # title, category, type, userId, isArchived, isDeleted
+│   ├── message.ts                # sessionId, role, content, modelUsed
+│   └── bulk-entry.ts             # sessionId, userId, category, prompt, recipient, status, generatedContent
 │
 ├── modules/                      # Backend services
 │   ├── ai/                       # AI provider (strategy pattern)
@@ -164,8 +192,13 @@ src/
 │   │   ├── validation.ts
 │   │   ├── service.ts            # Paginated, searchable, archived filter
 │   │   └── ai-context.ts         # Build conversation history for AI
-│   └── message/                  # Message CRUD
-│       └── service.ts
+│   ├── message/                  # Message CRUD
+│   │   └── service.ts
+│   └── bulk/                     # Batch email operations
+│       ├── types.ts              # BulkEntryData DTO
+│       ├── validation.ts         # Zod schemas (createEntries, updateEntry, generate, send)
+│       └── service.ts            # createEntries, listEntries, updateEntry, deleteEntry,
+│                                 #   batchUpdateCategory, generateEntry (AI), sendEntry (SMTP)
 │
 ├── config/
 │   └── index.ts                  # Zod-validated env config singleton
@@ -225,7 +258,7 @@ npm start         # Production server
 
 | Path | Auth | Layout | Description |
 |---|---|---|---|
-| `/` | Required | AppShell + AuthGuard | Compose email |
+| `/` | Required | AppShell + AuthGuard | Compose email (single or batch via `?mode=batch`) |
 | `/dashboard` | Required | AppShell + AuthGuard | Workspace home |
 | `/sessions` | Required | AppShell + AuthGuard | Session history (paginated) |
 | `/sessions/:id` | Required | AppShell + AuthGuard | Session detail + messages |
@@ -387,6 +420,86 @@ Send a generated email via the user's own Gmail account (App Password auth). Req
 | `VALIDATION_ERROR` | 400 | `to` / `subject` / `body` failed Zod. |
 | `RATE_LIMIT` | 429 | > 5 sends in 60 s. |
 
+### Batch / Bulk Endpoints
+
+Batch generation lets users create multiple email drafts at once (rows), generate them individually or in bulk, preview, regenerate, and send in sequence.
+
+#### `POST /api/bulk/session`
+
+Create a new batch session (type `"batch"`). Auto-named `"Batch N"`.
+
+**Response (201):**
+```json
+{ "id": "session-id", "title": "Batch 1" }
+```
+
+#### `POST /api/bulk/entries`
+
+Create one or more bulk entries in a batch session.
+
+**Request Body:**
+```json
+{
+  "sessionId": "session-id",
+  "entries": [
+    { "category": "leave_request", "prompt": "Write a leave request", "recipient": "manager@co.com" }
+  ]
+}
+```
+
+**Response (201):** Array of `BulkEntryData` objects.
+
+#### `GET /api/bulk/entries?sessionId=<id>`
+
+List all entries for a batch session, sorted by `sortOrder`.
+
+#### `PATCH /api/bulk/entries/:id`
+
+Update a pending/failed entry's category, prompt, or recipient.
+
+```json
+{ "prompt": "Updated prompt text..." }
+```
+
+Requires prompt >= 10 chars, recipient must be valid email.
+
+#### `DELETE /api/bulk/entries/:id`
+
+Delete a single bulk entry.
+
+#### `PATCH /api/bulk/entries/batch`
+
+Apply a category to all pending/failed entries in a session.
+
+```json
+{ "sessionId": "id", "category": "complaint" }
+```
+
+#### `POST /api/bulk/generate`
+
+Generate an email for a single entry via AI.
+
+```json
+{ "entryId": "id", "modelId": "deepseek" }
+```
+
+Rate-limited per user. Returns updated `BulkEntryData` with `status: "generated"` and `generatedContent`.
+
+#### `POST /api/bulk/send`
+
+Send a generated entry's email via the user's Gmail SMTP.
+
+```json
+{ "entryId": "id" }
+```
+
+**Response:**
+```json
+{ "ok": true, "messageId": "..." }
+```
+
+Uses `dispatchSendEmail()` — same credential/rate-limit path as individual email sending.
+
 ### `GET /api/auth/me`
 
 Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCompleted`).
@@ -445,6 +558,29 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 - **Persistent**: Sidebar state preserved across navigation
 - **Infinite scroll**: Session list loads more on scroll via `useInfiniteQuery`
 
+### Batch Email Generation
+
+The compose page (`/`) now shows a **Single / Batch** toggle. In batch mode, the `BatchComposeView` renders a toolbar and an entries table (`BulkTable`). Each entry row (`BulkRow`) has:
+
+- **Category/Email Type** selector
+- **Prompt** textarea
+- **Recipient** email input
+- **Generate** button — triggers AI generation for that row (updates status to `generating` → `generated` / `failed`)
+- **Preview** — opens `BulkPreviewDialog` with subject/body editor and individual Send button
+- **Regenerate** — re-runs AI generation
+- **Delete** — removes the row
+
+The toolbar supports:
+- **Add N rows** — create N blank entries at once (up to 50)
+- **Mail Type selector + Apply to All** — batch-set the category for all pending/failed rows
+- **Row count** — shows total / ready / pending counts
+
+The `BulkSendBar` at the bottom shows stats and a **Send All** button that iterates through generated entries with a 12-second gap between sends (to respect the 5/min rate limit). A progress bar with abort is shown during sending.
+
+Batch sessions use `Session.type = "batch"` and get a `Batch` badge in the session list. Opening a batch session navigates to `BatchSessionView` instead of the message-based `SessionView`. Batch entries are stored in the `BulkEntry` model.
+
+**Auto-polling:** `useBulkEntries` polls every 2 seconds while any entry has `"generating"` or `"sending"` status.
+
 ### Session Management
 
 | Feature | Implementation |
@@ -455,6 +591,7 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 | Archive | `useToggleArchive` mutation |
 | Delete | `useDeleteSession` mutation (soft delete) |
 | Messages | `SessionView` loads via `useSession(id)` |
+| Batch View | `BatchSessionView` for sessions with `type === "batch"` |
 | AI Context | `getMessageHistory()` builds conversation for AI |
 
 ### Profile Management
@@ -539,6 +676,7 @@ API Route → requireAuth() → returns CurrentUser
 |---|---|---|
 | `title` | string | Session display name |
 | `category` | enum | Email category |
+| `type` | "single" \| "batch" | Session type (default: "single") |
 | `userId` | string (indexed) | Owner |
 | `metadata` | Mixed | Extensible data |
 | `isArchived` | boolean | Archive flag |
@@ -558,6 +696,24 @@ Indexes: `{ userId: 1, isDeleted: 1, createdAt: -1 }`, text index on `title`.
 | `metadata` | Mixed | Extensible data |
 
 Index: `{ sessionId: 1, createdAt: 1 }`.
+
+### BulkEntry
+
+| Field | Type | Description |
+|---|---|---|
+| `sessionId` | ObjectId (ref Session) | Parent batch session |
+| `userId` | string (indexed) | Owner |
+| `category` | enum | Email category |
+| `prompt` | string | Generation prompt (max 5000 chars) |
+| `recipient` | string | Target email address |
+| `status` | enum | `pending` → `generating` → `generated` / `failed` → `sending` → `sent` |
+| `generatedContent` | string (optional) | AI-generated email body |
+| `subject` | string (optional) | Extracted email subject |
+| `modelUsed` | string (optional) | AI model used for generation |
+| `errorMessage` | string (optional) | Error details on failure |
+| `sortOrder` | number | Display ordering within session |
+
+Indexes: `{ sessionId: 1, sortOrder: 1 }`, `{ userId: 1, status: 1 }`.
 
 ### Profile
 
@@ -798,6 +954,32 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-06-17 — Batch email generation (compose + send) feature
+
+- **New `ComposePage` component** (`src/components/compose-page.tsx`) — wraps the main page with a Single/Batch toggle. Reads `?mode=batch` and `?sessionId` from URL search params. Replaces the direct `GenerateForm` mount in `src/app/(app)/page.tsx`.
+- **New `type` field on `Session`** model (`src/models/session.ts`) — `"single" | "batch"` discriminator. Batch sessions get auto-named `"Batch N"` on creation and show a `Batch` badge in `SessionCard`.
+- **New `BatchSessionView`** (`src/features/batch/components/batch-session-view.tsx`) — rendered by `SessionView` when `session.type === "batch"`. Displays entries as a list with toolbar (category bulk-update) and `BulkSendBar`. Includes an "Open Batch" button that navigates to `/?mode=batch&sessionId=...`.
+- **New `BatchComposeView`** (`src/features/batch/components/batch-compose-view.tsx`) — full compose UI with model selector, Add Rows (1–50), Mail Type selector with Apply to All, row count stats, and the `BulkTable`.
+- **New `BulkTable`** (`src/features/batch/components/bulk-table.tsx`) — renders list of `BulkRow` cards with empty state and `BulkSendBar`.
+- **New `BulkRow`** (`src/features/batch/components/bulk-row.tsx`) — per-entry card with editable category/prompt/recipient (when pending/failed), Generate, Preview, Regenerate, and Delete buttons. Shows status badges (spinner, Ready, Sent, Failed with error tooltip).
+- **New `BulkSendBar`** (`src/features/batch/components/bulk-send-bar.tsx`) — bottom bar with total/ready/sent/failed counts and a Send All button. Iterates through generated entries with 12-second gaps between sends (5/min rate limit compliance). Shows progress bar with abort capability.
+- **New `BulkPreviewDialog`** (`src/features/batch/components/bulk-preview-dialog.tsx`) — modal preview showing recipient, editable subject/body, and individual Send button. Shows success state after sending.
+- **New `use-bulk` hooks** (`src/features/batch/hooks/use-bulk.ts`) — `useBulkEntries` (auto-polls every 2s while entries are generating/sending), `useCreateBatchSession`, `useCreateEntries`, `useUpdateEntry`, `useDeleteEntry`, `useGenerateEntry`, `useBatchUpdateCategory`, `useSendEntry`. All mutations invalidate the `["bulk-entries"]` query key on success.
+- **New `bulk.ts` API client** (`src/features/batch/api/bulk.ts`) — typed fetch wrappers for all 8 bulk endpoints.
+- **New `BulkEntry` Mongoose model** (`src/models/bulk-entry.ts`) — `IBulkEntry` schema with fields: `sessionId`, `userId`, `category`, `prompt`, `recipient`, `status` (pending/generating/generated/failed/sending/sent), `generatedContent`, `subject`, `modelUsed`, `errorMessage`, `sortOrder`. Indexed on `{ sessionId, sortOrder }` and `{ userId, status }`.
+- **New API routes under `src/app/api/bulk/`**:
+  - `POST /api/bulk/session` — creates a batch-typed session with auto-title.
+  - `POST /api/bulk/entries` — creates one or more entries with auto-incrementing `sortOrder`.
+  - `GET /api/bulk/entries?sessionId=` — lists all entries for a session sorted by sortOrder.
+  - `PATCH /api/bulk/entries/:id` — updates category/prompt/recipient (only when pending/failed).
+  - `DELETE /api/bulk/entries/:id` — removes an entry (hard delete).
+  - `PATCH /api/bulk/entries/batch` — batch-updates category for all pending/failed entries in a session.
+  - `POST /api/bulk/generate` — triggers AI generation per entry via `getAIProvider()` + profile context. Rate-limited.
+  - `POST /api/bulk/send` — sends a generated entry via `dispatchSendEmail()` (Gmail SMTP, same credential path).
+- **New `modules/bulk/` backend** (`src/modules/bulk/`) — `service.ts` (all CRUD + generate + send logic), `validation.ts` (Zod schemas for all endpoints), `types.ts` (BulkEntryData DTO).
+- **Session sidebar integration** — `SessionCard` displays a `Batch` badge for batch sessions and hides message count. `SessionView` delegates to `BatchSessionView` when `session.type === "batch"`.
+- **New UI classes in `globals.css`** — `.batch-compose`, `.batch-toolbar`, `.bulk-card` (with field grid, header, actions, status badges), `.bulk-send-bar` (with progress bar, stats), `.compose-page__toggle`, `.session-card__batch-badge`, `.bulk-table__empty`, `.bulk-list`.
 
 ### 2026-06-06b — Send via Email on session messages + visual styling
 

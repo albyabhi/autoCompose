@@ -5,6 +5,7 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 ## Features
 
 - **AI Email Generation** — Generate professional emails across 7 categories (job application, leave request, sick leave, resignation, complaint, meeting request, custom) using 8 AI models via NVIDIA NIM
+- **Batch Email Generation** — Create, generate, preview, and send multiple emails at once with a row-based batch compose interface
 - **Email Sending** — Send generated emails directly through your Gmail account via SMTP (App Password authentication)
 - **Resume Parsing** — Upload PDF/DOCX/TXT resumes and extract structured data (skills, education, experience, projects) using AI
 - **Session Management** — Track email generation sessions with conversation history for iterative refinement
@@ -89,6 +90,7 @@ src/
 │   └── ui/                 # Reusable UI primitives
 ├── features/               # Feature-based modules
 │   ├── layout/             # App shell (header, sidebar)
+│   ├── batch/              # Batch email generation
 │   ├── profile/            # Profile management
 │   └── sessions/           # Session management
 ├── hooks/                  # Custom React hooks
@@ -98,6 +100,7 @@ src/
 ├── models/                 # Mongoose schemas
 ├── modules/                # Backend business logic
 │   ├── ai/                 # AI provider (strategy pattern)
+│   ├── bulk/               # Batch email CRUD + generate + send
 │   ├── email/              # Email generation + sending
 │   ├── message/            # Message CRUD
 │   ├── profile/            # Profile management
@@ -132,6 +135,14 @@ src/
 | `DELETE` | `/api/telegram/login-code` | Required | Revoke login code |
 | `DELETE` | `/api/telegram/link` | Required | Unlink Telegram |
 | `GET` | `/api/telegram/status` | Required | Get Telegram status |
+| `POST` | `/api/bulk/session` | Required | Create batch session |
+| `POST` | `/api/bulk/entries` | Required | Create bulk entries |
+| `GET` | `/api/bulk/entries` | Required | List bulk entries |
+| `PATCH` | `/api/bulk/entries/:id` | Required | Update bulk entry |
+| `DELETE` | `/api/bulk/entries/:id` | Required | Delete bulk entry |
+| `PATCH` | `/api/bulk/entries/batch` | Required | Batch update category |
+| `POST` | `/api/bulk/generate` | Required | Generate entry via AI |
+| `POST` | `/api/bulk/send` | Required | Send entry via Gmail SMTP |
 | `POST` | `/api/telegram/webhook` | Public | Telegram webhook |
 | `GET` | `/api/telegram/health` | Public | Telegram health check |
 
