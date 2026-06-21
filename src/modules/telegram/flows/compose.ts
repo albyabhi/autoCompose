@@ -8,7 +8,7 @@ import { isEmailCategory, EmailCategory } from "@/modules/email/categories";
 import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
 import { categoryKeyboard, reviewKeyboard, mainMenuKeyboard } from "@/modules/telegram/keyboards";
-import { cleanAIContent, extractSubject, stripSubjectLine } from "@/modules/email/content";
+import { cleanAIContent, extractSubject, stripSubjectLine, extractEmailFromText } from "@/modules/email/content";
 import { escapeHtml, describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
 import { replyHtml, editHtml, answerCb } from "@/modules/telegram/reply";
 import { recordAudit } from "@/lib/audit";
@@ -102,11 +102,14 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
       modelId,
     });
 
+    const extracted = extractEmailFromText(prompt);
+
     await saveState(chatId.toString(), userId, {
       step: "idle",
       draftId: result.id,
       draftSnapshot: result.content,
       pendingInput: null,
+      extractedRecipient: extracted ?? undefined,
     });
 
     const cleaned = cleanAIContent(result.content);
@@ -116,18 +119,24 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
       ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
       : strippedBody;
 
+    const recipientLine = extracted
+      ? `📬 <b>Recipient:</b> ${escapeHtml(extracted)}\n\n`
+      : "";
+
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,
         `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}` +
+        recipientLine,
         { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
       );
     } else {
       await replyHtml(
         ctx,
         `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
+        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}` +
+        recipientLine,
         { reply_markup: reviewKeyboard() }
       );
     }

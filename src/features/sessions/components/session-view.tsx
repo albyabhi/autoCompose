@@ -5,6 +5,7 @@ import { SkeletonList } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { MessageBubble } from "./message-bubble";
+import { extractEmailFromText } from "@/modules/email/content";
 import { BatchSessionView } from "@/features/batch/components/batch-session-view";
 import { useRouter } from "next/navigation";
 
@@ -90,7 +91,11 @@ export function SessionView({ id }: SessionViewProps) {
             }
           />
         ) : (
-          messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
+          messages.map((msg, idx) => {
+            const prevUserMsg = idx > 0 && messages[idx - 1]!.role === "user" ? messages[idx - 1] : null;
+            const extractedRecipient = prevUserMsg ? extractEmailFromText(prevUserMsg.content) : null;
+            return <MessageBubble key={msg.id} message={msg} defaultRecipient={extractedRecipient ?? undefined} />;
+          })
         )}
       </div>
     </div>

@@ -21,6 +21,7 @@ export interface ITelegramState extends Document {
   draftSnapshot?: string;
   pendingSendTo?: string;
   pendingSubject?: string;
+  extractedRecipient?: string;
   pageOffset: number;
   pendingInput?: string;
   version: number;
@@ -51,6 +52,7 @@ const telegramStateSchema = new Schema<ITelegramState>(
     draftSnapshot: { type: String },
     pendingSendTo: { type: String },
     pendingSubject: { type: String },
+    extractedRecipient: { type: String },
     pageOffset: { type: Number, default: 0 },
     pendingInput: { type: String },
     version: { type: Number, default: 0 },

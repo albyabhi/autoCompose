@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { parseEmailContent } from "@/modules/email/content";
@@ -9,11 +9,17 @@ import type { MessageData } from "../types";
 
 interface MessageBubbleProps {
   message: MessageData;
+  defaultRecipient?: string;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [recipient, setRecipient] = useState(defaultRecipient ?? "");
+
+  useEffect(() => {
+    setRecipient(defaultRecipient ?? "");
+  }, [defaultRecipient]);
 
   const isAssistant = message.role === "assistant";
   const emailConfigured =
@@ -35,6 +41,18 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <div className="message__content">
         {isAssistant ? (
           <>
+            {recipient && (
+              <div className="message-recipient">
+                <span className="message-recipient-label">To:</span>
+                <input
+                  className="message-recipient-input"
+                  type="email"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  placeholder="recipient@example.com"
+                />
+              </div>
+            )}
             <div className="message-subject">
               <span className="message-subject-label">Subject:</span>
               <span className="message-subject-text">{subject}</span>
@@ -77,6 +95,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           onClose={() => setDialogOpen(false)}
           defaultSubject={subject}
           defaultBody={body}
+          defaultRecipient={recipient || undefined}
         />
       )}
     </div>

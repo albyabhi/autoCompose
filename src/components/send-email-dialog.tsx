@@ -10,16 +10,18 @@ interface SendEmailDialogProps {
   onClose: () => void;
   defaultSubject: string;
   defaultBody: string;
+  defaultRecipient?: string;
 }
 
-export function SendEmailDialog({ open, onClose, defaultSubject, defaultBody }: SendEmailDialogProps) {
+export function SendEmailDialog({ open, onClose, defaultSubject, defaultBody, defaultRecipient }: SendEmailDialogProps) {
   if (!open) return null;
   return (
     <SendEmailDialogContent
-      key={`${defaultSubject.length}-${defaultBody.length}`}
+      key={`${defaultSubject.length}-${defaultBody.length}-${defaultRecipient ?? ""}`}
       onClose={onClose}
       defaultSubject={defaultSubject}
       defaultBody={defaultBody}
+      defaultRecipient={defaultRecipient}
     />
   );
 }
@@ -28,10 +30,11 @@ interface ContentProps {
   onClose: () => void;
   defaultSubject: string;
   defaultBody: string;
+  defaultRecipient?: string;
 }
 
-function SendEmailDialogContent({ onClose, defaultSubject, defaultBody }: ContentProps) {
-  const [to, setTo] = useState("");
+function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultRecipient }: ContentProps) {
+  const [to, setTo] = useState(defaultRecipient ?? "");
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState(defaultBody);
   const [sending, setSending] = useState(false);

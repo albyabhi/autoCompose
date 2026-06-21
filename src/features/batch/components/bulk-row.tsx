@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
+import { extractEmailFromText } from "@/modules/email/content";
 import { useGenerateEntry, useDeleteEntry, useUpdateEntry } from "../hooks/use-bulk";
 import type { BulkEntryData } from "../types";
 
@@ -19,13 +20,18 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
   const [localCategory, setLocalCategory] = useState(entry.category);
   const [localPrompt, setLocalPrompt] = useState(entry.prompt);
   const [localRecipient, setLocalRecipient] = useState(entry.recipient);
-  const isEditing = entry.status === "pending" || entry.status === "failed";
+  const [isEditing, setIsEditing] = useState(entry.status === "pending" || entry.status === "failed");
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     setLocalCategory(entry.category);
     setLocalPrompt(entry.prompt);
     setLocalRecipient(entry.recipient);
-  }, [entry.category, entry.prompt, entry.recipient]);
+    if (entry.status === "pending" || entry.status === "failed") {
+      setIsEditing(true);
+    }
+  }, [entry.category, entry.prompt, entry.recipient, entry.status]);
 
   async function handleGenerate() {
     if (entry.status === "pending" || entry.status === "failed") {
@@ -39,6 +45,7 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
       });
     }
     generateMutation.mutate({ entryId: entry.id, modelId });
+    setIsEditing(false);
   }
 
   async function handleDelete() {
@@ -47,6 +54,13 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
 
   function handleRegenerate() {
     generateMutation.mutate({ entryId: entry.id, modelId });
+  }
+
+  function handleCancel() {
+    setLocalCategory(entry.category);
+    setLocalPrompt(entry.prompt);
+    setLocalRecipient(entry.recipient);
+    setIsEditing(false);
   }
 
   const isLoading = generateMutation.isPending;
@@ -73,56 +87,30 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
     return null;
   })();
 
-  const generateBtn = (
-    entry.status === "pending" || entry.status === "failed"
-  ) ? (
-    <button
-      className="bulk-card__btn bulk-card__btn--generate"
-      onClick={handleGenerate}
-      disabled={isDisabled || localPrompt.length < 10 || !localRecipient}
-      aria-label="Generate email"
-    >
-      Generate
-    </button>
-  ) : null;
+  // ── Edit Mode ──────────────────────────────────────────────
+  if (isEditing) {
+    const cancelBtn = (entry.status === "generated" || entry.status === "sent") ? (
+      <button
+        className="bulk-card__btn bulk-card__btn--cancel"
+        onClick={handleCancel}
+        disabled={isDisabled}
+      >
+        Cancel
+      </button>
+    ) : null;
 
-  const previewBtn = entry.status === "generated" ? (
-    <button
-      className="bulk-card__btn bulk-card__btn--preview"
-      onClick={() => onPreview?.(entry)}
-      aria-label="Preview email"
-    >
-      Preview
-    </button>
-  ) : null;
+    return (
+      <div className="bulk-card bulk-card--edit">
+        <div className="bulk-card__header">
+          <span className="bulk-card__order">#{entry.sortOrder + 1}</span>
+          <div className="bulk-card__status">{statusBadge}</div>
+        </div>
 
-  const regenBtn = entry.status === "generated" ? (
-    <button
-      className="bulk-card__btn bulk-card__btn--regen"
-      onClick={handleRegenerate}
-      disabled={isDisabled}
-      aria-label="Regenerate email"
-    >
-      Regenerate
-    </button>
-  ) : null;
-
-  return (
-    <div className="bulk-card">
-      <div className="bulk-card__header">
-        <span className="bulk-card__order">#{entry.sortOrder + 1}</span>
-        <div className="bulk-card__status">{statusBadge}</div>
-      </div>
-
-      <div className="bulk-card__fields">
-        <div className="bulk-card__field">
-          <label
-            htmlFor={`bulk-category-${entry.id}`}
-            className="bulk-card__label"
-          >
-            Mail Type
-          </label>
-          {isEditing ? (
+        <div className="bulk-card__fields">
+          <div className="bulk-card__field">
+            <label htmlFor={`bulk-category-${entry.id}`} className="bulk-card__label">
+              Mail Type
+            </label>
             <select
               id={`bulk-category-${entry.id}`}
               className="field-select"
@@ -134,45 +122,34 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
-          ) : (
-            <span className="bulk-card__readonly">
-              {CATEGORY_OPTIONS.find((c) => c.value === entry.category)?.label ?? entry.category}
-            </span>
-          )}
-        </div>
+          </div>
 
-        <div className="bulk-card__field">
-          <label
-            htmlFor={`bulk-prompt-${entry.id}`}
-            className="bulk-card__label"
-          >
-            Prompt
-          </label>
-          {isEditing ? (
+          <div className="bulk-card__field">
+            <label htmlFor={`bulk-prompt-${entry.id}`} className="bulk-card__label">
+              Prompt
+            </label>
             <textarea
               id={`bulk-prompt-${entry.id}`}
               className="field-textarea"
               value={localPrompt}
-              onChange={(e) => setLocalPrompt(e.target.value)}
+              onChange={(e) => {
+                const newPrompt = e.target.value;
+                setLocalPrompt(newPrompt);
+                if (!localRecipient) {
+                  const extracted = extractEmailFromText(newPrompt);
+                  if (extracted) setLocalRecipient(extracted);
+                }
+              }}
               rows={3}
               disabled={isDisabled}
               placeholder="Describe the email you want to generate..."
             />
-          ) : (
-            <span className="bulk-card__readonly bulk-card__readonly--truncated">
-              {entry.prompt}
-            </span>
-          )}
-        </div>
+          </div>
 
-        <div className="bulk-card__field">
-          <label
-            htmlFor={`bulk-recipient-${entry.id}`}
-            className="bulk-card__label"
-          >
-            Recipient
-          </label>
-          {isEditing ? (
+          <div className="bulk-card__field">
+            <label htmlFor={`bulk-recipient-${entry.id}`} className="bulk-card__label">
+              Recipient
+            </label>
             <input
               id={`bulk-recipient-${entry.id}`}
               className="field-input"
@@ -182,8 +159,88 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
               disabled={isDisabled}
               placeholder="email@example.com"
             />
-          ) : (
-            <span className="bulk-card__readonly">{entry.recipient}</span>
+          </div>
+        </div>
+
+        {entry.generatedContent && (
+          <>
+            <button
+              className="bulk-card__preview-toggle"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              {showPreview ? "Hide" : "Show"} Generated Preview
+            </button>
+            {showPreview && (
+              <div className="bulk-card__preview">
+                {entry.subject && (
+                  <div className="bulk-card__preview-subject">{entry.subject}</div>
+                )}
+                <div className="bulk-card__preview-body">{entry.generatedContent}</div>
+              </div>
+            )}
+          </>
+        )}
+
+        {entry.status === "failed" && entry.errorMessage && (
+          <div className="bulk-card__error">{entry.errorMessage}</div>
+        )}
+
+        <div className="bulk-card__actions">
+          {(entry.status === "generating" || entry.status === "sending") && (
+            <span className="bulk-card__spinner" />
+          )}
+          <button
+            className="bulk-card__btn bulk-card__btn--generate"
+            onClick={handleGenerate}
+            disabled={isDisabled || localPrompt.length < 10 || !localRecipient}
+            aria-label="Generate email"
+          >
+            {isLoading ? "Generating..." : "Generate"}
+          </button>
+          {cancelBtn}
+          <button
+            className="bulk-card__btn bulk-card__btn--delete"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            aria-label="Delete entry"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Display Mode ──────────────────────────────────────────
+  return (
+    <div className="bulk-card">
+      <div className="bulk-card__header">
+        <span className="bulk-card__order">#{entry.sortOrder + 1}</span>
+        <div className="bulk-card__status">{statusBadge}</div>
+      </div>
+
+      <div className="bulk-card__display">
+        <div className="bulk-card__display-row bulk-card__display-row--recipient">
+          <span className="bulk-card__display-label">To</span>
+          <span className="bulk-card__display-value">{entry.recipient}</span>
+        </div>
+
+        {entry.subject && (
+          <div className="bulk-card__display-row">
+            <span className="bulk-card__display-label">Subject</span>
+            <span className="bulk-card__display-value">{entry.subject}</span>
+          </div>
+        )}
+
+        <div className="bulk-card__display-prompt">
+          <button
+            className="bulk-card__prompt-toggle"
+            onClick={() => setShowPrompt(!showPrompt)}
+          >
+            {showPrompt ? "Hide" : "Show"} Prompt
+          </button>
+          {showPrompt && (
+            <span className="bulk-card__display-prompt-text">{entry.prompt}</span>
           )}
         </div>
       </div>
@@ -196,9 +253,33 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
         {(entry.status === "generating" || entry.status === "sending") && (
           <span className="bulk-card__spinner" />
         )}
-        {generateBtn}
-        {previewBtn}
-        {regenBtn}
+        <button
+          className="bulk-card__btn bulk-card__btn--edit"
+          onClick={() => setIsEditing(true)}
+          disabled={isDisabled || entry.status === "sending"}
+          aria-label="Edit entry"
+        >
+          Edit
+        </button>
+        {entry.status === "generated" && (
+          <>
+            <button
+              className="bulk-card__btn bulk-card__btn--preview"
+              onClick={() => onPreview?.(entry)}
+              aria-label="Preview email"
+            >
+              Preview
+            </button>
+            <button
+              className="bulk-card__btn bulk-card__btn--regen"
+              onClick={handleRegenerate}
+              disabled={isDisabled}
+              aria-label="Regenerate email"
+            >
+              Regenerate
+            </button>
+          </>
+        )}
         <button
           className="bulk-card__btn bulk-card__btn--delete"
           onClick={handleDelete}

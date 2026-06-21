@@ -37,6 +37,13 @@ export function stripSubjectLine(content: string): string {
   return result.join("\n").trim();
 }
 
+const EMAIL_IN_TEXT_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
+
+export function extractEmailFromText(text: string): string | null {
+  const match = text.match(EMAIL_IN_TEXT_REGEX);
+  return match ? match[0] : null;
+}
+
 export function parseEmailContent(content: string): ParsedEmailContent {
   const cleaned = cleanAIContent(content);
   return {

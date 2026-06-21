@@ -9,6 +9,7 @@ import { ResponseDisplay } from "./response-display";
 import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
 import Link from "next/link";
 import { CATEGORY_OPTIONS, CATEGORY_POLICIES, type EmailCategory } from "@/modules/email/categories";
+import { extractEmailFromText } from "@/modules/email/content";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 
 export function GenerateForm() {
@@ -30,6 +31,7 @@ export function GenerateForm() {
   const [modelUsed, setModelUsed] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [extractedRecipient, setExtractedRecipient] = useState<string | null>(null);
 
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;
   const effectiveModelId =
@@ -76,6 +78,7 @@ export function GenerateForm() {
 
       setResponse(data.data.content);
       setModelUsed(data.data.modelUsed);
+      setExtractedRecipient(extractEmailFromText(effectivePrompt));
       
       // Invalidate sessions cache to update sidebar
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
@@ -162,6 +165,7 @@ export function GenerateForm() {
         modelUsed={modelUsed}
         loading={loading}
         error={error}
+        defaultRecipient={extractedRecipient ?? undefined}
       />
     </div>
   );

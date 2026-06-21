@@ -405,6 +405,37 @@ body {
   margin: 0;
 }
 
+.response-recipient {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--black);
+  opacity: 0.7;
+}
+
+.response-recipient-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--black);
+  opacity: 0.6;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.response-recipient-input {
+  flex: 1;
+  border: 1px solid var(--black);
+  border-radius: 0;
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  outline: none;
+}
+
 .response-subject {
   display: flex;
   gap: 8px;
@@ -2116,6 +2147,37 @@ body {
   color: var(--text);
 }
 
+.message-recipient {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--black);
+  opacity: 0.7;
+}
+
+.message-recipient-label {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--black);
+  opacity: 0.6;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.message-recipient-input {
+  flex: 1;
+  border: 1px solid var(--black);
+  border-radius: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  outline: none;
+}
+
 .message-body {
   white-space: pre-wrap;
 }
@@ -2860,10 +2922,120 @@ body {
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+
+.bulk-card--edit {
+  background: #fafaf5;
+}
+
+.bulk-card__display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulk-card__display-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.bulk-card__display-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #888;
+  flex-shrink: 0;
+  min-width: 60px;
+}
+
+.bulk-card__display-value {
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bulk-card__display-prompt {
+  margin-top: 4px;
+}
+
+.bulk-card__prompt-toggle {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  cursor: pointer;
+  padding: 2px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.bulk-card__prompt-toggle:hover {
+  text-decoration: underline;
+}
+
+.bulk-card__display-prompt-text {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--surface);
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  color: #555;
+}
+
+.bulk-card__preview-toggle {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  cursor: pointer;
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.bulk-card__preview-toggle:hover {
+  text-decoration: underline;
+}
+
+.bulk-card__preview {
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: #f8f8ff;
+  border: 2px solid #ccc;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bulk-card__preview-subject {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+}
+
+.bulk-card__preview-body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+  white-space: pre-wrap;
 }
 
 .bulk-card__header {
@@ -2926,8 +3098,8 @@ body {
 
 .bulk-card__readonly {
   display: block;
-  padding: 10px 14px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 13px;
   line-height: 1.5;
   background: var(--surface);
   border: 2px solid #ddd;
@@ -3060,6 +3232,8 @@ body {
 .bulk-card__btn--preview { background: var(--blue); color: var(--white); }
 .bulk-card__btn--regen { background: var(--white); color: var(--black); }
 .bulk-card__btn--delete { background: var(--white); color: var(--pink); }
+.bulk-card__btn--edit { background: var(--yellow); color: var(--black); }
+.bulk-card__btn--cancel { background: var(--surface); color: #666; }
 
 /* =========== BULK SEND BAR =========== */
 
@@ -3195,5 +3369,43 @@ body {
 
   .compose-page {
     padding: 12px 12px 96px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bulk-card__display-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .bulk-card__display-label {
+    min-width: unset;
+  }
+
+  .bulk-card__actions {
+    flex-wrap: wrap;
+  }
+
+  .bulk-card__btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bulk-card {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .bulk-card__display-row--recipient .bulk-card__display-label {
+    display: none;
+  }
+
+  .bulk-card__header {
+    flex-wrap: wrap;
   }
 }

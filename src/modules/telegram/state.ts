@@ -11,6 +11,7 @@ export interface TelegramStateSnapshot {
   draftSnapshot?: string;
   pendingSendTo?: string;
   pendingSubject?: string;
+  extractedRecipient?: string;
   pageOffset: number;
   pendingInput?: string;
   version: number;
@@ -37,6 +38,7 @@ function toSnapshot(doc: ITelegramState | null, chatId: string, userId: string):
     draftSnapshot: doc.draftSnapshot,
     pendingSendTo: doc.pendingSendTo,
     pendingSubject: doc.pendingSubject,
+    extractedRecipient: doc.extractedRecipient,
     pageOffset: doc.pageOffset,
     pendingInput: doc.pendingInput,
     version: doc.version,
@@ -64,6 +66,7 @@ export interface SaveStatePatch {
   draftSnapshot?: string | null;
   pendingSendTo?: string | null;
   pendingSubject?: string | null;
+  extractedRecipient?: string | null;
   pageOffset?: number;
   pendingInput?: string | null;
 }
@@ -93,6 +96,9 @@ export async function saveState(
   }
   if (patch.pendingSubject !== undefined) {
     if (patch.pendingSubject === null) unset.pendingSubject = 1; else set.pendingSubject = patch.pendingSubject;
+  }
+  if (patch.extractedRecipient !== undefined) {
+    if (patch.extractedRecipient === null) unset.extractedRecipient = 1; else set.extractedRecipient = patch.extractedRecipient;
   }
   if (patch.pageOffset !== undefined) set.pageOffset = patch.pageOffset;
   if (patch.pendingInput !== undefined) {

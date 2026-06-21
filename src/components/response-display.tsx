@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
@@ -11,11 +11,17 @@ interface ResponseDisplayProps {
   modelUsed: string | null;
   loading: boolean;
   error: string | null;
+  defaultRecipient?: string;
 }
 
-export function ResponseDisplay({ content, modelUsed, loading, error }: ResponseDisplayProps) {
+export function ResponseDisplay({ content, modelUsed, loading, error, defaultRecipient }: ResponseDisplayProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [recipient, setRecipient] = useState(defaultRecipient ?? "");
+
+  useEffect(() => {
+    setRecipient(defaultRecipient ?? "");
+  }, [defaultRecipient]);
 
   const emailConfigured = !!profileData?.profile?.emailCredentials?.emailConfigured;
   const gmailAddress = profileData?.profile?.emailCredentials?.gmailAddress;
@@ -59,6 +65,18 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
         {modelUsed && <span className="response-model">via {modelUsed}</span>}
       </div>
       <div className="response-content">
+        {recipient && (
+          <div className="response-recipient">
+            <span className="response-recipient-label">To:</span>
+            <input
+              className="response-recipient-input"
+              type="email"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="recipient@example.com"
+            />
+          </div>
+        )}
         <div className="response-subject">
           <span className="response-subject-label">Subject:</span>
           <span className="response-subject-text">{subject}</span>
@@ -105,6 +123,7 @@ export function ResponseDisplay({ content, modelUsed, loading, error }: Response
         onClose={() => setDialogOpen(false)}
         defaultSubject={subject}
         defaultBody={body}
+        defaultRecipient={recipient || undefined}
       />
     </div>
   );

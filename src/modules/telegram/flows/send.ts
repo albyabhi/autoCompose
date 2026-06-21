@@ -97,6 +97,17 @@ export async function handleSendStart(ctx: Context): Promise<void> {
   }
 
   await answerCb(ctx, "Send");
+
+  if (state.extractedRecipient) {
+    await saveState(chatId.toString(), userId, {
+      step: "awaiting_subject",
+      pendingSendTo: state.extractedRecipient,
+      pendingInput: null,
+    });
+    await promptForSubjectWithRecipient(ctx, userId, state.extractedRecipient, state.draftSnapshot, true);
+    return;
+  }
+
   await saveState(chatId.toString(), userId, {
     step: "awaiting_recipient",
     pendingInput: null,
@@ -323,13 +334,15 @@ async function promptForSubjectWithRecipient(
   ctx: Context,
   _userId: string,
   to: string,
-  draft: string | undefined
+  draft: string | undefined,
+  extracted?: boolean
 ): Promise<void> {
   const auto = draft ? extractSubject(draft) : "Email from AutoCompose";
+  const extractedNote = extracted ? " (auto-detected from prompt)" : "";
   await replyHtml(
     ctx,
     `📝 <b>Subject</b>\n\n` +
-      `To: <code>${escapeForDisplay(to)}</code>\n\n` +
+      `To: <code>${escapeForDisplay(to)}</code>${extractedNote}\n\n` +
       `Type a subject, or /skip to use the auto-detected one:\n` +
       `<i>${escapeForDisplay(auto)}</i>`
   );
