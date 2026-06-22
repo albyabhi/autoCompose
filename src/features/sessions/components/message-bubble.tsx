@@ -15,6 +15,7 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showFullPrompt, setShowFullPrompt] = useState(false);
   const [recipient, setRecipient] = useState(defaultRecipient ?? "");
 
   useEffect(() => {
@@ -27,6 +28,8 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
   const gmailAddress = profileData?.profile?.emailCredentials?.gmailAddress;
 
   const { subject, body } = isAssistant ? parseEmailContent(message.content) : { subject: "", body: "" };
+  const lineCount = message.content.split('\n').length;
+  const isLongPrompt = !isAssistant && lineCount > 12;
 
   return (
     <div
@@ -59,8 +62,31 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
             </div>
             <div className="message-body">{body}</div>
           </>
+        ) : isLongPrompt && !showFullPrompt ? (
+          <div>
+            <div className="message__prompt-collapsed">
+              {message.content.split('\n').slice(0, 10).join('\n')}
+              {lineCount > 10 && <span className="message__prompt-ellipsis">...</span>}
+            </div>
+            <button
+              className="message__prompt-toggle"
+              onClick={() => setShowFullPrompt(true)}
+            >
+              Show full prompt
+            </button>
+          </div>
         ) : (
-          message.content
+          <div>
+            {message.content}
+            {isLongPrompt && (
+              <button
+                className="message__prompt-toggle"
+                onClick={() => setShowFullPrompt(false)}
+              >
+                Hide prompt
+              </button>
+            )}
+          </div>
         )}
       </div>
       {isAssistant && (

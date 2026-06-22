@@ -1809,6 +1809,11 @@ body {
   cursor: pointer;
 }
 
+.session-card--active .session-card__main {
+  border-color: var(--black);
+  background: var(--yellow);
+}
+
 /* =========== BUTTON COMPONENT =========== */
 
 .btn {
@@ -2180,6 +2185,37 @@ body {
 
 .message-body {
   white-space: pre-wrap;
+}
+
+.message__prompt-collapsed {
+  white-space: pre-wrap;
+  opacity: 0.8;
+}
+
+.message__prompt-ellipsis {
+  display: block;
+  font-weight: 700;
+  color: #aaa;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.message__prompt-toggle {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  cursor: pointer;
+  padding: 4px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}
+
+.message__prompt-toggle:hover {
+  text-decoration: underline;
 }
 
 /* =========== SESSIONS PAGE =========== */
