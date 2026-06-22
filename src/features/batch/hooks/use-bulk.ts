@@ -17,7 +17,7 @@ import {
   uploadAttachments,
   batchUpdateCategory,
 } from "../api/bulk";
-import type { CreateEntryPayload } from "../types";
+import type { BulkEntryData, CreateEntryPayload } from "../types";
 
 const BULK_KEY = ["bulk-entries"] as const;
 
@@ -26,6 +26,7 @@ export function useBulkEntries(sessionId: string | undefined) {
     queryKey: [...BULK_KEY, sessionId],
     queryFn: () => fetchEntries(sessionId!),
     enabled: !!sessionId,
+    staleTime: 5_000,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
@@ -47,9 +48,34 @@ export function useCreateEntries() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateEntryPayload) => createEntries(payload),
-    onSuccess: (data) => {
-      if (data.length > 0) {
-        qc.invalidateQueries({ queryKey: [...BULK_KEY, data[0].sessionId] });
+    onMutate: async (payload) => {
+      const queryKey = [...BULK_KEY, payload.sessionId];
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData<BulkEntryData[]>(queryKey);
+      const maxSort = previous?.reduce((max, e) => Math.max(max, e.sortOrder), -1) ?? -1;
+      const tempEntries: BulkEntryData[] = payload.entries.map((e, i) => ({
+        id: `temp-${Date.now()}-${i}`,
+        sessionId: payload.sessionId,
+        userId: "",
+        category: e.category,
+        prompt: e.prompt,
+        recipient: e.recipient,
+        status: "pending",
+        sortOrder: maxSort + 1 + i,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }));
+      qc.setQueryData<BulkEntryData[]>(queryKey, (old) => [...(old ?? []), ...tempEntries]);
+      return { queryKey, previous };
+    },
+    onError: (_err, _payload, context) => {
+      if (context?.previous) {
+        qc.setQueryData(context.queryKey, context.previous);
+      }
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      if (context?.queryKey) {
+        qc.invalidateQueries({ queryKey: context.queryKey });
       }
     },
   });
@@ -69,8 +95,35 @@ export function useUpdateEntry() {
 export function useDeleteEntry() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteEntry(id),
-    onSuccess: () => {
+    mutationFn: async (id: string) => {
+      if (id.startsWith("temp-")) {
+        return { deleted: true, wasTemp: true };
+      }
+      const result = await deleteEntry(id);
+      return { ...result, wasTemp: false };
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: BULK_KEY });
+      const queries = qc.getQueriesData<BulkEntryData[]>({ queryKey: BULK_KEY });
+      const snapshot = queries.map(
+        ([key, data]) => [[...key], [...(data ?? [])]],
+      );
+      for (const [key, data] of queries) {
+        if (data) {
+          qc.setQueryData<BulkEntryData[]>(key, data.filter((e) => e.id !== id));
+        }
+      }
+      return { snapshot };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.snapshot) {
+        for (const [key, data] of context.snapshot) {
+          qc.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: (data, _error, _id, context) => {
+      if (data?.wasTemp) return;
       qc.invalidateQueries({ queryKey: BULK_KEY });
     },
   });

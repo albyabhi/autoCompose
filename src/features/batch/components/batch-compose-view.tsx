@@ -18,7 +18,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
 
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId ?? undefined);
   const [modelId, setModelId] = useState<ModelId>("deepseek");
-  const [creatingSession, setCreatingSession] = useState(false);
+
   const [addCount, setAddCount] = useState(5);
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
   const [applyingCategory, setApplyingCategory] = useState(false);
@@ -35,34 +35,31 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     setModelId(next);
   };
 
+  const isCreatingSession = createSessionMutation.isPending;
+
   const ensureSession = useCallback(async () => {
     if (sessionId) return sessionId;
-    setCreatingSession(true);
-    try {
-      const session = await createSessionMutation.mutateAsync();
-      setSessionId(session.id);
-      router.replace(`/?mode=batch&sessionId=${session.id}`, { scroll: false });
-      return session.id;
-    } finally {
-      setCreatingSession(false);
-    }
+    const session = await createSessionMutation.mutateAsync();
+    setSessionId(session.id);
+    router.replace(`/?mode=batch&sessionId=${session.id}`, { scroll: false });
+    return session.id;
   }, [sessionId, createSessionMutation, router]);
 
   const handleAddRow = useCallback(async () => {
     const currentSessionId = await ensureSession();
     if (currentSessionId) {
-      await createEntriesMutation.mutateAsync({
+      createEntriesMutation.mutate({
         sessionId: currentSessionId,
         entries: [
           {
-            category: "custom" as EmailCategory,
+            category: toolbarCategory,
             prompt: "",
             recipient: "",
           },
         ],
       });
     }
-  }, [ensureSession, createEntriesMutation]);
+  }, [ensureSession, createEntriesMutation, toolbarCategory]);
 
   const handleAddMultiple = useCallback(async () => {
     const currentSessionId = await ensureSession();
@@ -74,7 +71,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
       recipient: "",
     }));
 
-    await createEntriesMutation.mutateAsync({
+    createEntriesMutation.mutate({
       sessionId: currentSessionId,
       entries: newEntries,
     });
@@ -134,7 +131,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
             <button
               className="btn btn--primary"
               onClick={handleAddMultiple}
-              disabled={createEntriesMutation.isPending || creatingSession}
+              disabled={createEntriesMutation.isPending || isCreatingSession}
             >
               + Add {addCount}
             </button>
@@ -191,10 +188,6 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
           rowFilesMap={rowFilesMap}
           onRowFilesChange={handleRowFilesChange}
         />
-      )}
-
-      {creatingSession && (
-        <div className="batch-compose__creating">Creating session...</div>
       )}
     </div>
   );
