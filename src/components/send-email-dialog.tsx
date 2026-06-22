@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api-client";
+import { AttachmentUpload } from "@/components/ui/attachment-upload";
+import { validateAttachments } from "@/utils/attachments";
 
 interface SendEmailDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
   const [to, setTo] = useState(defaultRecipient ?? "");
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState(defaultBody);
+  const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -52,13 +54,52 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (files.length > 0) {
+      const validation = validateAttachments(files);
+      if (!validation.ok) {
+        setError(validation.error);
+        return;
+      }
+    }
+
     setSending(true);
     try {
-      await api.post<{ sent: boolean }>("/api/send-email", {
-        to: to.trim(),
-        subject: subject.trim(),
-        body,
-      });
+      const hasFiles = files.length > 0;
+
+      if (hasFiles) {
+        const formData = new FormData();
+        formData.append("to", to.trim());
+        formData.append("subject", subject.trim());
+        formData.append("body", body);
+        for (const file of files) {
+          formData.append("attachments", file);
+        }
+
+        const res = await fetch("/api/send-email", {
+          method: "POST",
+          body: formData,
+        });
+        const json = await res.json();
+        if (!json.success) {
+          throw new Error(json.error?.message ?? "Failed to send");
+        }
+      } else {
+        const res = await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: to.trim(),
+            subject: subject.trim(),
+            body,
+          }),
+        });
+        const json = await res.json();
+        if (!json.success) {
+          throw new Error(json.error?.message ?? "Failed to send");
+        }
+      }
+
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send");
@@ -94,6 +135,11 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
           <div className="dialog__body">
             <div className="settings-message settings-message--success">
               Email sent successfully to {to.trim()}.
+              {files.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  {files.length} file{files.length !== 1 ? "s" : ""} attached.
+                </div>
+              )}
             </div>
             <div className="dialog__actions">
               <Button variant="primary" onClick={onClose}>
@@ -138,6 +184,11 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
                   onChange={(e) => setBody(e.target.value)}
                 />
               </div>
+              <AttachmentUpload
+                files={files}
+                onFilesChange={setFiles}
+                disabled={sending}
+              />
               {error && (
                 <div className="settings-message settings-message--error">{error}</div>
               )}

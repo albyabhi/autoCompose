@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/profile";
 import { User } from "@/models/user";
 import { decrypt } from "@/lib/crypto";
-import { sendEmail } from "@/modules/email/sender";
+import { sendEmail, type NodemailerAttachment } from "@/modules/email/sender";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
@@ -27,6 +27,7 @@ export interface DispatchSendEmailInput {
   userAgent?: string;
   rateLimitKey?: string;
   rateLimit?: { maxRequests: number; windowMs: number };
+  attachments?: NodemailerAttachment[];
 }
 
 export type DispatchSendEmailResult =
@@ -133,6 +134,7 @@ export async function dispatchSendEmail(
       gmailAddress: profile.emailCredentials.gmailAddress,
       appPassword,
       senderName: senderName ?? undefined,
+      attachments: input.attachments,
     });
     await recordAudit({
       action: "email.sent",

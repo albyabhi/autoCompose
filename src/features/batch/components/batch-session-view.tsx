@@ -7,6 +7,7 @@ import { BulkRow } from "./bulk-row";
 import { BulkSendBar } from "./bulk-send-bar";
 import { BulkPreviewDialog } from "./bulk-preview-dialog";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
+import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { useRouter } from "next/navigation";
 import type { BulkEntryData } from "../types";
 
@@ -20,6 +21,8 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
   const { data: entries = [], isLoading } = useBulkEntries(sessionId);
   const [previewEntry, setPreviewEntry] = useState<BulkEntryData | null>(null);
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
+  const [sharedFiles, setSharedFiles] = useState<File[]>([]);
+  const [rowFilesMap, setRowFilesMap] = useState<Record<string, File[]>>({});
   const batchUpdateMutation = useBatchUpdateCategory();
   const router = useRouter();
 
@@ -35,6 +38,16 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
       category: toolbarCategory,
     });
   }
+
+  function handleRowFilesChange(entryId: string, files: File[]) {
+    setRowFilesMap((prev) => ({ ...prev, [entryId]: files }));
+  }
+
+  const sharedFileCount = sharedFiles.length;
+  const totalRowFileCount = Object.values(rowFilesMap).reduce(
+    (sum, files) => sum + files.length,
+    0
+  );
 
   return (
     <div className="session-detail">
@@ -80,8 +93,15 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
               </Button>
             </div>
           </div>
+          <AttachmentUpload
+            files={sharedFiles}
+            onFilesChange={setSharedFiles}
+            label="Shared Attachments (sent to all)"
+          />
           <div className="batch-toolbar__count">
             {entries.length} rows
+            {sharedFileCount > 0 && ` · ${sharedFileCount} shared files`}
+            {totalRowFileCount > 0 && ` · ${totalRowFileCount} row files`}
           </div>
         </div>
       )}
@@ -94,10 +114,17 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
         <div className="bulk-table-wrapper">
           <div className="bulk-list">
             {entries.map((entry) => (
-              <BulkRow key={entry.id} entry={entry} modelId="deepseek" onPreview={setPreviewEntry} />
+              <BulkRow
+                key={entry.id}
+                entry={entry}
+                modelId="deepseek"
+                onPreview={setPreviewEntry}
+                rowFiles={rowFilesMap[entry.id] ?? []}
+                onRowFilesChange={(files) => handleRowFilesChange(entry.id, files)}
+              />
             ))}
           </div>
-          <BulkSendBar entries={entries} onComplete={() => {}} />
+          <BulkSendBar entries={entries} onComplete={() => {}} sharedFiles={sharedFiles} rowFilesMap={rowFilesMap} />
         </div>
       )}
 

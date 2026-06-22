@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ModelSelector } from "@/components/model-selector";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
+import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import type { ModelId } from "@/modules/ai/types";
 import { useBulkEntries, useCreateBatchSession, useCreateEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
 import { BulkTable } from "./bulk-table";
@@ -21,6 +22,8 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   const [addCount, setAddCount] = useState(5);
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
   const [applyingCategory, setApplyingCategory] = useState(false);
+  const [sharedFiles, setSharedFiles] = useState<File[]>([]);
+  const [rowFilesMap, setRowFilesMap] = useState<Record<string, File[]>>({});
 
   const createSessionMutation = useCreateBatchSession();
   const createEntriesMutation = useCreateEntries();
@@ -93,6 +96,16 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   const readyCount = entries.filter((e) => e.status === "generated").length;
   const pendingCount = entries.filter((e) => e.status === "pending" || e.status === "failed").length;
 
+  function handleRowFilesChange(entryId: string, files: File[]) {
+    setRowFilesMap((prev) => ({ ...prev, [entryId]: files }));
+  }
+
+  const sharedFileCount = sharedFiles.length;
+  const totalRowFileCount = Object.values(rowFilesMap).reduce(
+    (sum, files) => sum + files.length,
+    0
+  );
+
   return (
     <div className="batch-compose">
       <div className="batch-compose__header">
@@ -152,9 +165,17 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
           </div>
         </div>
 
+        <AttachmentUpload
+          files={sharedFiles}
+          onFilesChange={setSharedFiles}
+          label="Shared Attachments (sent to all)"
+        />
+
         {entries.length > 0 && (
           <div className="batch-toolbar__count">
             {entries.length} rows · {readyCount} ready · {pendingCount} pending
+            {sharedFileCount > 0 && ` · ${sharedFileCount} shared files`}
+            {totalRowFileCount > 0 && ` · ${totalRowFileCount} row files`}
           </div>
         )}
       </div>
@@ -166,6 +187,9 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
           entries={entries}
           modelId={modelId}
           onAddRow={handleAddRow}
+          sharedFiles={sharedFiles}
+          rowFilesMap={rowFilesMap}
+          onRowFilesChange={handleRowFilesChange}
         />
       )}
 

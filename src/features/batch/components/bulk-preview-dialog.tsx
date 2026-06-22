@@ -3,27 +3,46 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { parseEmailContent } from "@/modules/email/content";
-import { useSendEntry } from "../hooks/use-bulk";
+import { useSendEntry, useSendEntryWithAttachments, useUploadAttachments } from "../hooks/use-bulk";
 import type { BulkEntryData } from "../types";
 
 interface BulkPreviewDialogProps {
   entry: BulkEntryData;
   onClose: () => void;
+  sharedFiles?: File[];
+  rowFiles?: File[];
 }
 
-export function BulkPreviewDialog({ entry, onClose }: BulkPreviewDialogProps) {
+export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles = [] }: BulkPreviewDialogProps) {
   const sendMutation = useSendEntry();
+  const sendWithAttachmentsMutation = useSendEntryWithAttachments();
+  const uploadMutation = useUploadAttachments();
   const parsed = parseEmailContent(entry.generatedContent ?? "");
   const [subject, setSubject] = useState(entry.subject || parsed.subject);
   const [body, setBody] = useState(entry.generatedContent ?? "");
   const [showSent, setShowSent] = useState(false);
 
+  const hasRowFiles = rowFiles.length > 0;
+  const hasSharedFiles = sharedFiles.length > 0;
+  const hasFiles = hasRowFiles || hasSharedFiles;
+
   async function handleSend() {
-    const result = await sendMutation.mutateAsync(entry.id);
-    if (result.ok) {
-      setShowSent(true);
+    if (hasFiles) {
+      const allFiles = [...sharedFiles, ...rowFiles];
+      const uploadResult = await uploadMutation.mutateAsync(allFiles);
+      const result = await sendWithAttachmentsMutation.mutateAsync({
+        entryId: entry.id,
+        sharedAttachmentIds: uploadResult.ids,
+        rowAttachmentIds: [],
+      });
+      if (result.ok) setShowSent(true);
+    } else {
+      const result = await sendMutation.mutateAsync(entry.id);
+      if (result.ok) setShowSent(true);
     }
   }
+
+  const allFiles = [...sharedFiles, ...rowFiles];
 
   return (
     <div className="dialog-backdrop" onClick={onClose} role="presentation">
@@ -52,6 +71,11 @@ export function BulkPreviewDialog({ entry, onClose }: BulkPreviewDialogProps) {
           <div className="dialog__body">
             <div className="settings-message settings-message--success">
               Email sent successfully to {entry.recipient}.
+              {allFiles.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  {allFiles.length} file{allFiles.length !== 1 ? "s" : ""} attached.
+                </div>
+              )}
             </div>
             <div className="dialog__actions">
               <Button variant="primary" onClick={onClose}>Done</Button>
@@ -82,24 +106,39 @@ export function BulkPreviewDialog({ entry, onClose }: BulkPreviewDialogProps) {
                 onChange={(e) => setBody(e.target.value)}
               />
             </div>
-            {sendMutation.isError && (
-              <div className="settings-message settings-message--error">
-                {sendMutation.error instanceof Error
-                  ? sendMutation.error.message
-                  : "Failed to send"}
+            {allFiles.length > 0 && (
+              <div className="field-group">
+                <label className="field-label">Attachments</label>
+                <div className="field-input-readonly">
+                  {allFiles.length} file{allFiles.length !== 1 ? "s" : ""}
+                  {hasSharedFiles && hasRowFiles && (
+                    <span style={{ opacity: 0.6, marginLeft: 8 }}>
+                      ({sharedFiles.length} shared, {rowFiles.length} row-specific)
+                    </span>
+                  )}
+                </div>
               </div>
             )}
+            {(() => {
+              const sendError = sendMutation.error ?? sendWithAttachmentsMutation.error ?? uploadMutation.error;
+              if (!sendError) return null;
+              return (
+                <div className="settings-message settings-message--error">
+                  {sendError instanceof Error ? sendError.message : "Failed to send"}
+                </div>
+              );
+            })()}
             <div className="dialog__actions">
-              <Button variant="ghost" onClick={onClose} disabled={sendMutation.isPending}>
+              <Button variant="ghost" onClick={onClose} disabled={sendMutation.isPending || sendWithAttachmentsMutation.isPending}>
                 Cancel
               </Button>
               <Button
                 variant="primary"
-                loading={sendMutation.isPending}
-                disabled={sendMutation.isPending || !subject.trim() || !body.trim()}
+                loading={sendMutation.isPending || sendWithAttachmentsMutation.isPending || uploadMutation.isPending}
+                disabled={sendMutation.isPending || sendWithAttachmentsMutation.isPending || uploadMutation.isPending || !subject.trim() || !body.trim()}
                 onClick={handleSend}
               >
-                {sendMutation.isPending ? "Sending..." : "Send"}
+                {uploadMutation.isPending ? "Uploading..." : sendMutation.isPending || sendWithAttachmentsMutation.isPending ? "Sending..." : "Send"}
               </Button>
             </div>
           </div>

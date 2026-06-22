@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 import { extractEmailFromText } from "@/modules/email/content";
+import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { useGenerateEntry, useDeleteEntry, useUpdateEntry } from "../hooks/use-bulk";
 import type { BulkEntryData } from "../types";
 
@@ -10,9 +11,11 @@ interface BulkRowProps {
   entry: BulkEntryData;
   modelId: string;
   onPreview?: (entry: BulkEntryData) => void;
+  rowFiles?: File[];
+  onRowFilesChange?: (files: File[]) => void;
 }
 
-export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
+export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesChange }: BulkRowProps) {
   const generateMutation = useGenerateEntry();
   const deleteMutation = useDeleteEntry();
   const updateMutation = useUpdateEntry();
@@ -160,6 +163,14 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
               placeholder="email@example.com"
             />
           </div>
+          {onRowFilesChange && (
+            <AttachmentUpload
+              files={rowFiles}
+              onFilesChange={onRowFilesChange}
+              disabled={isDisabled}
+              label="Row Attachments"
+            />
+          )}
         </div>
 
         {entry.generatedContent && (
@@ -245,50 +256,56 @@ export function BulkRow({ entry, modelId, onPreview }: BulkRowProps) {
         </div>
       </div>
 
-      {entry.status === "failed" && entry.errorMessage && (
-        <div className="bulk-card__error">{entry.errorMessage}</div>
-      )}
+        {entry.status === "failed" && entry.errorMessage && (
+          <div className="bulk-card__error">{entry.errorMessage}</div>
+        )}
 
-      <div className="bulk-card__actions">
-        {(entry.status === "generating" || entry.status === "sending") && (
-          <span className="bulk-card__spinner" />
+        {rowFiles.length > 0 && (
+          <div className="bulk-card__attachment-info">
+            {rowFiles.length} row attachment{rowFiles.length !== 1 ? "s" : ""}
+          </div>
         )}
-        <button
-          className="bulk-card__btn bulk-card__btn--edit"
-          onClick={() => setIsEditing(true)}
-          disabled={isDisabled || entry.status === "sending"}
-          aria-label="Edit entry"
-        >
-          Edit
-        </button>
-        {entry.status === "generated" && (
-          <>
-            <button
-              className="bulk-card__btn bulk-card__btn--preview"
-              onClick={() => onPreview?.(entry)}
-              aria-label="Preview email"
-            >
-              Preview
-            </button>
-            <button
-              className="bulk-card__btn bulk-card__btn--regen"
-              onClick={handleRegenerate}
-              disabled={isDisabled}
-              aria-label="Regenerate email"
-            >
-              Regenerate
-            </button>
-          </>
-        )}
-        <button
-          className="bulk-card__btn bulk-card__btn--delete"
-          onClick={handleDelete}
-          disabled={isDeleting}
-          aria-label="Delete entry"
-        >
-          Delete
-        </button>
+
+        <div className="bulk-card__actions">
+          {(entry.status === "generating" || entry.status === "sending") && (
+            <span className="bulk-card__spinner" />
+          )}
+          <button
+            className="bulk-card__btn bulk-card__btn--edit"
+            onClick={() => setIsEditing(true)}
+            disabled={isDisabled || entry.status === "sending"}
+            aria-label="Edit entry"
+          >
+            Edit
+          </button>
+          {entry.status === "generated" && (
+            <>
+              <button
+                className="bulk-card__btn bulk-card__btn--preview"
+                onClick={() => onPreview?.(entry)}
+                aria-label="Preview email"
+              >
+                Preview
+              </button>
+              <button
+                className="bulk-card__btn bulk-card__btn--regen"
+                onClick={handleRegenerate}
+                disabled={isDisabled}
+                aria-label="Regenerate email"
+              >
+                Regenerate
+              </button>
+            </>
+          )}
+          <button
+            className="bulk-card__btn bulk-card__btn--delete"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            aria-label="Delete entry"
+          >
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

@@ -13,6 +13,8 @@ import {
   deleteEntry,
   generateEntry,
   sendEntry,
+  sendEntryWithAttachments,
+  uploadAttachments,
   batchUpdateCategory,
 } from "../api/bulk";
 import type { CreateEntryPayload } from "../types";
@@ -103,5 +105,29 @@ export function useSendEntry() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BULK_KEY });
     },
+  });
+}
+
+export function useSendEntryWithAttachments() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      entryId,
+      sharedAttachmentIds,
+      rowAttachmentIds,
+    }: {
+      entryId: string;
+      sharedAttachmentIds: string[];
+      rowAttachmentIds: string[];
+    }) => sendEntryWithAttachments(entryId, sharedAttachmentIds, rowAttachmentIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: BULK_KEY });
+    },
+  });
+}
+
+export function useUploadAttachments() {
+  return useMutation({
+    mutationFn: (files: File[]) => uploadAttachments(files),
   });
 }

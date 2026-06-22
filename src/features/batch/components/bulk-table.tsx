@@ -11,9 +11,19 @@ interface BulkTableProps {
   entries: BulkEntryData[];
   modelId: string;
   onAddRow: () => void;
+  sharedFiles?: File[];
+  rowFilesMap?: Record<string, File[]>;
+  onRowFilesChange?: (entryId: string, files: File[]) => void;
 }
 
-export function BulkTable({ entries, modelId, onAddRow }: BulkTableProps) {
+export function BulkTable({
+  entries,
+  modelId,
+  onAddRow,
+  sharedFiles = [],
+  rowFilesMap = {},
+  onRowFilesChange,
+}: BulkTableProps) {
   const [previewEntry, setPreviewEntry] = useState<BulkEntryData | null>(null);
 
   return (
@@ -32,7 +42,18 @@ export function BulkTable({ entries, modelId, onAddRow }: BulkTableProps) {
       ) : (
         <div className="bulk-list">
           {entries.map((entry) => (
-            <BulkRow key={entry.id} entry={entry} modelId={modelId} onPreview={setPreviewEntry} />
+            <BulkRow
+              key={entry.id}
+              entry={entry}
+              modelId={modelId}
+              onPreview={setPreviewEntry}
+              rowFiles={rowFilesMap[entry.id] ?? []}
+              onRowFilesChange={
+                onRowFilesChange
+                  ? (files) => onRowFilesChange(entry.id, files)
+                  : undefined
+              }
+            />
           ))}
         </div>
       )}
@@ -43,7 +64,7 @@ export function BulkTable({ entries, modelId, onAddRow }: BulkTableProps) {
         </button>
       )}
 
-      <BulkSendBar entries={entries} onComplete={() => {}} />
+      <BulkSendBar entries={entries} onComplete={() => {}} sharedFiles={sharedFiles} />
 
       {previewEntry && (
         <BulkPreviewDialog

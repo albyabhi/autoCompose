@@ -33,3 +33,16 @@ export interface CreateEntryPayload {
     recipient: string;
   }>;
 }
+
+export interface EntryAttachmentInfo {
+  filename: string;
+  size: number;
+}
+
+export interface SendEntryInput {
+  entryId: string;
+  sharedFiles?: File[];
+  rowFiles?: File[];
+  sharedAttachmentIds?: string[];
+  rowAttachmentIds?: string[];
+}

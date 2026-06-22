@@ -8,6 +8,7 @@ import { getProfile } from "@/modules/profile/service";
 import { buildProfileContext } from "@/modules/profile/context-builder";
 import { dispatchSendEmail } from "@/modules/email/dispatch";
 import { parseEmailContent } from "@/modules/email/content";
+import type { NodemailerAttachment } from "@/modules/email/sender";
 import type { BulkEntryData } from "./types";
 import type { CreateEntryInput, UpdateEntryInput } from "./validation";
 import type { ModelId } from "@/modules/ai/types";
@@ -241,7 +242,8 @@ export async function generateEntry(
 export async function sendEntry(
   entryId: string,
   userId: string,
-  userName?: string | null
+  userName?: string | null,
+  attachments?: NodemailerAttachment[]
 ): Promise<{ ok: boolean; messageId?: string; error?: string }> {
   await connectDB();
 
@@ -265,6 +267,7 @@ export async function sendEntry(
     to: entry.recipient,
     subject,
     body,
+    attachments,
     rateLimitKey: `batch-send:${userId}`,
     rateLimit: { maxRequests: 5, windowMs: 60_000 },
   });

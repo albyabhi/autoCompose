@@ -2,6 +2,12 @@ import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
 import { logger } from "@/lib/logger";
 
+export interface NodemailerAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 export interface SendEmailOptions {
   to: string;
   subject: string;
@@ -9,6 +15,7 @@ export interface SendEmailOptions {
   gmailAddress: string;
   appPassword: string;
   senderName?: string;
+  attachments?: NodemailerAttachment[];
 }
 
 function buildTransporter(gmailAddress: string, appPassword: string): Transporter {
@@ -30,12 +37,22 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ messageId:
     const from = options.senderName
       ? `"${options.senderName}" <${options.gmailAddress}>`
       : options.gmailAddress;
-    const result = await transporter.sendMail({
+    const mailOptions: {
+      from: string;
+      to: string;
+      subject: string;
+      text: string;
+      attachments?: typeof options.attachments;
+    } = {
       from,
       to: options.to,
       subject: options.subject,
       text: options.body,
-    });
+    };
+    if (options.attachments && options.attachments.length > 0) {
+      mailOptions.attachments = options.attachments;
+    }
+    const result = await transporter.sendMail(mailOptions);
     return { messageId: result.messageId };
   } catch (error) {
     const reason = error instanceof Error ? error.name : "unknown";
