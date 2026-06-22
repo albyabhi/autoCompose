@@ -259,7 +259,13 @@ function SectionForm({
   );
 }
 
-export function ProfileForm() {
+type SectionKey = "personal" | "professional" | "preferences" | "jobApplication";
+
+interface ProfileFormProps {
+  sections?: SectionKey[];
+}
+
+export function ProfileForm({ sections }: ProfileFormProps) {
   const { data, isLoading, isError } = useProfile();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category") ?? "";
@@ -284,9 +290,12 @@ export function ProfileForm() {
   }
 
   const profile = data?.profile;
+  const filteredSections = sections
+    ? SECTIONS.filter((s) => sections.includes(s.key))
+    : SECTIONS;
   return (
     <div className="settings-sections">
-      {SECTIONS.map((section) => {
+      {filteredSections.map((section) => {
         const sectionData = profile
           ? (profile as unknown as Record<string, Record<string, string>>)[section.key] ?? {}
           : {};
@@ -296,15 +305,15 @@ export function ProfileForm() {
         }
         return (
           <SectionForm
-            key={`${section.key}-${JSON.stringify(initial)}`}
+            key={section.key}
             section={section}
             initialData={initial}
             relevant={relevantSections.has(section.key)}
           />
         );
       })}
-      <AiSettingsSection />
-      <EmailCredentialsSection />
+      {!sections && <AiSettingsSection />}
+      {!sections && <EmailCredentialsSection />}
     </div>
   );
 }

@@ -4,6 +4,7 @@ export { Select } from "./select";
 export { Card, CardHeader, CardBody, CardFooter } from "./card";
 export { Skeleton, SkeletonCard, SkeletonList } from "./skeleton";
 export { EmptyState } from "./empty-state";
+export { Tabs, TabsList, TabTrigger, TabContent } from "./tabs";
 
 // ============================================================
 // FILE: src/components/ui/index.ts
