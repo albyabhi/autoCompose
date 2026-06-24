@@ -64,6 +64,8 @@ export function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, null);
   const [showLoading, setShowLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     if (state?.success) {
@@ -103,6 +105,8 @@ export function LoginForm() {
             placeholder="you@example.com"
             className="auth-form__input"
             disabled={pending}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {state?.errors?.email && (
             <p className="auth-form__field-error">{state.errors.email[0]}</p>
@@ -123,6 +127,8 @@ export function LoginForm() {
               placeholder="Enter your password"
               className="auth-form__input"
               disabled={pending}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"

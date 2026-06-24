@@ -47,7 +47,7 @@ export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles =
   return (
     <div className="dialog-backdrop" onClick={onClose} role="presentation">
       <div
-        className="dialog"
+        className="dialog dialog--email"
         role="dialog"
         aria-modal="true"
         aria-labelledby="preview-dialog-title"

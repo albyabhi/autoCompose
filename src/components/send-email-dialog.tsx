@@ -111,7 +111,7 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
   return (
     <div className="dialog-backdrop" onClick={onClose} role="presentation">
       <div
-        className="dialog"
+        className="dialog dialog--email"
         role="dialog"
         aria-modal="true"
         aria-labelledby="send-email-dialog-title"

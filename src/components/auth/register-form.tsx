@@ -12,6 +12,10 @@ export function RegisterForm() {
   const [state, action, pending] = useActionState(register, undefined);
   const [showLoading, setShowLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (state?.success) {
@@ -49,6 +53,8 @@ export function RegisterForm() {
             placeholder="Your full name"
             className="auth-form__input"
             disabled={pending}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           {state?.errors?.name && (
             <p className="auth-form__field-error">{state.errors.name[0]}</p>
@@ -68,6 +74,8 @@ export function RegisterForm() {
             placeholder="you@example.com"
             className="auth-form__input"
             disabled={pending}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {state?.errors?.email && (
             <p className="auth-form__field-error">{state.errors.email[0]}</p>
@@ -88,6 +96,8 @@ export function RegisterForm() {
               placeholder="Create a strong password"
               className="auth-form__input"
               disabled={pending}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"
@@ -121,6 +131,8 @@ export function RegisterForm() {
             placeholder="Re-enter your password"
             className="auth-form__input"
             disabled={pending}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
           {state?.errors?.confirmPassword && (
             <p className="auth-form__field-error">
