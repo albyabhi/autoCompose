@@ -257,8 +257,8 @@ export async function sendEntry(
     { $set: { status: "sending" } }
   );
 
-  const body = entry.generatedContent ?? "";
-  const parsed = parseEmailContent(body);
+  const parsed = parseEmailContent(entry.generatedContent ?? "");
+  const body = parsed.body;
   const subject = entry.subject || parsed.subject;
 
   const result = await dispatchSendEmail({

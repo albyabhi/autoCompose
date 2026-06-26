@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
-import { extractEmailFromText } from "@/modules/email/content";
+import { extractEmailFromText, parseEmailContent } from "@/modules/email/content";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { useGenerateEntry, useDeleteEntry, useUpdateEntry } from "../hooks/use-bulk";
 import type { BulkEntryData } from "../types";
@@ -186,7 +186,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
                 {entry.subject && (
                   <div className="bulk-card__preview-subject">{entry.subject}</div>
                 )}
-                <div className="bulk-card__preview-body">{entry.generatedContent}</div>
+                <div className="bulk-card__preview-body">{parseEmailContent(entry.generatedContent).body}</div>
               </div>
             )}
           </>

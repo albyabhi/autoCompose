@@ -19,7 +19,7 @@ export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles =
   const uploadMutation = useUploadAttachments();
   const parsed = parseEmailContent(entry.generatedContent ?? "");
   const [subject, setSubject] = useState(entry.subject || parsed.subject);
-  const [body, setBody] = useState(entry.generatedContent ?? "");
+  const [body, setBody] = useState(parsed.body);
   const [showSent, setShowSent] = useState(false);
 
   const hasRowFiles = rowFiles.length > 0;
