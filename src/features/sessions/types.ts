@@ -18,6 +18,7 @@ export interface MessageData {
   role: "user" | "assistant";
   content: string;
   modelUsed?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
 }
 

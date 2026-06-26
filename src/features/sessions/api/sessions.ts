@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client";
-import type { SessionData, SessionWithMessages, PaginatedResult } from "../types";
+import type { SessionData, SessionWithMessages, PaginatedResult, MessageData } from "../types";
 import type { CreateSessionInput, UpdateSessionInput } from "@/modules/session/validation";
 
 export async function fetchSessions(params?: {
@@ -47,7 +47,7 @@ export async function fetchSessionMessages(
   page = 1,
   pageSize = 50,
   sort?: "asc" | "desc"
-): Promise<{ items: { id: string; sessionId: string; role: string; content: string; modelUsed?: string; createdAt: string }[]; total: number }> {
+): Promise<{ items: MessageData[]; total: number }> {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (sort) params.set("sort", sort);
   return api.get(`/api/sessions/${id}/messages?${params.toString()}`);
