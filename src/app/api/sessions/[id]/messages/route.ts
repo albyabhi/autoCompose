@@ -13,8 +13,9 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "50", 10)));
+    const sort = searchParams.get("sort") === "desc" ? "desc" : "asc";
 
-    const result = await getMessages(id, user.userId, page, pageSize);
+    const result = await getMessages(id, user.userId, page, pageSize, sort);
     return success(result);
   } catch (error) {
     return failure(error);

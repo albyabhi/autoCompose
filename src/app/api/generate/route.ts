@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       modelId: input.modelId,
       temperature: input.temperature,
       maxTokens: input.maxTokens,
+      tone: input.tone,
       userId: user.userId,
       sessionId: input.sessionId,
       ip,

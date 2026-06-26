@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession as useAppSession } from "@/features/sessions/hooks/use-sessions";
 import { useQueryClient } from "@tanstack/react-query";
 import { ModelSelector } from "./model-selector";
 import { ResponseDisplay } from "./response-display";
-import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, type ModelId, type FormalityLevel } from "@/modules/ai/types";
 import Link from "next/link";
 import { CATEGORY_OPTIONS, CATEGORY_POLICIES, type EmailCategory } from "@/modules/email/categories";
 import { extractEmailFromText } from "@/modules/email/content";
 import { useProfile } from "@/features/profile/hooks/use-profile";
+import { useLayoutStore } from "@/features/layout/stores/layout-store";
 
 export function GenerateForm() {
   const router = useRouter();
@@ -22,9 +23,15 @@ export function GenerateForm() {
   const { data: sessionData } = useAppSession(initialSessionId || "");
   const { data: profileData } = useProfile();
   
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const setDraft = useLayoutStore((s) => s.setDraft);
+  const clearDraft = useLayoutStore((s) => s.clearDraft);
+
+  const [restored, setRestored] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [promptEdited, setPromptEdited] = useState(false);
   const [category, setCategory] = useState<EmailCategory>("custom");
+  const [tone, setTone] = useState<FormalityLevel | null>(null);
   const [modelId, setModelId] = useState<ModelId>("deepseek");
   const [userTouchedModel, setUserTouchedModel] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
@@ -33,7 +40,26 @@ export function GenerateForm() {
   const [error, setError] = useState<string | null>(null);
   const [extractedRecipient, setExtractedRecipient] = useState<string | null>(null);
 
+  useEffect(() => {
+    textareaRef.current?.focus();
+    const saved = useLayoutStore.getState().draft;
+    if (!initialSessionId && !clonePrompt && saved) {
+      setPrompt(saved.prompt);
+      setCategory(saved.category as EmailCategory);
+      setPromptEdited(true);
+      setRestored(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!initialSessionId && !clonePrompt && (promptEdited || prompt)) {
+      setDraft({ prompt, category });
+    }
+  }, [prompt, category, promptEdited, initialSessionId, clonePrompt, setDraft]);
+
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;
+  const profileFormality = profileData?.profile?.preferences?.formalityLevel;
+  const effectiveTone = tone ?? profileFormality;
   const effectiveModelId =
     !userTouchedModel &&
     typeof storedPreferred === "string" &&
@@ -64,7 +90,7 @@ export function GenerateForm() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId: effectiveModelId, sessionId: initialSessionId || undefined }),
+        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId: effectiveModelId, tone: tone ?? undefined, sessionId: initialSessionId || undefined }),
       });
 
       const data = await res.json();
@@ -79,6 +105,7 @@ export function GenerateForm() {
       setResponse(data.data.content);
       setModelUsed(data.data.modelUsed);
       setExtractedRecipient(extractEmailFromText(effectivePrompt));
+      clearDraft();
       
       // Invalidate sessions cache to update sidebar
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
@@ -90,12 +117,18 @@ export function GenerateForm() {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
+      textareaRef.current?.focus();
     }
   }
 
   return (
     <div className="generate-page">
-      
+      {restored && (
+        <div className="profile-readiness-warning">
+          <div>Draft restored from your previous session</div>
+          <button type="button" className="draft-restore-dismiss" onClick={() => { clearDraft(); setRestored(false); setPrompt(""); setPromptEdited(true); }}>Discard</button>
+        </div>
+      )}
 
       <form className="generate-form" onSubmit={handleSubmit}>
         <div className="form-controls">
@@ -121,11 +154,30 @@ export function GenerateForm() {
           <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
         </div>
 
+        <div className="form-controls">
+          <div className="field-group">
+            <label className="field-label">Tone</label>
+            <div className="tone-toggle">
+              {(["formal", "semi-formal", "casual"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={`tone-btn ${effectiveTone === t ? "tone-btn--active" : ""}`}
+                  onClick={() => setTone(tone === t ? null : t)}
+                >
+                  {t === "semi-formal" ? "Neutral" : t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="field-group">
           <label htmlFor="prompt-input" className="field-label">
             What kind of email do you need?
           </label>
           <textarea
+            ref={textareaRef}
             id="prompt-input"
             className="field-textarea"
             placeholder="e.g., Write a professional leave request email to my manager for 3 days off next week..."
@@ -137,7 +189,11 @@ export function GenerateForm() {
             rows={5}
             required
           />
-          <span className="field-hint">{effectivePrompt.length}/5000 characters</span>
+          <span className="field-hint" style={(() => {
+            const pct = effectivePrompt.length / 5000;
+            const color = pct > 0.95 ? "var(--text-danger)" : pct > 0.8 ? "var(--text-warning)" : "var(--text-muted)";
+            return { color };
+          })()}>{effectivePrompt.length} / 5000</span>
         </div>
 
         <div className="category-guidance">

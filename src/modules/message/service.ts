@@ -65,7 +65,8 @@ export async function getMessages(
   sessionId: string,
   userId: string,
   page = 1,
-  pageSize = 50
+  pageSize = 50,
+  sort: "asc" | "desc" = "asc"
 ): Promise<{ items: MessageData[]; total: number }> {
   await connectDB();
 
@@ -83,7 +84,7 @@ export async function getMessages(
 
   const [messages, total] = await Promise.all([
     Message.find({ sessionId: session._id })
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: sort === "desc" ? -1 : 1 })
       .skip(skip)
       .limit(pageSize)
       .lean(),

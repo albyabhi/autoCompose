@@ -1,5 +1,5 @@
 import { getAIProvider } from "@/modules/ai/factory";
-import { ModelId } from "@/modules/ai/types";
+import { ModelId, FormalityLevel } from "@/modules/ai/types";
 import { EmailTemplate, IEmailTemplate } from "@/models/email-template";
 import { Message } from "@/models/message";
 import { AuditLog } from "@/models/audit-log";
@@ -23,6 +23,7 @@ export interface GenerateEmailParams {
   sessionId?: string;
   ip?: string;
   userAgent?: string;
+  tone?: FormalityLevel;
 }
 
 export interface GenerateEmailResult {
@@ -64,7 +65,7 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     }
 
     const profile = await getProfile(params.userId);
-    profileContext = buildProfileContext(profile, category, params.prompt);
+    profileContext = buildProfileContext(profile, category, params.prompt, undefined, params.tone);
 
     if (!sessionIdToUse) {
       const count = await Session.countDocuments({ userId: params.userId, category, isDeleted: false });

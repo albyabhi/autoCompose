@@ -1,23 +1,34 @@
 import { create } from "zustand";
 
+interface DraftData {
+  prompt: string;
+  category: string;
+}
+
 interface LayoutState {
   sidebarOpen: boolean;
   mobileSidebarOpen: boolean;
   activeView: "compose" | "sessions" | "settings" | "dashboard";
+  draft: DraftData | null;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setMobileSidebarOpen: (open: boolean) => void;
   setActiveView: (view: LayoutState["activeView"]) => void;
+  setDraft: (draft: DraftData | null) => void;
+  clearDraft: () => void;
 }
 
 export const useLayoutStore = create<LayoutState>((set) => ({
   sidebarOpen: true,
   mobileSidebarOpen: false,
   activeView: "dashboard",
+  draft: null,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
   setActiveView: (view) => set({ activeView: view }),
+  setDraft: (draft) => set({ draft }),
+  clearDraft: () => set({ draft: null }),
 }));
 
 // ============================================================

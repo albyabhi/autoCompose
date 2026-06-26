@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { ModelSelector } from "@/components/model-selector";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
-import type { ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useBulkEntries, useCreateBatchSession, useCreateEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
 import { BulkTable } from "./bulk-table";
 
@@ -18,6 +19,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
 
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId ?? undefined);
   const [modelId, setModelId] = useState<ModelId>("deepseek");
+  const [userTouchedModel, setUserTouchedModel] = useState(false);
 
   const [addCount, setAddCount] = useState(5);
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
@@ -30,8 +32,17 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   const batchUpdateMutation = useBatchUpdateCategory();
 
   const { data: entries = [], isLoading } = useBulkEntries(sessionId);
+  const { data: profileData } = useProfile();
+  const storedPreferred = profileData?.profile?.preferences?.preferredModel;
+  const effectiveModelId =
+    !userTouchedModel &&
+    typeof storedPreferred === "string" &&
+    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+      ? (storedPreferred as ModelId)
+      : modelId;
 
   const handleModelChange = (next: ModelId) => {
+    setUserTouchedModel(true);
     setModelId(next);
   };
 
@@ -108,7 +119,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
       <div className="batch-compose__header">
         <h2 className="batch-compose__title">Batch Email Generator</h2>
         <div className="batch-compose__controls">
-          <ModelSelector value={modelId} onChange={handleModelChange} />
+          <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
         </div>
         <p className="batch-compose__hint">
           Add rows below, then click Generate on each row. Preview, regenerate, or send individually. Use &ldquo;Send All&rdquo; to send in sequence.
@@ -182,7 +193,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
       ) : (
         <BulkTable
           entries={entries}
-          modelId={modelId}
+          modelId={effectiveModelId}
           onAddRow={handleAddRow}
           sharedFiles={sharedFiles}
           rowFilesMap={rowFilesMap}

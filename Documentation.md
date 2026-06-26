@@ -2,6 +2,10 @@
 
 AI-powered professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
 
+**Document Version:** 1.1  
+**Last Updated:** 2026-06-26 15:40 IST  
+**Last Commit:** [`0df1fe7`](https://github.com/anomalyco/autocompose/commit/0df1fe7) — `subject fix on batch`
+
 ---
 
 ## Architecture Overview
@@ -954,6 +958,70 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-06-26 — Subject fix on batch (commit `0df1fe7`)
+
+- **Fixed subject duplication in batch email body** — `BulkPreviewDialog` body textarea now initializes from `parseEmailContent().body` (stripped) instead of raw `generatedContent`. `generateEntry()` in `bulk/service.ts` now passes `parsed.body` to `dispatchSendEmail()` so the SMTP body no longer contains the subject line as its first line. `BulkRow` inline preview also uses the parsed body.
+- Files changed: `src/modules/bulk/service.ts`, `src/features/batch/components/bulk-preview-dialog.tsx`, `src/features/batch/components/bulk-row.tsx`
+
+### 2026-06-24 — Width fix (commit `b9b7be2`)
+
+- **Responsive width fixes** — Auth forms (login/register), send-email dialog, and bulk preview dialog width adjustments for better mobile and tablet display.
+- **New CSS** added for responsive breakpoints across auth and dialog surfaces.
+- Files changed: `src/app/globals.css`, `src/components/auth/login-form.tsx`, `src/components/auth/register-form.tsx`, `src/components/send-email-dialog.tsx`, `src/features/batch/components/bulk-preview-dialog.tsx`
+
+### 2026-06-22 — Settings UI change (commit `3d52846`)
+
+- **Settings page UI redesign** — Restructured layout with better spacing, new `Tabs` UI component added to `src/components/ui/tabs.tsx`, profile form updates.
+- **New CSS** — 150+ lines of settings page and form styling.
+- Files changed: `src/app/(app)/settings/page.tsx`, `src/app/globals.css`, `src/components/ui/index.ts`, `src/components/ui/tabs.tsx`, `src/features/profile/components/profile-form.tsx`
+
+### 2026-06-22 — Optimality improvements (commit `29b03a4`)
+
+- **Batch compose view optimization** — Refactored `BatchComposeView` for cleaner state management and reduced re-renders.
+- **Auto-polling optimization** — `useBulkEntries` hook improved with smarter polling intervals and invalidation logic.
+- Files changed: `src/features/batch/components/batch-compose-view.tsx`, `src/features/batch/hooks/use-bulk.ts`
+
+### 2026-06-22 — Sending with attachments (commit `e375ad6`)
+
+- **New attachment system** — Complete end-to-end file attachment support for email sending:
+  - **New `POST /api/attachments/upload` route** — accepts multipart uploads, validates files (10 MB per file / 24 MB total / 20 file max, allowed MIME types: PDF, JPEG, PNG, GIF, WebP, DOCX, TXT, CSV), stores as Buffer, returns attachment IDs.
+  - **New `AttachmentUpload` UI component** (`src/components/ui/attachment-upload.tsx`) — drag-and-drop or file picker with validation feedback, per-row and shared attachment support.
+  - **New `AttachmentFile` / `NodemailerAttachment` types** — `src/utils/attachments.ts` with file validation (size, type, total), buffer conversion, form-data parsing, and file size formatting helpers.
+  - **New `src/modules/attachments/service.ts`** — MongoDB-backed attachment storage with CRUD operations.
+  - **API integration** — `sendEntry` in `bulk/service.ts` now accepts `NodemailerAttachment[]`. `dispatchSendEmail()` and `sendEmail()` in `src/modules/email/` forward attachments to Nodemailer transporter.
+  - **Frontend** — `BulkRow` gets per-row `AttachmentUpload`. `BulkPreviewDialog` shows attachment count and passes them through on send. `BulkTable` / `BulkSendBar` support shared attachments via props. `sendEntryWithAttachments` and `uploadAttachments` API wrappers in `bulk.ts`.
+  - **Send-email dialog** updated to support attachments.
+  - **UI states** — Upload progress indicator, success/error feedback, attachment count display in preview dialog.
+  - Files changed: 20 files across API routes, components, hooks, services, and utilities.
+
+### 2026-06-22 — Session page prompt hide/expand (commit `8f6a979`)
+
+- **Collapsible long prompts in session view** — `MessageBubble` now collapses user prompts longer than 12 lines with a "Show full prompt" toggle. Truncated view shows first 10 lines + ellipsis.
+- **Active session visual indicator** — `.session-card--active` CSS class adds yellow background and border highlight for the currently selected session.
+- Files changed: `src/app/globals.css`, `src/features/sessions/components/message-bubble.tsx`
+
+### 2026-06-21 — Clear sessions feature (commits `91a885e`, `4b3b7e1`)
+
+- **New "Clear All Sessions" feature** in Settings (`src/components/settings/clear-sessions-card.tsx`) — soft-deletes all active sessions with confirmation dialog. Shows session count, progress, and success/error feedback.
+- **New `POST /api/sessions/clear` route** — `clearAllSessions()` in `src/modules/session/service.ts` does a bulk `updateMany` with `isDeleted: true` and `deletedAt` timestamp. Audited as `session.bulk_deleted`.
+- **New `useClearAllSessions` hook** in `src/features/sessions/hooks/use-sessions.ts` — invalidates sessions cache on success.
+- **CSS refinements** — Settings page gap increased to 32px, responsive breakpoints for mobile, title size adjustment.
+- Files changed: 7 files across API route, component, hooks, service, model, and CSS.
+
+### 2026-06-21 — Email extraction (commit `64bc03f`)
+
+- **Auto email extraction from prompts** — New `extractEmailFromText()` utility in `src/modules/email/content.ts` uses regex to find the first email address in any text. Integrated into:
+  - **Single compose** (`GenerateForm`) — extracts recipient from prompt, passes to `ResponseDisplay` as editable field.
+  - **Batch compose** (`BulkRow`) — auto-fills recipient when typing a prompt containing an email address (only if recipient is empty).
+  - **Session view** (`SessionView`) — extracts recipient from the preceding user message and passes it to `MessageBubble`.
+  - **Message bubble** (`MessageBubble`) — shows editable recipient field with "To:" label for assistant messages.
+  - **Telegram flow** (`compose.ts`, `send.ts`) — extracts recipient from the prompt, stores as `extractedRecipient` in Telegram state, and auto-fills the recipient field during the send flow with a "(auto-detected from prompt)" note.
+  - **Send dialog** (`SendEmailDialog`) — accepts optional `defaultRecipient` prop, pre-fills the "To" field.
+- **Database** — `TelegramState` model gets new `extractedRecipient` field.
+- **CSS** — New `.response-recipient`, `.message-recipient` styling with labels, inputs, borders.
+- **BulkRow refactor** — Split into Edit Mode and Display Mode with dedicated UIs. Display mode shows recipient, subject, and collapsible prompt. Edit mode gets inline generated preview toggle with subject/body display. New `.bulk-card--edit`, `.bulk-card__display-*`, `.bulk-card__preview-*` CSS classes.
+- Files changed: 12 files across components, hooks, services, models, and CSS.
 
 ### 2026-06-17 — Batch email generation (compose + send) feature
 

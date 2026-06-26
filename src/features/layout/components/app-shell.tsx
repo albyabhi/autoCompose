@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 import { useLayoutStore } from "@/features/layout/stores/layout-store";
@@ -10,7 +12,19 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, title }: AppShellProps) {
+  const router = useRouter();
   const sidebarOpen = useLayoutStore((s) => s.sidebarOpen);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        router.push("/");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [router]);
 
   return (
     <div className="app-shell">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "../hooks/use-sessions";
+import { useSession, useSessionMessages } from "../hooks/use-sessions";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,17 @@ interface SessionViewProps {
 }
 
 export function SessionView({ id }: SessionViewProps) {
-  const { data: session, isLoading, isError } = useSession(id);
+  const { data: session, isLoading: sessionLoading, isError } = useSession(id);
+  const {
+    data: messages = [],
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: messagesLoading,
+  } = useSessionMessages(id);
   const router = useRouter();
 
-  if (isLoading) {
+  if (sessionLoading) {
     return (
       <div className="session-detail">
         <SkeletonList count={3} />
@@ -50,8 +57,6 @@ export function SessionView({ id }: SessionViewProps) {
     );
   }
 
-  const messages = session.messages ?? [];
-
   return (
     <div className="session-detail">
       <div className="session-detail__header">
@@ -76,7 +81,19 @@ export function SessionView({ id }: SessionViewProps) {
       </div>
 
       <div className="session-detail__messages">
-        {messages.length === 0 ? (
+        {hasNextPage && (
+          <div className="session-detail__load-earlier">
+            <Button
+              variant="secondary"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "Loading..." : "Load earlier messages"}
+            </Button>
+          </div>
+        )}
+
+        {messages.length === 0 && !messagesLoading ? (
           <EmptyState
             icon="✉"
             title="No messages yet"

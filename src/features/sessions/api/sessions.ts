@@ -45,9 +45,12 @@ export async function toggleArchive(id: string, archived: boolean): Promise<Sess
 export async function fetchSessionMessages(
   id: string,
   page = 1,
-  pageSize = 50
+  pageSize = 50,
+  sort?: "asc" | "desc"
 ): Promise<{ items: { id: string; sessionId: string; role: string; content: string; modelUsed?: string; createdAt: string }[]; total: number }> {
-  return api.get(`/api/sessions/${id}/messages?page=${page}&pageSize=${pageSize}`);
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (sort) params.set("sort", sort);
+  return api.get(`/api/sessions/${id}/messages?${params.toString()}`);
 }
 
 // ============================================================

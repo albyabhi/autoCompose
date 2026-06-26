@@ -118,7 +118,8 @@ export function buildProfileContext(
   profile: ProfileSource | null,
   category: EmailCategory,
   prompt: string,
-  budget = PROFILE_CONTEXT_BUDGET
+  budget = PROFILE_CONTEXT_BUDGET,
+  tone?: FormalityLevel
 ): ProfileContext | null {
   if (!profile) return null;
 
@@ -167,9 +168,11 @@ export function buildProfileContext(
     addSection(lines, "RELEVANT PROJECTS", projects, budget);
   }
 
+  const effectiveFormality = tone ?? profile.preferences?.formalityLevel ?? "semi-formal";
+
   if (selectedSections.includes("preferences")) {
     addSection(lines, "WRITING PREFERENCES", [
-      `Formality: ${profile.preferences?.formalityLevel ?? "semi-formal"}`,
+      `Formality: ${effectiveFormality}`,
       `Tone: ${profile.preferences?.preferredTone ?? "professional"}`,
       `Language: ${profile.preferences?.preferredLanguage || "English"}`,
     ], budget);
@@ -185,7 +188,7 @@ export function buildProfileContext(
     selectedSections: selectedSections.filter((section) => !readiness.missingSections.includes(section)),
     characterCount: lines.join("\n").length,
     signature,
-    formality: profile.preferences?.formalityLevel ?? "semi-formal",
+    formality: effectiveFormality,
     tone: profile.preferences?.preferredTone ?? "professional",
     language: profile.preferences?.preferredLanguage || undefined,
   };

@@ -12,6 +12,7 @@ export const generateEmailSchema = z.object({
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(64).max(4096).default(1024),
   sessionId: z.string().optional(),
+  tone: z.enum(["formal", "semi-formal", "casual"]).optional(),
 });
 
 export const sendEmailSchema = z.object({
