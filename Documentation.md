@@ -4,7 +4,7 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 
 **Document Version:** 1.1  
 **Last Updated:** 2026-06-26 15:40 IST  
-**Last Commit:** [`0df1fe7`](https://github.com/anomalyco/autocompose/commit/0df1fe7) — `subject fix on batch`
+**Last Commit:** [`7d7f72b`](https://github.com/anomalyco/autocompose/commit/7d7f72b) — `ue features 1`
 
 ---
 
@@ -288,6 +288,7 @@ Generate an email with optional session persistence.
   "prompt": "Write a leave request email for 3 days off",
   "category": "leave_request",
   "modelId": "deepseek",
+  "tone": "formal" (optional — "formal" | "semi-formal" | "casual"),
   "sessionId": "665a1b2c..." (optional)
 }
 ```
@@ -532,7 +533,7 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 
 - **Auth**: NextAuth v5 with JWT — `useSession()` for client, `auth()` for server
 - **CurrentUser**: `useCurrentUser()` hook — enriches session with profile status via `/api/auth/me`
-- **Layout**: Zustand store — sidebar open/close, mobile state, active view
+- **Layout**: Zustand store — sidebar open/close, mobile state, active view, compose draft auto-save (prompt + category persisted across navigation, restored on revisit, cleared on successful generation)
 - **Server data**: TanStack Query — caching, revalidation, optimistic updates, infinite scroll
 
 ### AppShell Layout
@@ -561,10 +562,21 @@ Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCo
 - **Responsive**: Sidebar collapses to flyout on mobile (< 768px)
 - **Persistent**: Sidebar state preserved across navigation
 - **Infinite scroll**: Session list loads more on scroll via `useInfiniteQuery`
+- **Keyboard shortcut**: `Cmd/Ctrl+K` navigates to the compose page (`/`) from anywhere in the app
+
+### Single Compose (GenerateForm)
+
+The compose page (`/`) shows a **Single / Batch** toggle. In single mode, `GenerateForm` provides:
+
+- **Prompt textarea** — auto-focused on mount, character counter with color-coded warning (>80% yellow, >95% red)
+- **Tone toggle** — Formal / Neutral (semi-formal) / Casual selector. Defaults to the user's profile formality preference; clicking a tone overrides it per-generation. Passed as `tone` in the API request and applied in `buildProfileContext()` to override `formalityLevel`.
+- **Draft auto-save** — Unsubmitted prompts are persisted to the Zustand `layoutStore.draft` on every change. On revisit (without `sessionId` or cloned prompt), the draft is restored with a "Draft restored" banner and a Discard button. The draft is cleared on successful generation.
+- **Category selector** — With policy guidance and per-category prompt suggestions.
+- **Model selector** — Defaults to profile's `preferredModel`, allows per-generation override.
 
 ### Batch Email Generation
 
-The compose page (`/`) now shows a **Single / Batch** toggle. In batch mode, the `BatchComposeView` renders a toolbar and an entries table (`BulkTable`). Each entry row (`BulkRow`) has:
+In batch mode, the `BatchComposeView` renders a toolbar and an entries table (`BulkTable`). Each entry row (`BulkRow`) has:
 
 - **Category/Email Type** selector
 - **Prompt** textarea
@@ -588,13 +600,13 @@ Batch sessions use `Session.type = "batch"` and get a `Batch` badge in the sessi
 ### Session Management
 
 | Feature | Implementation |
-|---|---|
+|---|---|---|
 | Create | `NewSessionDialog` → `useCreateSession` mutation |
 | List | `useInfiniteSessions` with infinite scroll |
-| Rename | Inline input on `SessionCard` → `useUpdateSession` |
+| Rename | Inline input on `SessionCard` → `useUpdateSession` (optimistic update with rollback on error) |
 | Archive | `useToggleArchive` mutation |
 | Delete | `useDeleteSession` mutation (soft delete) |
-| Messages | `SessionView` loads via `useSession(id)` |
+| Messages | `useSessionMessages(id)` — paginated with `useInfiniteQuery`, 20 per page sorted desc, "Load earlier messages" button, messages reversed for display |
 | Batch View | `BatchSessionView` for sessions with `type === "batch"` |
 | AI Context | `getMessageHistory()` builds conversation for AI |
 
@@ -958,6 +970,17 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-06-26 — UE features 1 (commit `7d7f72b`)
+
+- **Tone toggle** — New Formal/Neutral/Casual tone selector in `GenerateForm`. Overrides the profile's `formalityLevel` per-generation. Passed as `tone` in the API request and applied in `buildProfileContext()`. New `.tone-toggle` and `.tone-btn` CSS classes.
+- **Draft auto-save** — `layoutStore` gains `draft` field (prompt + category). Unsubmitted compose forms are persisted across navigation, restored on revisit with a "Draft restored" banner, and cleared on successful generation. New `.draft-restore-dismiss` CSS.
+- **Session messages pagination** — `SessionView` now uses `useSessionMessages()` with `useInfiniteQuery` (20 per page, sorted descending). A "Load earlier messages" button appears when more pages are available. New `.session-detail__load-earlier` CSS. Messages API now supports `?sort=asc|desc`.
+- **Optimistic rename** — `useUpdateSession` now applies optimistic updates to the sessions cache on rename, with rollback on error.
+- **Keyboard shortcut** — `Cmd/Ctrl+K` navigates to the compose page from anywhere.
+- **Profile default model in batch** — `BatchComposeView` now respects the profile's `preferredModel` as the default model selector value, with per-session override.
+- **Character counter styling** — Prompt length counter color-codes based on usage: muted (<80%), warning yellow (>80%), danger red (>95%).
+- Files changed: 15 files across API routes, components, hooks, services, stores, and CSS.
 
 ### 2026-06-26 — Subject fix on batch (commit `0df1fe7`)
 
