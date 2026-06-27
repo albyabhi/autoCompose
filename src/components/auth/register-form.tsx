@@ -40,6 +40,14 @@ export function RegisterForm() {
       </p>
 
       <form action={action} className="auth-form">
+        <input
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, width: 0 }}
+        />
         <div className="auth-form__field">
           <label htmlFor="reg-name" className="auth-form__label">
             Name
@@ -168,6 +176,9 @@ export function RegisterForm() {
 //   On success, navigates to /dashboard. Shows field-level validation errors
 //   and form-level messages. Password hint explains complexity requirements.
 //   Supports pending state for loading UI. Links to /login for existing users.
+//   Includes a hidden honeypot field ("company") that bots fill but humans
+//   never interact with — used server-side to silently discard bot submissions.
 // PROPS: None (standalone page component)
+// SECURITY: Honeypot field detects automated bot registrations
 // INTEGRATION: Register server action, React useActionState, Next.js router
 // ============================================================

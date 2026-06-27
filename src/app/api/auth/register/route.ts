@@ -6,6 +6,7 @@ import { User } from "@/models/user";
 import { success, failure } from "@/utils/api-response";
 import { logger } from "@/lib/logger";
 import { isAppError } from "@/lib/errors";
+import { checkRegistrationRateLimit, validateHoneypot } from "@/lib/rate-limit";
 
 const registerSchema = z
   .object({
@@ -41,6 +42,17 @@ const registerSchema = z
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    if (validateHoneypot(body)) {
+      logger.warn("Honeypot triggered on registration", {
+        ip: request.headers.get("x-forwarded-for") ?? "unknown",
+      });
+      return success({ registered: true });
+    }
+
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    checkRegistrationRateLimit(ip);
+
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -107,8 +119,11 @@ export async function POST(request: NextRequest) {
 // PURPOSE: API endpoint for new user registration (POST /api/auth/register).
 // HOW IT WORKS: Validates the request body against a strict schema (name,
 //   email, password with uppercase/lowercase/number/special char requirements).
+//   Applies honeypot detection (discards bot submissions silently) and
+//   IP-based rate limiting (5/min per IP, 20/min global) before processing.
 //   Checks for duplicate emails, hashes the password with bcrypt (12 rounds),
 //   creates the User document, and returns the new user's ID/name/email.
-//   Returns 409 for duplicate emails.
-// INTEGRATION: User model, bcryptjs, Zod validation
+//   Returns 409 for duplicate emails, 429 for rate limit exceeded.
+// SECURITY: Rate-limited public endpoint — honeypot + IP rate limit + global bucket
+// INTEGRATION: User model, bcryptjs, Zod validation, rate limiter
 // ============================================================

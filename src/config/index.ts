@@ -74,6 +74,12 @@ export function getConfig() {
     auth: {
       secret: env.AUTH_SECRET,
       url: env.AUTH_URL,
+      rateLimit: {
+        registration: {
+          ip: { maxRequests: 5, windowMs: 60_000 },
+          global: { maxRequests: 20, windowMs: 60_000 },
+        },
+      },
     },
     app: {
       env: env.NODE_ENV,

@@ -21,6 +21,7 @@ export type AuditAction =
   | "email.send_failed"
   | "email.credentials_saved"
   | "email.credentials_removed"
+  | "email.credentials_migrated_to_v2"
   | "telegram.linked"
   | "telegram.unlinked"
   | "telegram.login_code_generated"

@@ -2,10 +2,12 @@
 
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { headers } from "next/headers";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/user";
 import { signIn } from "@/auth";
 import { logger } from "@/lib/logger";
+import { checkRegistrationRateLimit, validateHoneypot } from "@/lib/rate-limit";
 
 const registerSchema = z
   .object({
@@ -48,12 +50,29 @@ export async function register(
   _prev: RegisterState | undefined,
   formData: FormData
 ): Promise<RegisterState> {
-  const validated = registerSchema.safeParse({
+  const rawFormData = {
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
-  });
+    company: formData.get("company"),
+  };
+
+  if (validateHoneypot(rawFormData)) {
+    logger.warn("Honeypot triggered on registration (server action)");
+    return { success: true, message: "Account created successfully" };
+  }
+
+  try {
+    const hdrs = await headers();
+    const forwarded = hdrs.get("x-forwarded-for");
+    const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+    checkRegistrationRateLimit(ip);
+  } catch {
+    return { message: "Too many requests. Please try again later." };
+  }
+
+  const validated = registerSchema.safeParse(rawFormData);
 
   if (!validated.success) {
     return {
@@ -111,9 +130,12 @@ export async function register(
 // ============================================================
 // PURPOSE: Server action for user registration from the registration form.
 // HOW IT WORKS: Validates form data against registerSchema (name, email, password
-//   with complexity requirements). Checks for duplicate emails, hashes the password
-//   with bcrypt (12 rounds), creates the User, then auto-signs in the new user
+//   with complexity requirements). Applies honeypot detection (discards bot
+//   submissions silently) and IP-based rate limiting (5/min per IP, 20/min global)
+//   before processing. Checks for duplicate emails, hashes the password with
+//   bcrypt (12 rounds), creates the User, then auto-signs in the new user
 //   via signIn("credentials"). Returns validation errors or success state for
 //   form handling. Uses "use server" directive for Next.js server actions.
-// INTEGRATION: User model, bcryptjs, NextAuth signIn, Zod validation
+// SECURITY: Rate-limited public endpoint — honeypot + IP rate limit + global bucket
+// INTEGRATION: User model, bcryptjs, NextAuth signIn, Zod validation, rate limiter
 // ============================================================

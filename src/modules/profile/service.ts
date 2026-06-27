@@ -3,7 +3,7 @@ import { Profile, IProfile } from "@/models/profile";
 import { NotFoundError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { ownedFilter } from "@/lib/auth/ownership";
-import { encrypt } from "@/lib/crypto";
+import { encryptV2, migrateV1ToV2 } from "@/lib/crypto";
 import { recordAudit } from "@/lib/audit";
 import type { ProfileUpdateInput, ProfileCreateInput } from "./validation";
 import { normalizeProfessionalForSave } from "./professional";
@@ -63,9 +63,12 @@ export async function updateProfile(
       update["emailCredentials"] = null;
       credentialsAction = "removed";
     } else {
+      const encrypted = encryptV2(data.emailCredentials.appPassword, userId);
       update["emailCredentials"] = {
         gmailAddress: data.emailCredentials.gmailAddress,
-        encryptedAppPassword: encrypt(data.emailCredentials.appPassword),
+        encryptedAppPassword: encrypted.encryptedData,
+        encryptedDek: encrypted.encryptedDek,
+        dekVersion: encrypted.dekVersion,
       };
       credentialsAction = "saved";
     }
@@ -127,15 +130,49 @@ export async function upsertProfile(
   return JSON.parse(JSON.stringify(profile));
 }
 
+/**
+ * Migrate a user's v1 encrypted credentials to v2 envelope encryption.
+ * Returns true if migration occurred, false if already v2 or no credentials exist.
+ */
+export async function migrateUserCredentialsToV2(userId: string): Promise<boolean> {
+  await connectDB();
+  const profile = await Profile.findOne(ownedFilter(userId)).lean();
+  if (!profile?.emailCredentials?.encryptedAppPassword) return false;
+  if (profile.emailCredentials.encryptedDek) return false;
+
+  const v1Ciphertext = profile.emailCredentials.encryptedAppPassword;
+  const migrated = migrateV1ToV2(v1Ciphertext, userId);
+
+  await Profile.findOneAndUpdate(ownedFilter(userId), {
+    $set: {
+      "emailCredentials.encryptedAppPassword": migrated.encryptedData,
+      "emailCredentials.encryptedDek": migrated.encryptedDek,
+      "emailCredentials.dekVersion": migrated.dekVersion,
+    },
+  });
+
+  logger.info("Migrated user credentials to v2", { userId });
+  void recordAudit({
+    action: "email.credentials_migrated_to_v2",
+    entityType: "Profile",
+    entityId: userId,
+    userId,
+  });
+  return true;
+}
+
 // ============================================================
 // FILE: src/modules/profile/service.ts
 // ============================================================
-// PURPOSE: CRUD operations for user profiles with encrypted credential management.
+// PURPOSE: CRUD operations for user profiles with envelope encryption credential management.
 // HOW IT WORKS: getProfile() returns the user's profile or null. createProfile()
 //   creates a new profile (throws if one exists). updateProfile() merges partial
 //   updates into existing sections and handles emailCredentials specially - encrypting
-//   the app password before storage and recording audit entries for save/remove.
-//   upsertProfile() does a MongoDB upsert for atomic create-or-update. All operations
-//   use ownedFilter() to enforce ownership. Credentials are encrypted via crypto.ts.
-// INTEGRATION: Profile model, crypto.ts (encryption), audit.ts, professional.ts
+//   the app password via v2 envelope encryption (per-user DEK) before storage and
+//   recording audit entries for save/remove. upsertProfile() does a MongoDB upsert
+//   for atomic create-or-update. migrateUserCredentialsToV2() transitions v1 legacy
+//   ciphertexts to v2 on demand (lazy migration). All operations use ownedFilter()
+//   to enforce ownership.
+// INTEGRATION: Profile model, crypto.ts (encryptV2, migrateV1ToV2), audit.ts,
+//   professional.ts
 // ============================================================

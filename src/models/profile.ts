@@ -34,6 +34,8 @@ export interface IProfile extends Document {
   emailCredentials?: {
     gmailAddress?: string;
     encryptedAppPassword?: string;
+    encryptedDek?: string;
+    dekVersion?: number;
   };
     resume?: {
       rawText?: string;
@@ -117,6 +119,8 @@ const profileSchema = new Schema<IProfile>(
     emailCredentials: {
       gmailAddress: { type: String, trim: true },
       encryptedAppPassword: { type: String },
+      encryptedDek: { type: String },
+      dekVersion: { type: Number },
     },
     resume: {
       rawText: { type: String },
@@ -168,11 +172,11 @@ export const Profile =
 // HOW IT WORKS: Stores structured user data across 5 sections: personal info
 //   (name, phone, location), professional details (student or working professional),
 //   writing preferences (formality, tone, language, preferred model), job application
-//   links, Gmail credentials (encrypted), and parsed resume data (skills, education,
-//   experience, projects). The resume section is populated by the resume parser
-//   and injected into AI prompts via the context builder.
+//   links, Gmail credentials (encrypted with envelope encryption v2), and parsed
+//   resume data (skills, education, experience, projects). The resume section is
+//   populated by the resume parser and injected into AI prompts via the context builder.
 // FIELDS: userId (unique), personal, professional, preferences, jobApplication,
-//   emailCredentials (encrypted), resume (parsed structure)
+//   emailCredentials (encrypted + v2 envelope fields), resume (parsed structure)
 // INTEGRATION: Used by profile service, context builder, email dispatch, and
 //   resume parser. emailCredentials.encryptedAppPassword is decrypted by crypto.ts
 // ============================================================

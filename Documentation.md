@@ -2,8 +2,8 @@
 
 AI-powered professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
 
-**Document Version:** 1.1  
-**Last Updated:** 2026-06-26 15:40 IST  
+**Document Version:** 1.2  
+**Last Updated:** 2026-06-27 22:30 IST  
 **Last Commit:** [`7d7f72b`](https://github.com/anomalyco/autocompose/commit/7d7f72b) — `ue features 1`
 
 ---
@@ -163,7 +163,7 @@ src/
 │   ├── logger.ts                 # Level-based structured logging
 │   ├── audit.ts                  # Audit log service
 │   ├── crypto.ts                 # AES-256-GCM (v1:iv:tag:ct) — server-only
-│   └── rate-limit.ts             # In-memory sliding window
+│   └── rate-limit.ts             # In-memory sliding window + registration rate limiter + honeypot
 │
 ├── models/                       # Mongoose schemas
 │   ├── user.ts
@@ -509,11 +509,57 @@ Uses `dispatchSendEmail()` — same credential/rate-limit path as individual ema
 
 Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCompleted`).
 
+### `POST /api/auth/register`
+
+Register a new user account. **Public endpoint** — no authentication required.
+
+**Rate limit:** 5 requests / 60 s per IP + 20 requests / 60 s global.
+
+**Honeypot protection:** Includes a hidden `company` field. Bot submissions that fill this field are silently discarded (returns 200 with no account created).
+
+**Request Body:**
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "StrongP@ss1",
+  "confirmPassword": "StrongP@ss1",
+  "company": ""
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "user-id",
+      "name": "John Doe",
+      "email": "john@example.com"
+    }
+  }
+}
+```
+
+**Errors:**
+
+| Code | Status | Cause |
+|---|---|---|
+| `VALIDATION_ERROR` | 400 | Input validation failed (name, email, password complexity, password match). |
+| `DUPLICATE_EMAIL` | 409 | An account with this email already exists. |
+| `RATE_LIMIT` | 429 | > 5 registrations from the same IP in 60 s, or > 20 registrations globally in 60 s. |
+
+**Note:** The server action (`src/app/actions/auth.ts`) used by the `RegisterForm` component enforces identical rate limits and honeypot protection.
+
 ### Error Codes
 
 | Code | Status | Meaning |
 |---|---|---|
 | `VALIDATION_ERROR` | 400 | Input validation failed |
+| `DUPLICATE_EMAIL` | 409 | Email already registered |
 | `UNAUTHORIZED` | 401 | Authentication required |
 | `FORBIDDEN` | 403 | Access denied |
 | `NOT_FOUND` | 404 | Resource not found |
@@ -970,6 +1016,14 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-06-27 — Registration rate limiting & bot protection
+
+- **IP-based rate limiting on registration** — `POST /api/auth/register` and the `register()` server action now enforce 5 requests per IP per 60 seconds, plus a global bucket of 20 registrations per 60 seconds. Uses the existing `checkRateLimit()` infrastructure with a new `checkRegistrationRateLimit(ip)` wrapper.
+- **Honeypot bot detection** — Both registration paths now check for a hidden `company` form field. Bot submissions that fill this field are silently discarded (returns 200 with no account created). The `RegisterForm` component renders the hidden input, off-screen and unfocusable.
+- **Config centralization** — Rate limit constants for registration are defined in `src/config/index.ts` under `auth.rateLimit.registration` (IP: 5/min, global: 20/min).
+- **New test suite** — `src/lib/rate-limit.test.ts` with 13 tests covering `checkRateLimit`, `checkRegistrationRateLimit` (per-IP isolation, global bucket), and `validateHoneypot` (empty, absent, filled, whitespace, non-string).
+- Files changed: `src/lib/rate-limit.ts`, `src/config/index.ts`, `src/app/api/auth/register/route.ts`, `src/app/actions/auth.ts`, `src/components/auth/register-form.tsx`, `src/lib/rate-limit.test.ts`, `Documentation.md`.
 
 ### 2026-06-26 — UE features 1 (commit `7d7f72b`)
 

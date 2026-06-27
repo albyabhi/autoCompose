@@ -2,7 +2,8 @@ import "server-only";
 import { connectDB } from "@/lib/db";
 import { Profile } from "@/models/profile";
 import { User } from "@/models/user";
-import { decrypt } from "@/lib/crypto";
+import { decryptV1, decryptV2, type EncryptedV2 } from "@/lib/crypto";
+import { migrateUserCredentialsToV2 } from "@/modules/profile/service";
 import { sendEmail, type NodemailerAttachment } from "@/modules/email/sender";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
@@ -109,8 +110,28 @@ export async function dispatchSendEmail(
   }
 
   let appPassword: string;
+  let needsMigration = false;
   try {
-    appPassword = decrypt(profile.emailCredentials.encryptedAppPassword);
+    const creds = profile.emailCredentials!;
+    if (creds.encryptedDek && typeof creds.dekVersion === "number") {
+      const payload: EncryptedV2 = {
+        version: "v2",
+        encryptedDek: creds.encryptedDek,
+        encryptedData: creds.encryptedAppPassword!,
+        dekVersion: creds.dekVersion,
+      };
+      appPassword = decryptV2(payload, input.userId);
+    } else if (creds.encryptedAppPassword) {
+      appPassword = decryptV1(creds.encryptedAppPassword);
+      needsMigration = true;
+    } else {
+      return {
+        ok: false,
+        code: "CREDENTIALS_NOT_CONFIGURED",
+        message: "Email credentials not configured. Add them in Settings.",
+        status: 400,
+      };
+    }
   } catch (decryptError) {
     logger.error("dispatchSendEmail: decrypt failed", {
       userId: input.userId,
@@ -149,6 +170,9 @@ export async function dispatchSendEmail(
         source: "telegram",
       },
     });
+    if (needsMigration) {
+      void migrateUserCredentialsToV2(input.userId);
+    }
     return { ok: true, messageId };
   } catch (error) {
     const errName = error instanceof Error ? error.name : "unknown";
@@ -178,11 +202,15 @@ export async function dispatchSendEmail(
 // PURPOSE: High-level email sending orchestrator with validation, auth, and audit.
 // HOW IT WORKS: dispatchSendEmail() validates the recipient email, subject length,
 //   and body length. Applies rate limiting if configured. Fetches the user's
-//   encrypted Gmail credentials from their Profile, decrypts the app password
-//   using crypto.ts, and calls sender.ts to send via SMTP. Records audit entries
-//   for both success (email.sent) and failure (email.send_failed). Returns a
-//   typed result discriminated by ok:true/false with specific error codes.
-// [SECURITY] Decrypts credentials in memory only, never persists plaintext
-// INTEGRATION: Profile model (encrypted credentials), crypto.ts, sender.ts,
-//   rate limiter, audit logger. Used by Telegram send flow and API route.
+//   encrypted Gmail credentials from their Profile. Detects whether credentials are
+//   v1 (legacy single-key) or v2 (envelope with per-user DEK) and decrypts accordingly.
+//   After a successful send with v1 credentials, triggers lazy migration to v2 via
+//   migrateUserCredentialsToV2(). Records audit entries for both success (email.sent)
+//   and failure (email.send_failed). Returns a typed result discriminated by
+//   ok:true/false with specific error codes.
+// [SECURITY] Decrypts credentials in memory only, never persists plaintext.
+//   v2 credentials are isolated per-user; v1 ciphertexts are migrated on use.
+// INTEGRATION: Profile model (encrypted credentials), crypto.ts (decryptV1/decryptV2),
+//   profile/service.ts (migrateUserCredentialsToV2), sender.ts, rate limiter,
+//   audit logger. Used by Telegram send flow and API route.
 // ============================================================
