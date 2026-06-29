@@ -31,8 +31,8 @@ export function BulkTable({
       {entries.length === 0 ? (
         <EmptyState
           icon="✉"
-          title="No entries yet"
-          description='Click "+ Add Row" to get started with your batch.'
+          title="No batch entries yet"
+          description="Add rows to begin generating personalized emails."
           action={
             <button className="bulk-table__add-row" onClick={onAddRow}>
               + Add Row
@@ -75,3 +75,12 @@ export function BulkTable({
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/batch/components/bulk-table.tsx
+// ============================================================
+// PURPOSE: Container component for the list of batch entries, send bar, and preview dialog.
+// HOW IT WORKS: Renders an EmptyState when no entries exist (with title "No batch entries yet" and a CTA button). When entries exist, maps them to BulkRow components. Includes BulkSendBar at the bottom and BulkPreviewDialog modal for previewing emails before sending.
+// PROPS: entries (BulkEntryData[]), modelId (string), onAddRow (callback), sharedFiles (File[]), rowFilesMap (Record), onRowFilesChange (callback).
+// INTEGRATION: BulkRow, BulkSendBar, BulkPreviewDialog, EmptyState.
+// ============================================================

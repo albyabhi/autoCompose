@@ -5,9 +5,14 @@ import { useRouter } from "next/navigation";
 import { ModelSelector } from "@/components/model-selector";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
+import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useBulkEntries, useCreateBatchSession, useCreateEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
+import { BatchStepper } from "./batch-stepper";
+import { BatchSidebar } from "./batch-sidebar";
 import { BulkTable } from "./bulk-table";
 
 interface BatchComposeViewProps {
@@ -108,86 +113,100 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     setRowFilesMap((prev) => ({ ...prev, [entryId]: files }));
   }
 
-  const sharedFileCount = sharedFiles.length;
-  const totalRowFileCount = Object.values(rowFilesMap).reduce(
-    (sum, files) => sum + files.length,
-    0
-  );
-
   return (
     <div className="batch-compose">
-      <div className="batch-compose__header">
-        <h2 className="batch-compose__title">Batch Email Generator</h2>
-        <div className="batch-compose__controls">
-          <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
+      {/* HEADER */}
+      <header className="batch-compose__header">
+        <div className="batch-compose__header-top">
+          <span className="batch-compose__step-badge">Step 1</span>
         </div>
-        <p className="batch-compose__hint">
-          Add rows below, then click Generate on each row. Preview, regenerate, or send individually. Use &ldquo;Send All&rdquo; to send in sequence.
+        <h2 className="batch-compose__title">Configure Your Batch</h2>
+        <p className="batch-compose__subtitle">
+          Set up your batch email generation settings before adding recipients.
         </p>
-      </div>
+      </header>
 
-      <div className="batch-toolbar">
-        <div className="batch-toolbar__group">
-          <span className="batch-toolbar__label">Add Rows</span>
-          <div className="batch-toolbar__row">
-            <input
-              type="number"
-              className="batch-toolbar__input"
+      {/* 2-COLUMN LAYOUT */}
+      <div className="batch-compose__layout">
+        {/* LEFT COLUMN — Main Controls */}
+        <div className="batch-compose__main">
+          {/* Primary Controls Card */}
+          <Card>
+            <CardHeader>Primary Controls</CardHeader>
+            <CardBody>
+              <div className="batch-primary-controls">
+                <div className="batch-primary-controls__model">
+                  <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
+                  
+                </div>
+
+                <div className="batch-primary-controls__mail-type">
+                  <Select
+                    label="Mail Type"
+                    value={toolbarCategory}
+                    onChange={(e) => setToolbarCategory(e.target.value as EmailCategory)}
+                    options={CATEGORY_OPTIONS}
+                  />
+                </div>
+
+                <div className="batch-primary-controls__apply">
+                  <Button
+                    variant="secondary"
+                    onClick={handleApplyCategoryToAll}
+                    disabled={!sessionId || pendingCount === 0 || applyingCategory || batchUpdateMutation.isPending}
+                  >
+                    Apply to All
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Stepper Row */}
+          <div className="batch-stepper-row">
+            <BatchStepper
+              value={addCount}
+              onChange={setAddCount}
               min={1}
               max={50}
-              value={addCount}
-              onChange={(e) => setAddCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-              aria-label="Number of rows to add"
+              disabled={createEntriesMutation.isPending || isCreatingSession}
             />
-            <button
-              className="btn btn--primary"
+            <Button
               onClick={handleAddMultiple}
               disabled={createEntriesMutation.isPending || isCreatingSession}
             >
               + Add {addCount}
-            </button>
+            </Button>
           </div>
+
+          {/* Shared Attachments Card */}
+          <Card>
+            <CardHeader>Shared Attachments</CardHeader>
+            <CardBody>
+              <p className="batch-compose__card-hint">
+                Files sent with every email.
+              </p>
+              <AttachmentUpload
+                files={sharedFiles}
+                onFilesChange={setSharedFiles}
+                label="Attachments"
+              />
+            </CardBody>
+          </Card>
+
+          {/* Entry Stats */}
+          {entries.length > 0 && (
+            <div className="batch-compose__stats">
+              {entries.length} rows · {readyCount} ready · {pendingCount} pending
+            </div>
+          )}
         </div>
 
-        <div className="batch-toolbar__group">
-          <span className="batch-toolbar__label">Mail Type</span>
-          <div className="batch-toolbar__row">
-            <select
-              className="batch-toolbar__select"
-              value={toolbarCategory}
-              onChange={(e) => setToolbarCategory(e.target.value as EmailCategory)}
-              aria-label="Mail type for bulk operations"
-            >
-              {CATEGORY_OPTIONS.map((cat) => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
-              ))}
-            </select>
-            <button
-              className="btn btn--secondary"
-              onClick={handleApplyCategoryToAll}
-              disabled={!sessionId || pendingCount === 0 || applyingCategory || batchUpdateMutation.isPending}
-              aria-label="Apply mail type to all pending rows"
-            >
-              Apply to All ({pendingCount})
-            </button>
-          </div>
-        </div>
-
-        <AttachmentUpload
-          files={sharedFiles}
-          onFilesChange={setSharedFiles}
-          label="Shared Attachments (sent to all)"
-        />
-
-        {entries.length > 0 && (
-          <div className="batch-toolbar__count">
-            {entries.length} rows · {readyCount} ready · {pendingCount} pending
-            {sharedFileCount > 0 && ` · ${sharedFileCount} shared files`}
-            {totalRowFileCount > 0 && ` · ${totalRowFileCount} row files`}
-          </div>
-        )}
+        {/* RIGHT COLUMN — Sidebar */}
+        <BatchSidebar />
       </div>
 
+      {/* BULK TABLE — Below grid */}
       {isLoading ? (
         <div className="batch-compose__loading">Loading entries...</div>
       ) : (
@@ -203,3 +222,12 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/batch/components/batch-compose-view.tsx
+// ============================================================
+// PURPOSE: Main batch email configuration page with 2-column desktop layout.
+// HOW IT WORKS: Renders a header with step badge, title, and subtitle. Below is a CSS Grid layout with a 70% left column (primary controls card, stepper row, shared attachments card) and a 30% right column (sidebar with collapsible quick tips). The BulkTable renders below the grid. Uses Card, Select, Button, ModelSelector, BatchStepper, and BatchSidebar primitives. Responsive: collapses to single column at 768px.
+// PROPS: initialSessionId (optional string) for resuming an existing batch session.
+// INTEGRATION: React Query hooks for batch operations, AI model types, email categories, attachment upload, profile preferences.
+// ============================================================

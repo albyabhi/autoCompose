@@ -3088,8 +3088,10 @@ body {
 .batch-compose {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
+
+/* --- Header --- */
 
 .batch-compose__header {
   display: flex;
@@ -3097,24 +3099,95 @@ body {
   gap: 8px;
 }
 
+.batch-compose__header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.batch-compose__step-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--yellow);
+  border: 2px solid var(--black);
+  border-radius: 4px;
+}
+
 .batch-compose__title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.5px;
+  margin: 0;
 }
 
-.batch-compose__controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.batch-compose__hint {
-  font-size: 13px;
+.batch-compose__subtitle {
+  font-size: 14px;
   color: #555;
   line-height: 1.5;
+  margin: 0;
 }
+
+/* --- 2-Column Grid Layout --- */
+
+.batch-compose__layout {
+  display: grid;
+  grid-template-columns: 7fr 3fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.batch-compose__main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Primary Controls Grid --- */
+
+.batch-primary-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.batch-primary-controls__model {
+  grid-column: 1;
+}
+
+.batch-primary-controls__mail-type {
+  grid-column: 2;
+}
+
+.batch-primary-controls__apply {
+  grid-column: 3;
+}
+
+/* --- Card Hints --- */
+
+.batch-compose__card-hint {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+/* --- Stats --- */
+
+.batch-compose__stats {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  padding: 4px 0;
+}
+
+/* --- Loading --- */
 
 .batch-compose__loading,
 .batch-compose__creating {
@@ -3122,6 +3195,168 @@ body {
   padding: 24px;
   font-weight: 700;
   color: #555;
+}
+
+/* --- Field Hint (used by ModelSelector) --- */
+
+.field-hint {
+  font-size: 12px;
+  color: #666;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+/* =========== BATCH STEPPER =========== */
+
+.batch-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.batch-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.batch-stepper__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-stepper__btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--font);
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #000;
+  transition: transform 0.1s, box-shadow 0.1s;
+  flex-shrink: 0;
+}
+
+.batch-stepper__btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.batch-stepper__btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.batch-stepper__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.batch-stepper__input {
+  width: 70px;
+  padding: 10px 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  border: var(--border-w) solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.batch-stepper__input:focus {
+  outline: 4px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.batch-stepper__input::-webkit-inner-spin-button,
+.batch-stepper__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.batch-stepper__input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* =========== BATCH SIDEBAR =========== */
+
+.batch-sidebar {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.batch-sidebar__section {
+  overflow: hidden;
+}
+
+.batch-sidebar__section-header {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+}
+
+.batch-sidebar__section-header .card__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.batch-sidebar__section-header .card__header::after {
+  content: "▸";
+  font-size: 14px;
+  font-weight: 800;
+  color: #888;
+  transition: transform 0.2s;
+}
+
+.batch-sidebar__section--open .batch-sidebar__section-header .card__header::after {
+  transform: rotate(90deg);
+}
+
+.batch-sidebar__tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.batch-sidebar__tip {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #444;
+  padding-left: 16px;
+  position: relative;
+}
+
+.batch-sidebar__tip::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--yellow);
+  font-weight: 800;
 }
 
 /* =========== BATCH TOOLBAR =========== */
@@ -3766,7 +4001,80 @@ body {
 
 /* =========== MOBILE RESPONSIVE =========== */
 
+@media (max-width: 1023px) {
+  .batch-compose__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-sidebar {
+    position: static;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .batch-sidebar > * {
+    flex: 1;
+  }
+
+  .batch-primary-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .batch-primary-controls__apply {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
 @media (max-width: 768px) {
+  .batch-compose__layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .batch-sidebar {
+    position: static;
+    flex-direction: column;
+  }
+
+  .batch-primary-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-primary-controls__apply {
+    grid-column: 1;
+    max-width: 100%;
+  }
+
+  .batch-primary-controls__apply .btn {
+    width: 100%;
+  }
+
+  .batch-stepper-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .batch-stepper {
+    justify-content: center;
+  }
+
+  .batch-stepper__btn {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .batch-sidebar__section-content {
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  .batch-sidebar__section--open .batch-sidebar__section-content {
+    max-height: 500px;
+  }
+
   .batch-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -3804,6 +4112,24 @@ body {
 }
 
 @media (max-width: 640px) {
+  .batch-compose__title {
+    font-size: 18px;
+  }
+
+  .batch-compose__subtitle {
+    font-size: 13px;
+  }
+
+  .batch-compose__step-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .batch-stepper__input {
+    width: 60px;
+    padding: 10px 8px;
+  }
+
   .bulk-card__display-row {
     flex-direction: column;
     align-items: flex-start;
