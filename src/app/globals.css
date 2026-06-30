@@ -3711,6 +3711,15 @@ body {
   to { transform: rotate(360deg); }
 }
 
+.bulk-card--generating {
+  animation: generatingPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes generatingPulse {
+  0%, 100% { box-shadow: 6px 6px 0 #000; }
+  50% { box-shadow: 6px 6px 0 #888; border-color: #888; }
+}
+
 /* =========== BULK UTILITIES =========== */
 
 .bulk-table-wrapper {

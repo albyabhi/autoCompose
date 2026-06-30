@@ -26,6 +26,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
   const [isEditing, setIsEditing] = useState(entry.status === "pending" || entry.status === "failed");
   const [showPrompt, setShowPrompt] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     setLocalCategory(entry.category);
@@ -36,7 +37,15 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
     }
   }, [entry.category, entry.prompt, entry.recipient, entry.status]);
 
+  useEffect(() => {
+    if (entry.status === "generated" || entry.status === "failed" || entry.status === "sent") {
+      setIsGenerating(false);
+    }
+  }, [entry.status]);
+
   async function handleGenerate() {
+    setIsGenerating(true);
+    setIsEditing(false);
     if (entry.status === "pending" || entry.status === "failed") {
       await updateMutation.mutateAsync({
         id: entry.id,
@@ -48,7 +57,6 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
       });
     }
     generateMutation.mutate({ entryId: entry.id, modelId });
-    setIsEditing(false);
   }
 
   async function handleDelete() {
@@ -56,6 +64,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
   }
 
   function handleRegenerate() {
+    setIsGenerating(true);
     generateMutation.mutate({ entryId: entry.id, modelId });
   }
 
@@ -68,10 +77,10 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
 
   const isLoading = generateMutation.isPending;
   const isDeleting = deleteMutation.isPending;
-  const isDisabled = isLoading || isDeleting;
+  const isDisabled = isLoading || isDeleting || isGenerating;
 
   const statusBadge = (() => {
-    if (entry.status === "generating" || entry.status === "sending") {
+    if (isGenerating || entry.status === "generating" || entry.status === "sending") {
       return <span className="bulk-card__spinner" />;
     }
     if (entry.status === "sent") {
@@ -103,7 +112,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
     ) : null;
 
     return (
-      <div className="bulk-card bulk-card--edit">
+      <div className={`bulk-card bulk-card--edit${isGenerating ? " bulk-card--generating" : ""}`}>
         <div className="bulk-card__header">
           <span className="bulk-card__order">#{entry.sortOrder + 1}</span>
           <div className="bulk-card__status">{statusBadge}</div>
@@ -197,7 +206,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
         )}
 
         <div className="bulk-card__actions">
-          {(entry.status === "generating" || entry.status === "sending") && (
+          {(isGenerating || entry.status === "generating" || entry.status === "sending") && (
             <span className="bulk-card__spinner" />
           )}
           <button
@@ -206,7 +215,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
             disabled={isDisabled || localPrompt.length < 10 || !localRecipient}
             aria-label="Generate email"
           >
-            {isLoading ? "Generating..." : "Generate"}
+            {isGenerating ? "Generating..." : "Generate"}
           </button>
           {cancelBtn}
           <button
@@ -224,7 +233,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
 
   // ── Display Mode ──────────────────────────────────────────
   return (
-    <div className="bulk-card">
+      <div className={`bulk-card${isGenerating ? " bulk-card--generating" : ""}`}>
       <div className="bulk-card__header">
         <span className="bulk-card__order">#{entry.sortOrder + 1}</span>
         <div className="bulk-card__status">{statusBadge}</div>
@@ -267,7 +276,7 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
         )}
 
         <div className="bulk-card__actions">
-          {(entry.status === "generating" || entry.status === "sending") && (
+          {(isGenerating || entry.status === "generating" || entry.status === "sending") && (
             <span className="bulk-card__spinner" />
           )}
           <button
