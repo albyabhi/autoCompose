@@ -2,9 +2,9 @@
 
 AI-powered professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
 
-**Document Version:** 1.2  
-**Last Updated:** 2026-06-27 22:30 IST  
-**Last Commit:** [`7d7f72b`](https://github.com/anomalyco/autocompose/commit/7d7f72b) — `ue features 1`
+**Document Version:** 1.3  
+**Last Updated:** 2026-07-01 01:30 IST  
+**Last Commit:** [`df12ba3`](https://github.com/anomalyco/autocompose/commit/df12ba3) — `resume data edit update`
 
 ---
 
@@ -67,6 +67,7 @@ src/
 │   │   │   ├── page.tsx          # /sessions — history list
 │   │   │   └── [id]/page.tsx     # /sessions/:id — detail + messages
 │   │   └── settings/page.tsx     # /settings — profile form
+│   │   └── settings/resume/edit/page.tsx  # /settings/resume/edit — resume editor
 │   ├── api/                      # API routes
 │   │   ├── auth/
 │   │   │   ├── [...nextauth]/    # NextAuth v5 handlers
@@ -134,17 +135,28 @@ src/
 │   │   └── components/
 │   │       ├── batch-compose-view.tsx  # Batch compose UI (toolbar + table)
 │   │       ├── batch-session-view.tsx  # Batch session detail view
+│   │       ├── batch-settings-panel.tsx  # Collapsible settings panel with category, row count, attachments
+│   │       ├── batch-help-dialog.tsx  # Quick tips dialog for batch usage
+│   │       ├── batch-stepper.tsx  # Row count stepper component
 │   │       ├── bulk-table.tsx          # Entries list with empty state
 │   │       ├── bulk-row.tsx            # Single entry card (edit/generate/preview/send/delete)
 │   │       ├── bulk-send-bar.tsx       # Send All with progress bar + abort
 │   │       └── bulk-preview-dialog.tsx # Preview + send individual entry
 │   └── profile/                  # Profile management
 │       ├── api/profile.ts
+│       ├── api/resume.ts
 │       ├── hooks/use-profile.ts
+│       ├── hooks/use-resume.ts
 │       └── components/
 │           ├── profile-form.tsx        # 5-section settings form host
 │           ├── ai-settings-section.tsx  # Preferred AI Model
-│           └── email-credentials-section.tsx  # Gmail + App Password
+│           ├── email-credentials-section.tsx  # Gmail + App Password
+│           ├── resume-widget.tsx       # Resume upload and display widget
+│           ├── resume-editor-form.tsx  # Full resume editor form with sections
+│           ├── resume-editor-contact.tsx  # Contact info editor
+│           ├── resume-editor-links.tsx  # Links editor (LinkedIn, GitHub, portfolio)
+│           ├── resume-editor-skills.tsx  # Skills editor
+│           └── resume-editor-list.tsx  # Reusable list editor for education/experience/projects
 │
 ├── hooks/
 │   └── use-current-user.ts       # Client-side CurrentUser hook
@@ -267,6 +279,7 @@ npm start         # Production server
 | `/sessions` | Required | AppShell + AuthGuard | Session history (paginated) |
 | `/sessions/:id` | Required | AppShell + AuthGuard | Session detail + messages |
 | `/settings` | Required | AppShell + AuthGuard | Profile management |
+| `/settings/resume/edit` | Required | AppShell + AuthGuard | Edit parsed resume data |
 | `/login` | Public | Centered card | Sign in |
 | `/register` | Public | Centered card | Create account |
 | `/auth/error` | Public | Minimal | Auth error display |
@@ -622,7 +635,14 @@ The compose page (`/`) shows a **Single / Batch** toggle. In single mode, `Gener
 
 ### Batch Email Generation
 
-In batch mode, the `BatchComposeView` renders a toolbar and an entries table (`BulkTable`). Each entry row (`BulkRow`) has:
+In batch mode, the `BatchComposeView` renders a collapsible `BatchSettingsPanel` and an entries table (`BulkTable`). The settings panel contains:
+
+- **Mail Type selector** — Set category for all rows
+- **Apply to All** — Apply category to all pending/failed rows
+- **Row stepper** — Add 1-50 blank entries at once
+- **Shared Attachments** — Files sent with every email in the batch
+
+Each entry row (`BulkRow`) has:
 
 - **Category/Email Type** selector
 - **Prompt** textarea
@@ -632,12 +652,7 @@ In batch mode, the `BatchComposeView` renders a toolbar and an entries table (`B
 - **Regenerate** — re-runs AI generation
 - **Delete** — removes the row
 
-The toolbar supports:
-- **Add N rows** — create N blank entries at once (up to 50)
-- **Mail Type selector + Apply to All** — batch-set the category for all pending/failed rows
-- **Row count** — shows total / ready / pending counts
-
-The `BulkSendBar` at the bottom shows stats and a **Send All** button that iterates through generated entries with a 12-second gap between sends (to respect the 5/min rate limit). A progress bar with abort is shown during sending.
+The `BatchHelpDialog` provides quick tips for optimal batch usage. The `BulkSendBar` at the bottom shows stats and a **Send All** button that iterates through generated entries with a 12-second gap between sends (to respect the 5/min rate limit). A progress bar with abort is shown during sending.
 
 Batch sessions use `Session.type = "batch"` and get a `Batch` badge in the session list. Opening a batch session navigates to `BatchSessionView` instead of the message-based `SessionView`. Batch entries are stored in the `BulkEntry` model.
 
@@ -663,7 +678,7 @@ Batch sessions use `Session.type = "batch"` and get a `Batch` badge in the sessi
 | Personal | inline (ProfileForm) | Full Name, Phone, Location |
 | Professional | inline (ProfileForm) | Designation, Department, Organization, College, Degree |
 | Writing Preferences | inline (ProfileForm) | Formality Level, Preferred Tone, Signature, Language |
-| Job Application | inline (ProfileForm) | Resume URL, LinkedIn, Portfolio |
+| Job Application | inline (ProfileForm) | Resume URL, LinkedIn, GitHub, Portfolio |
 | AI Settings | `AiSettingsSection` | Preferred AI Model (default for compose and resume parsing) |
 | Email Credentials | `EmailCredentialsSection` | Gmail address, encrypted App Password (5th section) |
 | Resume | (see below) | AI-parsed skills, education, experience, projects |
@@ -672,9 +687,11 @@ The first four sections are rendered by `ProfileForm` with the shared dirty-stat
 
 The default AI model for both email composition and resume parsing is set in **Settings → AI Settings → Preferred AI Model**. The per-action selector in compose and resume upload still allows one-off overrides without changing the saved preference. The default is applied on first render of the action form; changing the preference while a form is open does not retroactively update it.
 
-### Resume Parsing
+### Resume Parsing & Editing
 
 The Resume section in Settings accepts PDF, DOCX, or TXT uploads. Parsing is streamed from `POST /api/profile/resume` and persisted to `Profile.resume` (with `rawText` excluded from `GET` responses). The AI model used for parsing is selectable per-upload inside the upload card; defaults to `deepseek`. The chosen upstream model id is stored on `Profile.resume.parsedByModel` for audit.
+
+After parsing, users can review and edit the extracted data at `/settings/resume/edit`. The `ResumeEditorForm` provides modular sections for editing contact info, links (LinkedIn, GitHub, portfolio), skills, education, experience, and projects. The form tracks dirty state and prompts before navigation when unsaved changes exist.
 
 ### Email Sending
 
@@ -1017,6 +1034,40 @@ Every query against this model must use `ownedFilter(userId)`.
 
 ## Changelog
 
+### 2026-07-01 — Resume data edit feature (commit `df12ba3`)
+
+- **New resume editor page** — `/settings/resume/edit` route with `ResumeEditorForm` component. Users can review and edit all parsed resume data (contact info, links, skills, education, experience, projects) before saving.
+- **Modular editor components** — `ResumeEditorContact`, `ResumeEditorLinks`, `ResumeEditorSkills`, `ListSection` (reusable for education/experience/projects) in `src/features/profile/components/`.
+- **Resume API update** — `PATCH /api/profile/resume` now accepts full resume data edits. New validation schema in `src/modules/profile/validation.ts`.
+- **Dirty state tracking** — Form detects unsaved changes and prompts before navigation.
+- **UI improvements** — 472 lines of new CSS for the resume editor interface.
+- Files changed: 13 files across routes, components, hooks, services, and CSS.
+
+### 2026-07-01 — Batch list fix + profile updates (commit `1a7820f`)
+
+- **Optimistic update fix** — `useGenerateEntry` now updates the cache entry directly on success before invalidating queries, preventing batch list flicker.
+- **GitHub field added** — Profile's Job Application section now includes a GitHub URL field.
+- Files changed: 6 files across hooks, components, models, and validation.
+
+### 2026-07-01 — Batch UI improvements (commit `abc4dc1`)
+
+- **Bulk row UI refinements** — Improved styling and layout for batch entry cards.
+- Files changed: 2 files (globals.css, bulk-row.tsx).
+
+### 2026-06-30 — Batch configuration refactor (commit `027579a`)
+
+- **New BatchSettingsPanel** — Extracted batch configuration into a dedicated collapsible panel component (`batch-settings-panel.tsx`) with category selector, row count stepper, Apply to All, and shared attachments.
+- **New BatchHelpDialog** — Quick tips dialog with best practices for batch email generation (10 tips on optimal usage).
+- **Batch compose view refactor** — Simplified `BatchComposeView` to use the new settings panel and help dialog components.
+- **BatchSessionView improvements** — Updated layout and configuration handling.
+- **Removed batch-sidebar** — Sidebar functionality merged into the new settings panel.
+- Files changed: 6 files across components and CSS.
+
+### 2026-06-30 — Session view button fix (commit `8d21955`)
+
+- **Button styling fix** — Fixed oversized buttons in session view with proper neubrutalist styling.
+- Files changed: 2 files (globals.css, session-view.tsx).
+
 ### 2026-06-27 — Registration rate limiting & bot protection
 
 - **IP-based rate limiting on registration** — `POST /api/auth/register` and the `register()` server action now enforce 5 requests per IP per 60 seconds, plus a global bucket of 20 registrations per 60 seconds. Uses the existing `checkRateLimit()` infrastructure with a new `checkRegistrationRateLimit(ip)` wrapper.
@@ -1032,6 +1083,7 @@ Every query against this model must use `ownedFilter(userId)`.
 - **Session messages pagination** — `SessionView` now uses `useSessionMessages()` with `useInfiniteQuery` (20 per page, sorted descending). A "Load earlier messages" button appears when more pages are available. New `.session-detail__load-earlier` CSS. Messages API now supports `?sort=asc|desc`.
 - **Optimistic rename** — `useUpdateSession` now applies optimistic updates to the sessions cache on rename, with rollback on error.
 - **Keyboard shortcut** — `Cmd/Ctrl+K` navigates to the compose page from anywhere.
+- **Session view button fix** — Fixed oversized buttons in session view with proper neubrutalist styling.
 - **Profile default model in batch** — `BatchComposeView` now respects the profile's `preferredModel` as the default model selector value, with per-session override.
 - **Character counter styling** — Prompt length counter color-codes based on usage: muted (<80%), warning yellow (>80%), danger red (>95%).
 - Files changed: 15 files across API routes, components, hooks, services, stores, and CSS.
