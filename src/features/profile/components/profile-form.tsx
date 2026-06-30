@@ -121,6 +121,7 @@ const SECTIONS: SectionConfig[] = [
     fields: [
       { key: "resumeUrl", label: "Resume URL", type: "url" },
       { key: "linkedIn", label: "LinkedIn", type: "url" },
+      { key: "github", label: "GitHub", type: "url" },
       { key: "portfolio", label: "Portfolio", type: "url" },
     ],
   },

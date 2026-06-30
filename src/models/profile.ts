@@ -29,6 +29,7 @@ export interface IProfile extends Document {
   jobApplication: {
     resumeUrl?: string;
     linkedIn?: string;
+    github?: string;
     portfolio?: string;
   };
   emailCredentials?: {
@@ -114,6 +115,7 @@ const profileSchema = new Schema<IProfile>(
     jobApplication: {
       resumeUrl: { type: String, trim: true },
       linkedIn: { type: String, trim: true },
+      github: { type: String, trim: true },
       portfolio: { type: String, trim: true },
     },
     emailCredentials: {

@@ -37,10 +37,10 @@ export default function SettingsPage() {
           <TabTrigger value="sessions">Sessions</TabTrigger>
         </TabsList>
         <TabContent value="personal">
-          <ProfileForm sections={["personal", "professional"]} />
+          <ProfileForm sections={["personal", "professional", "jobApplication"]} />
         </TabContent>
         <TabContent value="writing">
-          <ProfileForm sections={["preferences", "jobApplication"]} />
+          <ProfileForm sections={["preferences"]} />
         </TabContent>
         <TabContent value="ai">
           <AiSettingsSection />

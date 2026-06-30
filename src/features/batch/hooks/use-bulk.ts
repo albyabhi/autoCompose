@@ -134,7 +134,11 @@ export function useGenerateEntry() {
   return useMutation({
     mutationFn: ({ entryId, modelId }: { entryId: string; modelId: string }) =>
       generateEntry(entryId, modelId),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      qc.setQueryData<BulkEntryData[]>(
+        [...BULK_KEY, data.sessionId],
+        (old) => old?.map((e) => (e.id === data.id ? data : e))
+      );
       qc.invalidateQueries({ queryKey: BULK_KEY });
     },
   });

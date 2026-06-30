@@ -26,6 +26,7 @@ export interface ProfileData {
   jobApplication: {
     resumeUrl: string;
     linkedIn: string;
+    github: string;
     portfolio: string;
   };
   emailCredentials: {

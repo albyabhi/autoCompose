@@ -56,6 +56,7 @@ export const preferencesSchema = z.object({
 export const jobApplicationSchema = z.object({
   resumeUrl: z.string().url("Resume URL must be a valid URL").optional().or(z.literal("")),
   linkedIn: z.string().url("LinkedIn URL must be a valid URL").optional().or(z.literal("")),
+  github: z.string().url("GitHub URL must be a valid URL").optional().or(z.literal("")),
   portfolio: z.string().url("Portfolio URL must be a valid URL").optional().or(z.literal("")),
 });
 
