@@ -107,7 +107,7 @@ export async function handleUpdate(ctx: Context): Promise<HandleUpdateResult> {
   const userId = (user as { _id: unknown })._id?.toString() ?? "";
   const state = await loadStateForUser(chatIdStr, userId);
 
-  if (ctx.message?.text && !ctx.message.text.startsWith("/")) {
+  if (ctx.message?.text && (!ctx.message.text.startsWith("/") || ctx.message.text === "/skip")) {
     if (state.step === "awaiting_prompt") {
       try {
         checkTelegramRateLimit(

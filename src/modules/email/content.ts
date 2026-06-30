@@ -17,6 +17,7 @@ export function extractSubject(content: string): string {
       .find((l) => l.length > 0) ?? "";
   const match = firstLine.match(SUBJECT_PREFIX);
   if (match) return match[1]!.trim().slice(0, 200);
+  if (/^subject\s*:/i.test(firstLine)) return "Email from AutoCompose";
   return firstLine.slice(0, 200) || "Email from AutoCompose";
 }
 

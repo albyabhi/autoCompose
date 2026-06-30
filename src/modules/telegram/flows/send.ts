@@ -214,6 +214,14 @@ export async function handleSubjectInput(ctx: Context, text: string): Promise<vo
   const auto = extractSubject(state.draftSnapshot);
   let subject: string;
   if (trimmed.toLowerCase() === "/skip") {
+    if (!auto || auto === "Email from AutoCompose") {
+      await replyHtml(
+        ctx,
+        "❌ Could not detect an auto-generated subject.\n\n" +
+          "Please type a custom subject, or /cancel to abort."
+      );
+      return;
+    }
     subject = auto;
   } else if (trimmed.length === 0) {
     await replyHtml(
@@ -246,6 +254,12 @@ export async function handleSendConfirm(ctx: Context): Promise<void> {
   const subject = state.pendingSubject;
   const body = state.draftSnapshot;
   if (!to || !subject || !body) {
+    logger.warn("handleSendConfirm: missing fields", {
+      userId,
+      hasTo: !!to,
+      hasSubject: !!subject,
+      hasBody: !!body,
+    });
     await answerCb(ctx, "Missing data");
     await saveState(chatId.toString(), userId, { step: "idle" });
     await replyHtml(ctx, "❌ Send flow lost. Please start over with /menu.", {

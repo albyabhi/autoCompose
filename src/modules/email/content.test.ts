@@ -59,4 +59,18 @@ describe("parseEmailContent", () => {
   it("extractSubject returns 'Email from AutoCompose' for whitespace-only input", () => {
     expect(extractSubject("   \n  \n")).toBe("Email from AutoCompose");
   });
+
+  it("extractSubject returns default for empty Subject: prefix", () => {
+    const result = extractSubject("Subject:\n\nBody text here\n");
+    expect(result).toBe("Email from AutoCompose");
+  });
+
+  it("extractSubject falls back for Subject: with whitespace only", () => {
+    const result = extractSubject("Subject:   \n\nBody text here\n");
+    expect(result).toBe("Email from AutoCompose");
+  });
+
+  it("extractSubject returns auto subject from Subject: with valid content", () => {
+    expect(extractSubject("Subject: Meeting notes\n\nBody")).toBe("Meeting notes");
+  });
 });
