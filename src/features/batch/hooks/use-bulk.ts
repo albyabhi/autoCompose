@@ -122,7 +122,8 @@ export function useDeleteEntry() {
         }
       }
     },
-    onSettled: (data, _error, _id, context) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSettled: (data, _error, _id, _context) => {
       if (data?.wasTemp) return;
       qc.invalidateQueries({ queryKey: BULK_KEY });
     },

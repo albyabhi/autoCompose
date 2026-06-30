@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
@@ -17,11 +17,8 @@ interface ResponseDisplayProps {
 export function ResponseDisplay({ content, modelUsed, loading, error, defaultRecipient }: ResponseDisplayProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [recipient, setRecipient] = useState(defaultRecipient ?? "");
-
-  useEffect(() => {
-    setRecipient(defaultRecipient ?? "");
-  }, [defaultRecipient]);
+  const [recipientLocal, setRecipientLocal] = useState(defaultRecipient ?? "");
+  const recipient = defaultRecipient ?? recipientLocal;
 
   const emailConfigured = !!profileData?.profile?.emailCredentials?.emailConfigured;
   const gmailAddress = profileData?.profile?.emailCredentials?.gmailAddress;
@@ -72,7 +69,7 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
               className="response-recipient-input"
               type="email"
               value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
+              onChange={(e) => setRecipientLocal(e.target.value)}
               placeholder="recipient@example.com"
             />
           </div>

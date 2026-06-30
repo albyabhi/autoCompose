@@ -3,7 +3,6 @@
 import { useInfiniteSessions } from "../hooks/use-sessions";
 import { SessionCard } from "./session-card";
 import { SkeletonList } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
 import { useRef, useCallback } from "react";
 
 interface SessionListProps {

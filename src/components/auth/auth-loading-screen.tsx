@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 interface AuthLoadingScreenProps {
   onComplete: () => void;
@@ -17,40 +17,35 @@ const MIN_DISPLAY_MS = 2000;
 
 export function AuthLoadingScreen({
   onComplete,
-  variant,
 }: AuthLoadingScreenProps) {
-  const [elapsed, setElapsed] = useState(0);
   const [stage, setStage] = useState(0);
-  const [done, setDone] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const start = performance.now();
+    const onCompleteRef = onComplete;
+
     const interval = setInterval(() => {
-      setElapsed(performance.now() - start);
+      const elapsed = performance.now() - start;
+      const pct = Math.min((elapsed / MIN_DISPLAY_MS) * 100, 100);
+      setProgress(pct);
+
+      if (elapsed > MIN_DISPLAY_MS * 0.4) {
+        setStage((prev) => (prev < 1 ? 1 : prev));
+      }
+      if (elapsed > MIN_DISPLAY_MS * 0.75) {
+        setStage((prev) => (prev < 2 ? 2 : prev));
+      }
+      if (elapsed >= MIN_DISPLAY_MS) {
+        clearInterval(interval);
+        onCompleteRef();
+      }
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [onComplete]);
 
-  useEffect(() => {
-    if (elapsed > MIN_DISPLAY_MS * 0.4 && stage < 1) setStage(1);
-    if (elapsed > MIN_DISPLAY_MS * 0.75 && stage < 2) setStage(2);
-  }, [elapsed, stage]);
-
-  const finish = useCallback(() => {
-    if (done) return;
-    setDone(true);
-    onComplete();
-  }, [done, onComplete]);
-
-  useEffect(() => {
-    if (stage === 2 && elapsed >= MIN_DISPLAY_MS) {
-      finish();
-    }
-  }, [stage, elapsed, finish]);
-
-  const progress = Math.min((elapsed / MIN_DISPLAY_MS) * 100, 100);
-  const seconds = (elapsed / 1000).toFixed(1);
+  const seconds = (progress / 100 * MIN_DISPLAY_MS / 1000).toFixed(1);
 
   return (
     <div className="auth-loading-screen">

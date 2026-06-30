@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { success, created, failure } from "@/utils/api-response";
+import { created, failure } from "@/utils/api-response";
 import { validate } from "@/utils/validation";
 import { generateEmailSchema } from "@/modules/email/validation";
 import { generateEmail } from "@/modules/email/service";

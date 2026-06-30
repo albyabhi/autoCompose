@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 import { extractEmailFromText, parseEmailContent } from "@/modules/email/content";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
@@ -20,31 +20,25 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
   const deleteMutation = useDeleteEntry();
   const updateMutation = useUpdateEntry();
 
+  const [prevEntry, setPrevEntry] = useState(entry);
   const [localCategory, setLocalCategory] = useState(entry.category);
   const [localPrompt, setLocalPrompt] = useState(entry.prompt);
   const [localRecipient, setLocalRecipient] = useState(entry.recipient);
   const [isEditing, setIsEditing] = useState(entry.status === "pending" || entry.status === "failed");
   const [showPrompt, setShowPrompt] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
+  if (prevEntry !== entry) {
+    setPrevEntry(entry);
     setLocalCategory(entry.category);
     setLocalPrompt(entry.prompt);
     setLocalRecipient(entry.recipient);
     if (entry.status === "pending" || entry.status === "failed") {
       setIsEditing(true);
     }
-  }, [entry.category, entry.prompt, entry.recipient, entry.status]);
-
-  useEffect(() => {
-    if (entry.status === "generated" || entry.status === "failed" || entry.status === "sent") {
-      setIsGenerating(false);
-    }
-  }, [entry.status]);
+  }
 
   async function handleGenerate() {
-    setIsGenerating(true);
     setIsEditing(false);
     if (entry.status === "pending" || entry.status === "failed") {
       await updateMutation.mutateAsync({
@@ -64,7 +58,6 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
   }
 
   function handleRegenerate() {
-    setIsGenerating(true);
     generateMutation.mutate({ entryId: entry.id, modelId });
   }
 
@@ -77,7 +70,8 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
 
   const isLoading = generateMutation.isPending;
   const isDeleting = deleteMutation.isPending;
-  const isDisabled = isLoading || isDeleting || isGenerating;
+  const isGenerating = entry.status === "generating" || entry.status === "sending" || isLoading;
+  const isDisabled = isDeleting || isGenerating;
 
   const statusBadge = (() => {
     if (isGenerating || entry.status === "generating" || entry.status === "sending") {

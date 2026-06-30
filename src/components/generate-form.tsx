@@ -27,10 +27,22 @@ export function GenerateForm() {
   const setDraft = useLayoutStore((s) => s.setDraft);
   const clearDraft = useLayoutStore((s) => s.clearDraft);
 
-  const [restored, setRestored] = useState(false);
-  const [prompt, setPrompt] = useState("");
-  const [promptEdited, setPromptEdited] = useState(false);
-  const [category, setCategory] = useState<EmailCategory>("custom");
+  const [restored, setRestored] = useState(() => {
+    const saved = useLayoutStore.getState().draft;
+    return !initialSessionId && !clonePrompt && !!saved;
+  });
+  const [prompt, setPrompt] = useState(() => {
+    const saved = useLayoutStore.getState().draft;
+    return !initialSessionId && !clonePrompt && saved ? saved.prompt : "";
+  });
+  const [promptEdited, setPromptEdited] = useState(() => {
+    const saved = useLayoutStore.getState().draft;
+    return !initialSessionId && !clonePrompt && !!saved;
+  });
+  const [category, setCategory] = useState<EmailCategory>(() => {
+    const saved = useLayoutStore.getState().draft;
+    return !initialSessionId && !clonePrompt && saved ? (saved.category as EmailCategory) : "custom";
+  });
   const [tone, setTone] = useState<FormalityLevel | null>(null);
   const [modelId, setModelId] = useState<ModelId>("deepseek");
   const [userTouchedModel, setUserTouchedModel] = useState(false);
@@ -42,13 +54,6 @@ export function GenerateForm() {
 
   useEffect(() => {
     textareaRef.current?.focus();
-    const saved = useLayoutStore.getState().draft;
-    if (!initialSessionId && !clonePrompt && saved) {
-      setPrompt(saved.prompt);
-      setCategory(saved.category as EmailCategory);
-      setPromptEdited(true);
-      setRestored(true);
-    }
   }, []);
 
   useEffect(() => {

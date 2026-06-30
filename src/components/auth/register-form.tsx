@@ -3,27 +3,20 @@
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { register } from "@/app/actions/auth";
 import { AuthLoadingScreen } from "./auth-loading-screen";
 
 export function RegisterForm() {
   const router = useRouter();
   const [state, action, pending] = useActionState(register, undefined);
-  const [showLoading, setShowLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  useEffect(() => {
-    if (state?.success) {
-      setShowLoading(true);
-    }
-  }, [state]);
-
-  if (showLoading) {
+  if (state?.success) {
     return (
       <AuthLoadingScreen
         variant="register"

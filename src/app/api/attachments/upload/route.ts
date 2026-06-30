@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { success, failure } from "@/utils/api-response";
 import { requireAuth } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
-import { validateFile, validateAttachments, parseFormDataFiles, FILE_SIZE_LIMIT, TOTAL_ATTACHMENT_LIMIT, MAX_FILES_PER_SEND } from "@/utils/attachments";
+import { validateAttachments, parseFormDataFiles, MAX_FILES_PER_SEND } from "@/utils/attachments";
 import { storeAttachments } from "@/modules/attachments/service";
 
 export async function POST(request: NextRequest) {

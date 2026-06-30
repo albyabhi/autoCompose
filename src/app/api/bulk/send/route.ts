@@ -4,7 +4,6 @@ import { validate } from "@/utils/validation";
 import { sendEntrySchema } from "@/modules/bulk/validation";
 import { sendEntry } from "@/modules/bulk/service";
 import { requireAuth } from "@/lib/auth/session";
-import { AppError } from "@/lib/errors";
 import { parseFormDataFiles } from "@/utils/attachments";
 import { getAttachments } from "@/modules/attachments/service";
 

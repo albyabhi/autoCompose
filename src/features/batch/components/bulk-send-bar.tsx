@@ -3,7 +3,6 @@
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useSendEntry, useSendEntryWithAttachments, useUploadAttachments } from "../hooks/use-bulk";
-import { formatFileSize } from "@/utils/attachments";
 import type { BulkEntryData } from "../types";
 
 interface BulkSendBarProps {
@@ -18,6 +17,7 @@ export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap
   const sendWithAttachmentsMutation = useSendEntryWithAttachments();
   const uploadMutation = useUploadAttachments();
   const [sending, setSending] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, failed: 0, phase: "idle" as "idle" | "uploading" | "sending" });
   const abortRef = useRef(false);
@@ -30,9 +30,6 @@ export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap
   const failedCount = entries.filter((e) => e.status === "failed").length;
 
   const hasSharedFiles = sharedFiles.length > 0;
-  const totalFileCount = hasSharedFiles
-    ? sharedFiles.length
-    : 0;
 
   const sendOne = useCallback(
     async (entry: BulkEntryData): Promise<boolean> => {
@@ -147,7 +144,6 @@ export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap
 
   const pct = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
   const isUploading = progress.phase === "uploading";
-  const isSending = progress.phase === "sending";
 
   return (
     <div className="bulk-send-bar">

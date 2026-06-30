@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useActionState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AuthLoadingScreen } from "./auth-loading-screen";
 
 async function loginAction(
@@ -62,18 +62,11 @@ export function LoginForm() {
   const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [state, action, pending] = useActionState(loginAction, null);
-  const [showLoading, setShowLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (state?.success) {
-      setShowLoading(true);
-    }
-  }, [state]);
-
-  if (showLoading) {
+  if (state?.success) {
     return (
       <AuthLoadingScreen
         variant="login"

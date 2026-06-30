@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { parseEmailContent } from "@/modules/email/content";
@@ -16,11 +16,8 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showFullPrompt, setShowFullPrompt] = useState(false);
-  const [recipient, setRecipient] = useState(defaultRecipient ?? "");
-
-  useEffect(() => {
-    setRecipient(defaultRecipient ?? "");
-  }, [defaultRecipient]);
+  const [recipientLocal, setRecipientLocal] = useState(defaultRecipient ?? "");
+  const recipient = defaultRecipient ?? recipientLocal;
 
   const isAssistant = message.role === "assistant";
   const emailConfigured =
@@ -51,7 +48,7 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
                   className="message-recipient-input"
                   type="email"
                   value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
+                  onChange={(e) => setRecipientLocal(e.target.value)}
                   placeholder="recipient@example.com"
                 />
               </div>

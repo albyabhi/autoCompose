@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AppError, isAppError } from "@/lib/errors";
+import { isAppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
 interface ApiSuccessResponse<T> {
@@ -42,7 +42,6 @@ export function failure(error: unknown): NextResponse<ApiErrorResponse> {
     );
   }
 
-  const message = error instanceof Error ? error.message : "An unexpected error occurred";
   logger.error("Unexpected error", error instanceof Error ? { message: error.message, stack: error.stack } : error);
 
   return NextResponse.json(

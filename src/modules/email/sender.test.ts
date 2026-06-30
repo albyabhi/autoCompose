@@ -37,7 +37,7 @@ describe("sendEmail", () => {
     });
 
     expect(mocks.createTransport).toHaveBeenCalledTimes(1);
-    const config = mocks.createTransport.mock.calls[0]![0];
+    const config = (mocks.createTransport.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(config.host).toBe("smtp.gmail.com");
     expect(config.port).toBe(465);
     expect(config.secure).toBe(true);

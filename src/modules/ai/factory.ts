@@ -1,6 +1,5 @@
-import { AIProvider, ModelId } from "./types";
+import { AIProvider } from "./types";
 import { NvidiaNIMProvider } from "./providers/nvidia";
-import { AIProviderError } from "@/lib/errors";
 
 const providers = new Map<string, AIProvider>();
 

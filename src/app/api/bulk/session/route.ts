@@ -5,7 +5,8 @@ import { connectDB } from "@/lib/db";
 import { Session } from "@/models/session";
 import { recordAudit } from "@/lib/audit";
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
+  void request;
   try {
     const user = await requireAuth();
     await connectDB();
