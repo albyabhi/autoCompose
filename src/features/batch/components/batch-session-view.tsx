@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useBulkEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
 import { Button } from "@/components/ui/button";
 import { BulkRow } from "./bulk-row";
 import { BulkSendBar } from "./bulk-send-bar";
 import { BulkPreviewDialog } from "./bulk-preview-dialog";
-import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
-import { AttachmentUpload } from "@/components/ui/attachment-upload";
+import { type EmailCategory } from "@/modules/email/categories";
+import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useRouter } from "next/navigation";
+import { BatchSettingsPanel } from "./batch-settings-panel";
 import type { BulkEntryData } from "../types";
 
 interface BatchSessionViewProps {
@@ -23,8 +25,35 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
   const [sharedFiles, setSharedFiles] = useState<File[]>([]);
   const [rowFilesMap, setRowFilesMap] = useState<Record<string, File[]>>({});
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const batchUpdateMutation = useBatchUpdateCategory();
+  const { data: profileData } = useProfile();
   const router = useRouter();
+
+  const storedPreferred = profileData?.profile?.preferences?.preferredModel;
+  const modelId =
+    typeof storedPreferred === "string" &&
+    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+      ? (storedPreferred as ModelId)
+      : "deepseek";
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          setIsSettingsExpanded(false);
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   if (isLoading) {
     return <div className="session-detail"><div className="loading-spinner" /></div>;
@@ -42,12 +71,6 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
   function handleRowFilesChange(entryId: string, files: File[]) {
     setRowFilesMap((prev) => ({ ...prev, [entryId]: files }));
   }
-
-  const sharedFileCount = sharedFiles.length;
-  const totalRowFileCount = Object.values(rowFilesMap).reduce(
-    (sum, files) => sum + files.length,
-    0
-  );
 
   return (
     <div className="session-detail">
@@ -69,42 +92,21 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
         </div>
       </div>
 
-      {entries.length > 0 && (
-        <div className="batch-toolbar">
-          <div className="batch-toolbar__group">
-            <span className="batch-toolbar__label">Mail Type</span>
-            <div className="batch-toolbar__row">
-              <select
-                className="batch-toolbar__select"
-                value={toolbarCategory}
-                onChange={(e) => setToolbarCategory(e.target.value as EmailCategory)}
-                aria-label="Mail type for bulk operations"
-              >
-                {CATEGORY_OPTIONS.map((cat) => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
-                ))}
-              </select>
-              <Button
-                variant="secondary"
-                disabled={pendingCount === 0 || batchUpdateMutation.isPending}
-                onClick={handleApplyCategoryToAll}
-              >
-                Apply to All ({pendingCount})
-              </Button>
-            </div>
-          </div>
-          <AttachmentUpload
-            files={sharedFiles}
-            onFilesChange={setSharedFiles}
-            label="Shared Attachments (sent to all)"
-          />
-          <div className="batch-toolbar__count">
-            {entries.length} rows
-            {sharedFileCount > 0 && ` · ${sharedFileCount} shared files`}
-            {totalRowFileCount > 0 && ` · ${totalRowFileCount} row files`}
-          </div>
-        </div>
-      )}
+      <BatchSettingsPanel
+        expanded={isSettingsExpanded}
+        onToggle={() => setIsSettingsExpanded((prev) => !prev)}
+        toolbarCategory={toolbarCategory}
+        onCategoryChange={setToolbarCategory}
+        entryCount={entries.length}
+        pendingCount={pendingCount}
+        onApplyToAll={handleApplyCategoryToAll}
+        applyingCategory={false}
+        batchUpdatePending={batchUpdateMutation.isPending}
+        sharedFiles={sharedFiles}
+        onSharedFilesChange={setSharedFiles}
+      />
+
+      <div ref={sentinelRef} className="batch-sentinel" />
 
       {entries.length === 0 ? (
         <div className="session-detail__messages">
@@ -117,7 +119,7 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
               <BulkRow
                 key={entry.id}
                 entry={entry}
-                modelId="deepseek"
+                modelId={modelId}
                 onPreview={setPreviewEntry}
                 rowFiles={rowFilesMap[entry.id] ?? []}
                 onRowFilesChange={(files) => handleRowFilesChange(entry.id, files)}
@@ -137,3 +139,12 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
     </div>
   );
 }
+
+// ============================================================
+// FILE: src/features/batch/components/batch-session-view.tsx
+// ============================================================
+// PURPOSE: View for displaying/resuming an existing batch session.
+// HOW IT WORKS: Fetches entries by sessionId, renders toolbar with Mail Type selector and Apply to All, lists BulkRow components, and provides BulkSendBar. Model is read from user profile preferences.
+// PROPS: sessionId (string), title (string), category (string).
+// INTEGRATION: React Query hooks, BulkRow, BulkSendBar, BulkPreviewDialog, profile preferences.
+// ============================================================

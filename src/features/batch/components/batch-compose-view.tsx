@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ModelSelector } from "@/components/model-selector";
-import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
-import { AttachmentUpload } from "@/components/ui/attachment-upload";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
+import { type EmailCategory } from "@/modules/email/categories";
 import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useBulkEntries, useCreateBatchSession, useCreateEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
-import { BatchStepper } from "./batch-stepper";
-import { BatchSidebar } from "./batch-sidebar";
+import { BatchSettingsPanel } from "./batch-settings-panel";
+import { BatchHelpDialog } from "./batch-help-dialog";
 import { BulkTable } from "./bulk-table";
 
 interface BatchComposeViewProps {
@@ -23,14 +18,15 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   const router = useRouter();
 
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId ?? undefined);
-  const [modelId, setModelId] = useState<ModelId>("deepseek");
-  const [userTouchedModel, setUserTouchedModel] = useState(false);
 
   const [addCount, setAddCount] = useState(5);
   const [toolbarCategory, setToolbarCategory] = useState<EmailCategory>("custom");
   const [applyingCategory, setApplyingCategory] = useState(false);
   const [sharedFiles, setSharedFiles] = useState<File[]>([]);
   const [rowFilesMap, setRowFilesMap] = useState<Record<string, File[]>>({});
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const createSessionMutation = useCreateBatchSession();
   const createEntriesMutation = useCreateEntries();
@@ -40,18 +36,29 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   const { data: profileData } = useProfile();
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;
   const effectiveModelId =
-    !userTouchedModel &&
     typeof storedPreferred === "string" &&
     (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
       ? (storedPreferred as ModelId)
-      : modelId;
-
-  const handleModelChange = (next: ModelId) => {
-    setUserTouchedModel(true);
-    setModelId(next);
-  };
+      : "deepseek";
 
   const isCreatingSession = createSessionMutation.isPending;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          setIsSettingsExpanded(false);
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const ensureSession = useCallback(async () => {
     if (sessionId) return sessionId;
@@ -62,6 +69,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   }, [sessionId, createSessionMutation, router]);
 
   const handleAddRow = useCallback(async () => {
+    setIsSettingsExpanded(false);
     const currentSessionId = await ensureSession();
     if (currentSessionId) {
       createEntriesMutation.mutate({
@@ -78,6 +86,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
   }, [ensureSession, createEntriesMutation, toolbarCategory]);
 
   const handleAddMultiple = useCallback(async () => {
+    setIsSettingsExpanded(false);
     const currentSessionId = await ensureSession();
     if (!currentSessionId || addCount < 1) return;
 
@@ -106,6 +115,10 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     }
   }, [sessionId, toolbarCategory, batchUpdateMutation]);
 
+  const handleToggleSettings = useCallback(() => {
+    setIsSettingsExpanded((prev) => !prev);
+  }, []);
+
   const readyCount = entries.filter((e) => e.status === "generated").length;
   const pendingCount = entries.filter((e) => e.status === "pending" || e.status === "failed").length;
 
@@ -115,98 +128,46 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
 
   return (
     <div className="batch-compose">
-      {/* HEADER */}
       <header className="batch-compose__header">
-        <div className="batch-compose__header-top">
-          <span className="batch-compose__step-badge">Step 1</span>
-        </div>
-        <h2 className="batch-compose__title">Configure Your Batch</h2>
+        <h2 className="batch-compose__title">New Batch</h2>
         <p className="batch-compose__subtitle">
-          Set up your batch email generation settings before adding recipients.
+          Set up your batch before adding recipients.
         </p>
       </header>
 
-      {/* 2-COLUMN LAYOUT */}
       <div className="batch-compose__layout">
-        {/* LEFT COLUMN — Main Controls */}
         <div className="batch-compose__main">
-          {/* Primary Controls Card */}
-          <Card>
-            <CardHeader>Primary Controls</CardHeader>
-            <CardBody>
-              <div className="batch-primary-controls">
-                <div className="batch-primary-controls__model">
-                  <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
-                  
-                </div>
+          <BatchSettingsPanel
+            expanded={isSettingsExpanded}
+            onToggle={handleToggleSettings}
+            toolbarCategory={toolbarCategory}
+            onCategoryChange={setToolbarCategory}
+            entryCount={entries.length}
+            pendingCount={pendingCount}
+            onApplyToAll={handleApplyCategoryToAll}
+            applyingCategory={applyingCategory}
+            batchUpdatePending={batchUpdateMutation.isPending}
+            addCount={addCount}
+            onAddCountChange={setAddCount}
+            createEntriesPending={createEntriesMutation.isPending}
+            isCreatingSession={isCreatingSession}
+            onAddMultiple={handleAddMultiple}
+            sharedFiles={sharedFiles}
+            onSharedFilesChange={setSharedFiles}
+          />
 
-                <div className="batch-primary-controls__mail-type">
-                  <Select
-                    label="Mail Type"
-                    value={toolbarCategory}
-                    onChange={(e) => setToolbarCategory(e.target.value as EmailCategory)}
-                    options={CATEGORY_OPTIONS}
-                  />
-                </div>
+          <div ref={sentinelRef} className="batch-sentinel" />
 
-                <div className="batch-primary-controls__apply">
-                  <Button
-                    variant="secondary"
-                    onClick={handleApplyCategoryToAll}
-                    disabled={!sessionId || pendingCount === 0 || applyingCategory || batchUpdateMutation.isPending}
-                  >
-                    Apply to All
-                  </Button>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Stepper Row */}
-          <div className="batch-stepper-row">
-            <BatchStepper
-              value={addCount}
-              onChange={setAddCount}
-              min={1}
-              max={50}
-              disabled={createEntriesMutation.isPending || isCreatingSession}
-            />
-            <Button
-              onClick={handleAddMultiple}
-              disabled={createEntriesMutation.isPending || isCreatingSession}
-            >
-              + Add {addCount}
-            </Button>
-          </div>
-
-          {/* Shared Attachments Card */}
-          <Card>
-            <CardHeader>Shared Attachments</CardHeader>
-            <CardBody>
-              <p className="batch-compose__card-hint">
-                Files sent with every email.
-              </p>
-              <AttachmentUpload
-                files={sharedFiles}
-                onFilesChange={setSharedFiles}
-                label="Attachments"
-              />
-            </CardBody>
-          </Card>
-
-          {/* Entry Stats */}
           {entries.length > 0 && (
             <div className="batch-compose__stats">
               {entries.length} rows · {readyCount} ready · {pendingCount} pending
             </div>
           )}
         </div>
-
-        {/* RIGHT COLUMN — Sidebar */}
-        <BatchSidebar />
       </div>
 
-      {/* BULK TABLE — Below grid */}
+      <BatchHelpDialog />
+
       {isLoading ? (
         <div className="batch-compose__loading">Loading entries...</div>
       ) : (
@@ -226,8 +187,8 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
 // ============================================================
 // FILE: src/features/batch/components/batch-compose-view.tsx
 // ============================================================
-// PURPOSE: Main batch email configuration page with 2-column desktop layout.
-// HOW IT WORKS: Renders a header with step badge, title, and subtitle. Below is a CSS Grid layout with a 70% left column (primary controls card, stepper row, shared attachments card) and a 30% right column (sidebar with collapsible quick tips). The BulkTable renders below the grid. Uses Card, Select, Button, ModelSelector, BatchStepper, and BatchSidebar primitives. Responsive: collapses to single column at 768px.
+// PURPOSE: Main batch email configuration page.
+// HOW IT WORKS: Single-column layout with collapsible BatchSettingsPanel and BulkTable. IntersectionObserver on a sentinel element auto-collapses the panel when user scrolls down into entries. A floating indicator button re-expands when collapsed. AI model is read from user profile preferences.
 // PROPS: initialSessionId (optional string) for resuming an existing batch session.
-// INTEGRATION: React Query hooks for batch operations, AI model types, email categories, attachment upload, profile preferences.
+// INTEGRATION: React Query hooks for batch operations, BatchSettingsPanel, BulkTable, BatchHelpDialog, email categories, attachment upload, profile preferences.
 // ============================================================
