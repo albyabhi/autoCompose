@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { success, failure } from "@/utils/api-response";
 import { requireAuth } from "@/lib/auth/session";
-import { uploadAndParseResume, getResume, deleteResume } from "@/modules/resume/service";
+import { uploadAndParseResume, getResume, updateResume, deleteResume } from "@/modules/resume/service";
+import { resumeUpdateSchema } from "@/modules/profile/validation";
 import { modelIdSchema, type ModelId } from "@/modules/ai/types";
 import { AppError, ValidationError } from "@/lib/errors";
 
@@ -89,6 +90,23 @@ export async function GET() {
     const user = await requireAuth();
     const resume = await getResume(user.userId);
     return success({ resume });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await requireAuth();
+    const body: Record<string, unknown> = await request.json();
+
+    const parsed = resumeUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ValidationError("Invalid resume data", parsed.error.flatten());
+    }
+
+    const result = await updateResume(user.userId, parsed.data);
+    return success({ resume: result });
   } catch (error) {
     return failure(error);
   }

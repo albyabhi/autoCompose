@@ -4,7 +4,7 @@ import { MODEL_IDS, type ModelId } from "@/modules/ai/types";
 import { getProfile, upsertProfile } from "@/modules/profile/service";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
-import type { ResumeData } from "@/modules/profile/validation";
+import type { ResumeData, ResumeUpdateData } from "@/modules/profile/validation";
 
 function e(error: unknown): Record<string, unknown> {
   if (error instanceof Error) {
@@ -421,6 +421,41 @@ export async function getResume(userId: string): Promise<ResumeData | null> {
   if (!profile || !profile.resume) return null;
   const safeResume = { ...profile.resume, rawText: undefined };
   return safeResume as unknown as ResumeData;
+}
+
+export async function updateResume(
+  userId: string,
+  data: ResumeUpdateData
+): Promise<ResumeUpdateData> {
+  const { Profile } = await import("@/models/profile");
+  const { connectDB } = await import("@/lib/db");
+  await connectDB();
+
+  const profile = await Profile.findOneAndUpdate(
+    { userId },
+    {
+      $set: {
+        "resume.name": data.name ?? "",
+        "resume.email": data.email ?? "",
+        "resume.phone": data.phone ?? "",
+        "resume.linkedin": data.linkedin ?? "",
+        "resume.github": data.github ?? "",
+        "resume.portfolio": data.portfolio ?? "",
+        "resume.skills": data.skills,
+        "resume.education": data.education,
+        "resume.experience": data.experience,
+        "resume.projects": data.projects,
+      },
+    },
+    { returnDocument: "after" }
+  );
+
+  if (!profile) {
+    throw new AppError("PROFILE_NOT_FOUND", "Profile not found", 404);
+  }
+
+  logger.info("Resume updated", { userId });
+  return data;
 }
 
 export async function deleteResume(userId: string): Promise<void> {

@@ -4,7 +4,7 @@ import { useResume, useUploadResume, useDeleteResume } from "../hooks/use-resume
 import { useProfile } from "../hooks/use-profile";
 import { useState, useRef } from "react";
 import type { ResumeData } from "../api/resume";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CATEGORY_POLICIES, isEmailCategory } from "@/modules/email/categories";
 import { MODEL_IDS_KEYS, MODEL_LABELS, type ModelId } from "@/modules/ai/types";
 
@@ -144,6 +144,7 @@ function ViewModal({
 }
 
 export function ResumeWidget() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") ?? "";
   const relevant = isEmailCategory(category) && CATEGORY_POLICIES[category].profileSections.includes("resume");
@@ -360,6 +361,13 @@ export function ResumeWidget() {
           )}
 
           <div className="resume-summary__actions">
+            <button
+              className="settings-section__save"
+              onClick={() => router.push("/settings/resume/edit")}
+              disabled={isBusy}
+            >
+              Edit
+            </button>
             <button
               className="settings-section__save"
               onClick={() => setShowModal(true)}

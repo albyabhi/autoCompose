@@ -75,6 +75,10 @@ export async function uploadResume(
   throw new Error("Stream ended unexpectedly");
 }
 
+export async function updateResume(data: ResumeData): Promise<{ resume: ResumeData }> {
+  return api.patch<{ resume: ResumeData }>("/api/profile/resume", data);
+}
+
 export async function deleteResume(): Promise<{ deleted: boolean }> {
   return api.delete<{ deleted: boolean }>("/api/profile/resume");
 }

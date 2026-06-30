@@ -93,6 +93,19 @@ export const resumeProjectSchema = z.object({
   url: z.string().optional(),
 });
 
+export const resumeUpdateSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  linkedin: z.string().optional(),
+  github: z.string().optional(),
+  portfolio: z.string().optional(),
+  skills: z.array(z.string()).max(15),
+  education: z.array(resumeEducationSchema).max(5),
+  experience: z.array(resumeExperienceSchema).max(10),
+  projects: z.array(resumeProjectSchema).max(10),
+});
+
 export const resumeSchema = z.object({
   rawText: z.string().optional(),
   name: z.string().optional(),
@@ -123,6 +136,7 @@ export const profileCreateSchema = z.object({
 });
 
 export type ResumeData = z.infer<typeof resumeSchema>;
+export type ResumeUpdateData = z.infer<typeof resumeUpdateSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ProfileCreateInput = z.infer<typeof profileCreateSchema>;
 
