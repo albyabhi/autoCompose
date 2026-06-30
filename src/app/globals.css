@@ -2270,6 +2270,12 @@ body {
   color: #888;
 }
 
+.session-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .session-detail__load-earlier {
   display: flex;
   justify-content: center;
@@ -2280,6 +2286,35 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .session-detail__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .session-detail__title {
+    font-size: 22px;
+  }
+
+  .session-detail__category {
+    font-size: 11px;
+  }
+
+  .session-detail__actions {
+    flex-direction: column;
+  }
+
+  .session-detail__actions .btn {
+    width: 100%;
+    font-size: 13px;
+    padding: 10px 16px;
+    min-height: 44px;
+    box-shadow: 3px 3px 0 #000;
+    justify-content: center;
+  }
 }
 
 /* =========== MESSAGE =========== */

@@ -64,18 +64,18 @@ export function SessionView({ id }: SessionViewProps) {
           <h1 className="session-detail__title">{session.title}</h1>
           <span className="session-detail__category">{session.category.replace(/_/g, " ")}</span>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button
-            variant="secondary"
-            onClick={() => router.push(`/?sessionId=${session.id}&clone=true`)}
-          >
-            Edit Prompt & Generate
-          </Button>
+        <div className="session-detail__actions">
           <Button
             variant="primary"
             onClick={() => router.push(`/?sessionId=${session.id}`)}
           >
             Continue
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/?sessionId=${session.id}&clone=true`)}
+          >
+            Edit & Generate
           </Button>
         </div>
       </div>
@@ -98,14 +98,6 @@ export function SessionView({ id }: SessionViewProps) {
             icon="✉"
             title="No messages yet"
             description="Start a conversation to see messages here."
-            action={
-              <Button
-                variant="primary"
-                onClick={() => router.push(`/?sessionId=${session.id}`)}
-              >
-                Start Writing
-              </Button>
-            }
           />
         ) : (
           messages.map((msg, idx) => {
