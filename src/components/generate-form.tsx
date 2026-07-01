@@ -48,6 +48,8 @@ export function GenerateForm() {
   const [userTouchedModel, setUserTouchedModel] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [modelUsed, setModelUsed] = useState<string | null>(null);
+  const [generatedSessionId, setGeneratedSessionId] = useState<string | undefined>(initialSessionId || undefined);
+  const [assistantMessageId, setAssistantMessageId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [extractedRecipient, setExtractedRecipient] = useState<string | null>(null);
@@ -109,6 +111,8 @@ export function GenerateForm() {
 
       setResponse(data.data.content);
       setModelUsed(data.data.modelUsed);
+      setGeneratedSessionId(data.data.sessionId);
+      setAssistantMessageId(data.data.assistantMessageId);
       setExtractedRecipient(extractEmailFromText(effectivePrompt));
       clearDraft();
       
@@ -227,6 +231,11 @@ export function GenerateForm() {
         loading={loading}
         error={error}
         defaultRecipient={extractedRecipient ?? undefined}
+        sourceSessionId={generatedSessionId}
+        sourceMessageId={assistantMessageId}
+        category={effectiveCategory}
+        prompt={effectivePrompt}
+        modelId={effectiveModelId}
       />
     </div>
   );

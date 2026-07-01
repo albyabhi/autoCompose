@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
 import { SendEmailDialog } from "./send-email-dialog";
+import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 
 interface ResponseDisplayProps {
   content: string | null;
@@ -12,11 +13,28 @@ interface ResponseDisplayProps {
   loading: boolean;
   error: string | null;
   defaultRecipient?: string;
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  category?: string;
+  prompt?: string;
+  modelId?: string;
 }
 
-export function ResponseDisplay({ content, modelUsed, loading, error, defaultRecipient }: ResponseDisplayProps) {
+export function ResponseDisplay({
+  content,
+  modelUsed,
+  loading,
+  error,
+  defaultRecipient,
+  sourceSessionId,
+  sourceMessageId,
+  category,
+  prompt,
+  modelId,
+}: ResponseDisplayProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [recipientLocal, setRecipientLocal] = useState(defaultRecipient ?? "");
   const recipient = defaultRecipient ?? recipientLocal;
 
@@ -62,10 +80,10 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
         {modelUsed && <span className="response-model">via {modelUsed}</span>}
       </div>
       <div className="response-content">
-        {recipient && (
           <div className="response-recipient">
-            <span className="response-recipient-label">To:</span>
+            <label htmlFor="response-recipient-input" className="response-recipient-label">To:</label>
             <input
+              id="response-recipient-input"
               className="response-recipient-input"
               type="email"
               value={recipient}
@@ -73,7 +91,6 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
               placeholder="recipient@example.com"
             />
           </div>
-        )}
         <div className="response-subject">
           <span className="response-subject-label">Subject:</span>
           <span className="response-subject-text">{subject}</span>
@@ -105,6 +122,14 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
         >
           Send via Email
         </button>
+        <button
+          className="send-btn send-btn--schedule"
+          onClick={() => setScheduleOpen(true)}
+          disabled={!recipient?.trim()}
+          title={recipient?.trim() ? "Schedule this generated email" : "Add a recipient before scheduling"}
+        >
+          Add to Schedule
+        </button>
         {!emailConfigured && !isProfileLoading && (
           <Link
             className="send-btn-hint"
@@ -122,6 +147,23 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
         defaultBody={body}
         defaultRecipient={recipient || undefined}
       />
+      <AddToScheduleDialog
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        emails={[
+          {
+            sourceType: "single",
+            sourceSessionId,
+            sourceMessageId,
+            to: recipient,
+            subject,
+            body,
+            category,
+            prompt,
+            modelId,
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -136,6 +178,6 @@ export function ResponseDisplay({ content, modelUsed, loading, error, defaultRec
 //   Copy button writes cleaned content to clipboard. Send button opens the
 //   SendEmailDialog if Gmail credentials are configured, otherwise shows a
 //   link to Settings. Shows model used as a badge.
-// PROPS: content (string|null), modelUsed (string|null), loading, error
-// INTEGRATION: Email content parser, profile hook (credential check), SendEmailDialog
+// PROPS: content/modelUsed/loading/error plus optional source metadata for scheduling.
+// INTEGRATION: Email content parser, profile hook, SendEmailDialog, AddToScheduleDialog
 // ============================================================

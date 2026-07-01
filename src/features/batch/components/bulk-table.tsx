@@ -6,6 +6,8 @@ import { BulkSendBar } from "./bulk-send-bar";
 import { BulkPreviewDialog } from "./bulk-preview-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { BulkEntryData } from "../types";
+import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
+import type { AddScheduledEmailPayload } from "@/features/schedule/types";
 
 interface BulkTableProps {
   entries: BulkEntryData[];
@@ -25,6 +27,31 @@ export function BulkTable({
   onRowFilesChange,
 }: BulkTableProps) {
   const [previewEntry, setPreviewEntry] = useState<BulkEntryData | null>(null);
+  const [schedulePayloads, setSchedulePayloads] = useState<AddScheduledEmailPayload[]>([]);
+  const [scheduleSkippedCount, setScheduleSkippedCount] = useState(0);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+
+  function toSchedulePayload(entry: BulkEntryData): AddScheduledEmailPayload | null {
+    if (!entry.recipient?.trim()) return null;
+    if (entry.status === "generating" || entry.status === "sending" || entry.status === "sent") {
+      return null;
+    }
+    if (!entry.generatedContent && entry.prompt.length < 10) return null;
+    return {
+      sourceType: "batch",
+      sourceBulkEntryId: entry.id,
+      modelId,
+    };
+  }
+
+  function openScheduleDialog(targetEntries: BulkEntryData[]) {
+    const payloads = targetEntries
+      .map(toSchedulePayload)
+      .filter((payload): payload is AddScheduledEmailPayload => payload !== null);
+    setSchedulePayloads(payloads);
+    setScheduleSkippedCount(targetEntries.length - payloads.length);
+    setScheduleDialogOpen(true);
+  }
 
   return (
     <div className="bulk-table-wrapper">
@@ -47,6 +74,7 @@ export function BulkTable({
               entry={entry}
               modelId={modelId}
               onPreview={setPreviewEntry}
+              onSchedule={(entry) => openScheduleDialog([entry])}
               rowFiles={rowFilesMap[entry.id] ?? []}
               onRowFilesChange={
                 onRowFilesChange
@@ -64,14 +92,28 @@ export function BulkTable({
         </button>
       )}
 
-      <BulkSendBar entries={entries} onComplete={() => {}} sharedFiles={sharedFiles} />
+      <BulkSendBar
+        entries={entries}
+        onComplete={() => {}}
+        sharedFiles={sharedFiles}
+        rowFilesMap={rowFilesMap}
+        onScheduleAll={() => openScheduleDialog(entries)}
+      />
 
       {previewEntry && (
         <BulkPreviewDialog
           entry={previewEntry}
           onClose={() => setPreviewEntry(null)}
+          onSchedule={(entry) => openScheduleDialog([entry])}
         />
       )}
+      <AddToScheduleDialog
+        open={scheduleDialogOpen}
+        onClose={() => setScheduleDialogOpen(false)}
+        emails={schedulePayloads}
+        skippedCount={scheduleSkippedCount}
+        title="Add Batch to Schedule"
+      />
     </div>
   );
 }
@@ -80,7 +122,8 @@ export function BulkTable({
 // FILE: src/features/batch/components/bulk-table.tsx
 // ============================================================
 // PURPOSE: Container component for the list of batch entries, send bar, and preview dialog.
-// HOW IT WORKS: Renders an EmptyState when no entries exist (with title "No batch entries yet" and a CTA button). When entries exist, maps them to BulkRow components. Includes BulkSendBar at the bottom and BulkPreviewDialog modal for previewing emails before sending.
+// HOW IT WORKS: Renders an EmptyState when no entries exist and maps entries
+//   to BulkRow components. Includes send/schedule bulk actions and a preview modal.
 // PROPS: entries (BulkEntryData[]), modelId (string), onAddRow (callback), sharedFiles (File[]), rowFilesMap (Record), onRowFilesChange (callback).
 // INTEGRATION: BulkRow, BulkSendBar, BulkPreviewDialog, EmptyState.
 // ============================================================

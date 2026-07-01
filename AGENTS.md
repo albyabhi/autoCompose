@@ -61,6 +61,31 @@ Quick rules:
 - Interactive states: hover shifts `-2px, -2px`, active shifts `4px, 4px` with shadow collapse
 - Focus: `4px solid yellow` outline
 
+### Email Categories
+
+7 categories defined in `src/modules/email/categories.ts`:
+- `job_application` — Tailored applications connecting user evidence to target role
+- `leave_request` — Clear leave date requests with handoff coverage
+- `sick_leave` — Concise notices without medical details
+- `resignation` — Professional resignations with final working date
+- `complaint` — Factual presentations with requested resolution
+- `meeting_request` — Scannable purpose, attendees, timing, and agenda
+- `custom` — User-defined objective with professional formatting
+
+Each category maps to specific profile sections injected into AI prompts.
+
+### AI Models
+
+NVIDIA NIM models configured in `src/config/index.ts`:
+- `deepseek` — deepseek-ai/deepseek-v4-flash
+- `nemotron` — nvidia/llama-3.3-nemotron-super-49b-v1.5
+- `gptOss` — openai/gpt-oss-20b
+- `mistralSmall` — mistralai/mistral-small-4-119b-2603
+- `llamaMaverick` — meta/llama-4-maverick-17b-128e-instruct
+- `minimaxM27` — minimaxai/minimax-m2.7
+- `llamaNemotronNano` — nvidia/llama-3.1-nemotron-nano-vl-8b-v1
+- `nemotron3Ultra` — nvidia/nemotron-3-ultra-550b-a55b
+
 ### Auth & Ownership
 
 - **Multi-tenant isolation:** Every document has `userId`. All queries MUST use `ownedFilter(userId)` from `src/lib/auth/ownership.ts`.
@@ -75,12 +100,20 @@ Quick rules:
 - **State:** Zustand (layout), TanStack React Query (server data)
 - **Auth:** NextAuth.js v5 (JWT + Credentials)
 - **Route group:** `(app)` applies AuthGuard + AppShell to all authenticated pages
+- **Telegram:** grammY SDK bot integration (`src/modules/telegram/`) with commands, callbacks, flows, and webhook
+- **Schedule:** Cron-based scheduled email sending with delivery state machine (`src/modules/schedule/`)
+- **Resume:** PDF/DOCX/TXT parsing via pdfjs-dist + mammoth with AI extraction (`src/modules/resume/`)
 
 ### Important Files
 
 - `src/config/index.ts` — Zod-validated env config singleton
 - `src/modules/email/service.ts` — Email generation + persistence
+- `src/modules/email/categories.ts` — 7 email categories with AI prompt policies
 - `src/modules/bulk/service.ts` — Batch email operations
+- `src/modules/schedule/service.ts` — Schedule CRUD, cron processing, delivery state machine
+- `src/modules/resume/service.ts` — PDF/DOCX/TXT parsing + AI extraction
+- `src/modules/telegram/bot.ts` — grammY Bot initialization and middleware
+- `src/modules/telegram/ai-bridge.ts` — Telegram → email generation bridge
 - `src/lib/crypto.ts` — Envelope encryption v2 with per-user DEKs (server-only)
 - `src/lib/key-rotation.ts` — KEK rotation utilities for annual key rotation
 - `src/lib/errors.ts` — AppError hierarchy
@@ -91,5 +124,5 @@ Quick rules:
 - **Envelope encryption v2:** Each user's app password is encrypted with a unique Data Encryption Key (DEK). The DEK is encrypted with a Key Encryption Key (KEK) derived from `AUTH_SECRET + userId`. This isolates blast radius — compromising `AUTH_SECRET` alone does not expose any user's plaintext credentials.
 - **Version detection:** `detectVersion()` inspects stored payload and routes to `decryptV1()` (legacy) or `decryptV2()` (envelope). Lazy migration converts v1 → v2 on next successful email send.
 - **Key rotation:** `rotateKEK(oldSecret, newSecret)` re-encrypts all DEKs. Run annually. `getKeyStatus()` reports v1/v2 counts.
-- **Migration script:** `npx tsx src/scripts/migrate-credentials-v2.ts [--dry-run]` for batch v1 → v2 conversion of inactive users.
+- **Migration script:** `npx tsx src/scripts/migrate-credentials-v2.ts [--dry-run] [--older-than-days=90]` for batch v1 → v2 conversion of inactive users.
 - **Key files:** `src/lib/crypto.ts` (encrypt/decrypt v1+v2), `src/lib/key-rotation.ts` (KEK rotation), `src/scripts/migrate-credentials-v2.ts` (batch migration).

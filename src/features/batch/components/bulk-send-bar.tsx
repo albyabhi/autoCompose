@@ -10,9 +10,10 @@ interface BulkSendBarProps {
   onComplete: () => void;
   sharedFiles?: File[];
   rowFilesMap?: Record<string, File[]>;
+  onScheduleAll?: () => void;
 }
 
-export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap = {} }: BulkSendBarProps) {
+export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap = {}, onScheduleAll }: BulkSendBarProps) {
   const sendMutation = useSendEntry();
   const sendWithAttachmentsMutation = useSendEntryWithAttachments();
   const uploadMutation = useUploadAttachments();
@@ -187,13 +188,23 @@ export function BulkSendBar({ entries, onComplete, sharedFiles = [], rowFilesMap
           <Button variant="ghost" onClick={handleAbort}>Stop</Button>
         </div>
       ) : (
-        <Button
-          variant="primary"
-          disabled={generatedCount === 0}
-          onClick={handleSendAll}
-        >
-          Send All ({generatedCount})
-        </Button>
+        <div className="bulk-send-bar__actions">
+          <Button
+            variant="secondary"
+            disabled={entries.length === 0}
+            onClick={onScheduleAll}
+            title="Attachments are not included in scheduled sends"
+          >
+            Add All to Schedule
+          </Button>
+          <Button
+            variant="primary"
+            disabled={generatedCount === 0}
+            onClick={handleSendAll}
+          >
+            Send All ({generatedCount})
+          </Button>
+        </div>
       )}
     </div>
   );

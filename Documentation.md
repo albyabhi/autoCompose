@@ -1,10 +1,12 @@
 # AutoCompose Documentation
 
-AI-powered professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
+AI-powered - AI Email Assistant
 
-**Document Version:** 1.3  
-**Last Updated:** 2026-07-01 01:30 IST  
-**Last Commit:** [`df12ba3`](https://github.com/anomalyco/autocompose/commit/df12ba3) — `resume data edit update`
+professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
+
+**Document Version:** 1.4  
+**Last Updated:** 2026-07-01  
+**Last Commit:** scheduling feature
 
 ---
 
@@ -42,14 +44,24 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 │  PATCH /api/bulk/entries/batch → requireAuth → batch update cat  │
 │  POST /api/bulk/generate → requireAuth → rate-limit → AI gen     │
 │  POST /api/bulk/send     → requireAuth → decrypt → SMTP          │
+│  GET|POST /api/schedules → requireAuth → list / create           │
+│  GET /api/schedules/active → requireAuth → active future only     │
+│  GET|PATCH|DELETE /api/schedules/:id → requireAuth → CRUD         │
+│  POST /api/schedules/:id/emails → requireAuth → add items         │
+│  PATCH|DELETE /api/schedules/:id/emails/:eid → requireAuth        │
+│  GET|POST /api/cron/process-schedules → cron-secret → batch send│
 │  GET  /api/auth/me      → getCurrentUser (enriched)              │
 └──────────────────────────────┬───────────────────────────────────┘
           ┌────────────────────┼────────────────────┐
           ▼                    ▼                    ▼
      ┌──────────┐       ┌──────────┐        ┌──────────┐
-     │ MongoDB   │       │ NVIDIA   │        │ Audit    │
-     │ Models    │       │ NIM API  │        │ Logs     │
-     └──────────┘       └──────────┘        └──────────┘
+      │ MongoDB   │       │ NVIDIA   │        │ Audit    │
+      │ Models    │       │ NIM API  │        │ Logs     │
+      └──────────┘       └──────────┘        └──────────┘
+                                                     ┌──────────┐
+                                                     │ Cron     │
+                                                     │ Tick     │
+                                                     └──────────┘
 ```
 
 ---
@@ -84,6 +96,16 @@ src/
 │   │   │   ├── entries/batch/route.ts # PATCH /api/bulk/entries/batch
 │   │   │   ├── generate/route.ts # POST /api/bulk/generate
 │   │   │   └── send/route.ts     # POST /api/bulk/send
+│   │   ├── schedules/             # Schedule CRUD + item management
+│   │   │   ├── route.ts           # GET+POST /api/schedules
+│   │   │   ├── active/route.ts   # GET /api/schedules/active
+│   │   │   ├── [id]/route.ts     # GET+PATCH+DELETE /api/schedules/:id
+│   │   │   ├── [id]/process/route.ts # POST /api/schedules/:id/process (manual trigger)
+│   │   │   └── [id]/emails/
+│   │   │       ├── route.ts       # POST /api/schedules/:id/emails
+│   │   │       └── [emailId]/route.ts # PATCH+DELETE /api/schedules/:id/emails/:emailId
+│   │   ├── cron/
+│   │   │   └── process-schedules/route.ts # GET+POST /api/cron/process-schedules
 │   │   └── sessions/             # Session CRUD + messages
 │   ├── globals.css               # Neubrutalist design system
 │   ├── layout.tsx                # Root layout (providers)
@@ -142,6 +164,16 @@ src/
 │   │       ├── bulk-row.tsx            # Single entry card (edit/generate/preview/send/delete)
 │   │       ├── bulk-send-bar.tsx       # Send All with progress bar + abort
 │   │       └── bulk-preview-dialog.tsx # Preview + send individual entry
+│   ├── schedule/                 # Email scheduling
+│   │   ├── types.ts              # Frontend DTOs and payload types
+│   │   ├── api/schedule.ts       # API client functions
+│   │   ├── hooks/use-schedules.ts # TanStack Query hooks (list/detail/active + mutations)
+│   │   ├── utils/
+│   │   │   ├── status.ts         # Schedule status derivation and trigger eligibility
+│   │   │   └── countdown.ts      # Time remaining calculations
+│   │   └── components/
+│   │       ├── add-to-schedule-dialog.tsx  # Shared modal for scheduling emails
+│   │       └── schedule-form-fields.tsx    # Schedule name/date/time/timezone fields
 │   └── profile/                  # Profile management
 │       ├── api/profile.ts
 │       ├── api/resume.ts
@@ -175,7 +207,8 @@ src/
 │   ├── logger.ts                 # Level-based structured logging
 │   ├── audit.ts                  # Audit log service
 │   ├── crypto.ts                 # AES-256-GCM (v1:iv:tag:ct) — server-only
-│   └── rate-limit.ts             # In-memory sliding window + registration rate limiter + honeypot
+│   ├── rate-limit.ts             # In-memory sliding window + registration rate limiter + honeypot
+│   └── schedule-worker.ts        # In-process background worker for due schedules
 │
 ├── models/                       # Mongoose schemas
 │   ├── user.ts
@@ -184,7 +217,9 @@ src/
 │   ├── audit-log.ts
 │   ├── session.ts                # title, category, type, userId, isArchived, isDeleted
 │   ├── message.ts                # sessionId, role, content, modelUsed
-│   └── bulk-entry.ts             # sessionId, userId, category, prompt, recipient, status, generatedContent
+│   ├── bulk-entry.ts             # sessionId, userId, category, prompt, recipient, status, generatedContent
+│   ├── schedule.ts               # userId, name, scheduledAt, timezone, status (active/sent/expired/cancelled)
+│   └── scheduled-email.ts        # scheduleId, userId, sourceType, to, subject, body, deliveryState
 │
 ├── modules/                      # Backend services
 │   ├── ai/                       # AI provider (strategy pattern)
@@ -210,6 +245,10 @@ src/
 │   │   └── ai-context.ts         # Build conversation history for AI
 │   ├── message/                  # Message CRUD
 │   │   └── service.ts
+│   ├── schedule/                 # Email scheduling
+│   │   ├── types.ts              # Schedule DTOs and process result types
+│   │   ├── validation.ts         # Zod schemas for all schedule operations
+│   │   └── service.ts            # CRUD, snapshot management, cron processing
 │   └── bulk/                     # Batch email operations
 │       ├── types.ts              # BulkEntryData DTO
 │       ├── validation.ts         # Zod schemas (createEntries, updateEntry, generate, send)
@@ -218,6 +257,7 @@ src/
 │
 ├── config/
 │   └── index.ts                  # Zod-validated env config singleton
+├── instrumentation.ts            # Next.js startup hook — starts schedule worker
 ├── types/
 │   └── next-auth.d.ts            # Session type augmentation
 ├── utils/
@@ -257,6 +297,11 @@ Copy `.env.local.example` to `.env.local` and fill in:
 | `NVIDIA_API_KEY` | NVIDIA NIM API key |
 | `NVIDIA_BASE_URL` | NVIDIA API base URL |
 | `AUTH_SECRET` | NextAuth secret (generate with `openssl rand -base64 32`) |
+| `CRON_SECRET` | Shared secret protecting `/api/cron/process-schedules` |
+| `SCHEDULE_BACKGROUND_WORKER` | Optional; set to `false` to disable the local/self-hosted in-process schedule worker |
+| `SCHEDULE_WORKER_INTERVAL_MS` | Optional; schedule worker tick interval in milliseconds, defaults to `60000` |
+| `SCHEDULE_WORKER_MAX_SCHEDULES` | Optional; max due schedules processed per worker tick, defaults to `5` |
+| `SCHEDULE_WORKER_MAX_EMAILS_PER_SCHEDULE` | Optional; max emails per schedule per worker tick, defaults to `10` |
 | `NODE_ENV` | `development`, `production`, or `test` |
 | `NEXT_PUBLIC_APP_URL` | Public app URL |
 
@@ -280,6 +325,8 @@ npm start         # Production server
 | `/sessions/:id` | Required | AppShell + AuthGuard | Session detail + messages |
 | `/settings` | Required | AppShell + AuthGuard | Profile management |
 | `/settings/resume/edit` | Required | AppShell + AuthGuard | Edit parsed resume data |
+| `/schedules` | Required | AppShell + AuthGuard | Schedule list and creation |
+| `/schedules/:id` | Required | AppShell + AuthGuard | Schedule detail with email status |
 | `/login` | Public | Centered card | Sign in |
 | `/register` | Public | Centered card | Create account |
 | `/auth/error` | Public | Minimal | Auth error display |
@@ -518,6 +565,131 @@ Send a generated entry's email via the user's Gmail SMTP.
 
 Uses `dispatchSendEmail()` — same credential/rate-limit path as individual email sending.
 
+---
+
+## Schedule Endpoints
+
+### `GET /api/schedules`
+
+List schedules with pagination and status filtering.
+
+| Query | Type | Default | Description |
+|---|---|---|---|
+| `page` | int | 1 | Page number |
+| `pageSize` | int | 20 | Items per page (max 100) |
+| `status` | string | — | Filter by status (`active`, `sent`, `expired`, `cancelled`) |
+
+### `POST /api/schedules`
+
+Create a new schedule.
+
+**Request Body:**
+```json
+{
+  "name": "Tuesday Outreach",
+  "scheduledAt": "2026-07-02T09:00:00.000Z",
+  "timezone": "America/New_York"
+}
+```
+
+### `GET /api/schedules/active`
+
+Returns only schedules that are active and still in the future. Used by the `AddToScheduleDialog` picker.
+
+### `GET /api/schedules/:id`
+
+Get a schedule with all its email items.
+
+### `PATCH /api/schedules/:id`
+
+Update schedule name, scheduled time, timezone, or status (cancel).
+
+```json
+{ "name": "Updated Name", "status": "cancelled" }
+```
+
+### `DELETE /api/schedules/:id`
+
+Cancel and delete a schedule (hard delete of schedule + all email items).
+
+### `POST /api/schedules/:id/emails`
+
+Add one or more emails to a schedule. Supports two source types:
+
+**Single (from compose or session):**
+```json
+{
+  "emails": [{
+    "sourceType": "single",
+    "sourceSessionId": "...",
+    "sourceMessageId": "...",
+    "to": "recipient@example.com",
+    "subject": "Meeting Reminder",
+    "body": "Hi, just a reminder about our meeting...",
+    "category": "meeting_request",
+    "prompt": "Write a meeting reminder",
+    "modelId": "deepseek"
+  }]
+}
+```
+
+**Batch (from bulk entry, generates content at send time):**
+```json
+{
+  "emails": [{
+    "sourceType": "batch",
+    "sourceBulkEntryId": "entry-id",
+    "modelId": "deepseek"
+  }]
+}
+```
+
+Deduplication uses unique sparse indexes on `{scheduleId, sourceMessageId}` and `{scheduleId, sourceBulkEntryId}`. Duplicate rows are skipped and reported in the response.
+
+**Response:**
+```json
+{ "emails": [...], "skipped": 0 }
+```
+
+### `PATCH /api/schedules/:id/emails/:emailId`
+
+Edit recipient, subject, or body of a scheduled email, or retry a failed one.
+
+```json
+{ "to": "new@example.com", "retry": true }
+```
+
+Only non-sent items can be mutated. Setting `retry: true` resets `deliveryState` from `"failed"` to `"ready"`.
+
+### `DELETE /api/schedules/:id/emails/:emailId`
+
+Remove a scheduled email item (not-yet-sent only).
+
+### `GET/POST /api/cron/process-schedules`
+
+Internal cron endpoint. Protected by `CRON_SECRET` — does not use user auth.
+
+**Vercel Cron:** Vercel calls this route with `GET` and `Authorization: Bearer <CRON_SECRET>`.
+
+**Manual/local POST:** Use either `Authorization: Bearer <CRON_SECRET>` or `x-cron-secret: <CRON_SECRET>`.
+
+**Deployment note:** `vercel.json` schedules this route every minute. Vercel Hobby plans only support once-per-day cron jobs, so per-minute schedule sending requires Vercel Pro/Enterprise or an external cron service that calls this endpoint.
+
+**Request Body:**
+```json
+{ "maxItems": 20 }
+```
+
+**Processing flow:**
+1. Finds schedules where `scheduledAt <= now` and `status === "active"`
+2. For each due schedule, atomically claims up to `maxItems` email items (sets `deliveryState: "sending"`)
+3. For items with `deliveryState === "awaiting_content"` (batch sources), generates content via the AI provider
+4. Sends each claimed item via the user's Gmail SMTP (`dispatchSendEmail()`)
+5. Marks items as `"sent"` or `"failed"` with error details
+6. After processing all items, marks the schedule as `"sent"` (or `"expired"` if past-due)
+
+---
+
 ### `GET /api/auth/me`
 
 Get enriched current user (`CurrentUser` with `onboardingCompleted` + `profileCompleted`).
@@ -582,6 +754,11 @@ Register a new user account. **Public endpoint** — no authentication required.
 | `CREDENTIALS_INVALID` | 400 | Gmail rejected the stored App Password |
 | `CREDENTIALS_DECRYPTION_FAILED` | 500 | Stored credentials blob cannot be decrypted |
 | `SEND_FAILED` | 502 | SMTP / network error during send |
+| `SCHEDULE_EXPIRED` | 400 | Schedule date is in the past |
+| `SCHEDULE_NOT_ACTIVE` | 400 | Cannot modify a non-active schedule |
+| `EMAIL_ALREADY_SENT` | 400 | Cannot modify an already-sent email item |
+| `EMAIL_ALREADY_SCHEDULED` | 409 | Email is already in the target schedule (dedup match) |
+| `CRON_UNAUTHORIZED` | 401 | Missing or invalid cron secret header |
 | `INTERNAL_ERROR` | 500 | Unexpected error |
 
 ---
@@ -670,6 +847,81 @@ Batch sessions use `Session.type = "batch"` and get a `Batch` badge in the sessi
 | Messages | `useSessionMessages(id)` — paginated with `useInfiniteQuery`, 20 per page sorted desc, "Load earlier messages" button, messages reversed for display |
 | Batch View | `BatchSessionView` for sessions with `type === "batch"` |
 | AI Context | `getMessageHistory()` builds conversation for AI |
+
+### Email Scheduling
+
+Scheduling allows users to defer email delivery to a future date/time, with full timezone support. The system supports both single emails (from compose or session history) and batch entries (which generate AI content at send time).
+
+#### Schedule Lifecycle
+
+```
+Create → ACTIVE → (cron picks up at scheduledAt) → SENT
+                    ↓ (past due, no items sent)    → EXPIRED
+                    ↓ (user cancels)               → CANCELLED
+```
+
+#### Key Flow
+
+1. **User creates a schedule** — Name, scheduled date/time, and browser timezone are stored as a `Schedule` document.
+2. **User adds emails** — From compose (`AddToScheduleDialog`) or directly on the schedule detail page. Single emails snapshot the recipient/subject/body at scheduling time. Batch entries store the `sourceBulkEntryId` with `deliveryState: "awaiting_content"` — the AI generates content at send time.
+3. **Background worker processes** — Locally or on a self-hosted Node server, `src/instrumentation.ts` starts an in-process worker that checks due schedules every minute by default. On Vercel, `vercel.json` configures Vercel Cron to call `GET /api/cron/process-schedules` every minute on production deployments.
+4. **Items are sent** — The cron processor atomically claims a batch of due items, generates AI content for `"awaiting_content"` items, sends via the user's Gmail SMTP, and updates status. Each user's credential is decrypted per-item (no long-lived secrets in memory).
+
+#### `AddToScheduleDialog`
+
+Shared modal component used from:
+- **Batch compose** — The `BulkSendBar` offers "Schedule All" to defer remaining generated entries.
+- **Single compose** — The `ResponseDisplay` success card has a "Schedule" button.
+- **Session view** — Assistant messages offer "Schedule via Email" in the `MessageBubble`.
+
+The dialog lets users pick an existing active future schedule or create a new one inline. Adding multiple emails shows a progress bar. Items already present in the schedule (detected by unique source references) are silently skipped.
+
+#### Duplication Protection
+
+Unique sparse indexes on `{scheduleId, sourceMessageId}` and `{scheduleId, sourceBulkEntryId}` ensure the same email is never scheduled twice within the same schedule. Duplicates are reported in the `skipped` count.
+
+### Schedule Worker
+
+The schedule worker is an in-process background service that processes due schedules automatically.
+
+#### Architecture
+
+```
+src/instrumentation.ts → startScheduleWorker() → setInterval(tick)
+                                                      ↓
+                                              processDueSchedules()
+                                                      ↓
+                                              dispatchSendEmail()
+```
+
+#### Configuration
+
+| Env Var | Default | Description |
+|---|---|---|
+| `SCHEDULE_BACKGROUND_WORKER` | `true` | Set to `false` to disable the worker |
+| `SCHEDULE_WORKER_INTERVAL_MS` | `60000` | Tick interval in milliseconds (min 5000) |
+| `SCHEDULE_WORKER_INITIAL_DELAY_MS` | `1000` | Delay before first tick after startup |
+| `SCHEDULE_WORKER_MAX_SCHEDULES` | `5` | Max due schedules processed per tick |
+| `SCHEDULE_WORKER_MAX_EMAILS_PER_SCHEDULE` | `10` | Max emails processed per schedule per tick |
+
+#### Behavior
+
+- **Singleton**: Only one worker per Node.js process (global state prevents duplicates)
+- **Non-blocking**: Uses `unref()` timers so the worker doesn't prevent process exit
+- **Overlapping protection**: Skips tick if previous tick is still running
+- **Vercel-aware**: Automatically disabled on Vercel (uses Vercel Cron instead)
+- **Logging**: Logs at INFO level when items are processed, DEBUG for empty ticks
+
+#### Manual Trigger
+
+For testing or immediate processing, you can manually trigger a schedule:
+
+```
+POST /api/schedules/:id/process
+Authorization: Bearer <user-token>
+```
+
+This runs the cron processor for a single schedule, processing all due items immediately.
 
 ### Profile Management
 
@@ -794,6 +1046,43 @@ Index: `{ sessionId: 1, createdAt: 1 }`.
 
 Indexes: `{ sessionId: 1, sortOrder: 1 }`, `{ userId: 1, status: 1 }`.
 
+### Schedule
+
+| Field | Type | Description |
+|---|---|---|
+| `userId` | string (indexed) | Owner |
+| `name` | string | Schedule display name (max 120 chars) |
+| `scheduledAt` | Date (indexed) | Absolute UTC date/time for processing |
+| `timezone` | string | Browser timezone (e.g. `America/New_York`) |
+| `status` | enum | `active` → `sent` / `expired` / `cancelled` |
+
+Index: `{ userId: 1, status: 1, scheduledAt: 1 }`.
+
+### ScheduledEmail
+
+| Field | Type | Description |
+|---|---|---|
+| `scheduleId` | ObjectId (ref Schedule) | Parent schedule |
+| `userId` | string (indexed) | Owner |
+| `sourceType` | `"single"` \| `"batch"` | How the email was added |
+| `sourceSessionId` | ObjectId (optional) | Source session (single mode) |
+| `sourceMessageId` | ObjectId (optional, sparse unique) | Source message (single mode — dedup key) |
+| `sourceBulkEntryId` | ObjectId (optional, sparse unique) | Source bulk entry (batch mode — dedup key) |
+| `to` | string | Recipient email |
+| `subject` | string (optional) | Email subject (max 200 chars) |
+| `body` | string (optional) | Email body (max 20000 chars) |
+| `category` | enum (optional) | Email category |
+| `prompt` | string (optional) | Frozen prompt for regeneration (max 5000 chars) |
+| `modelId` | enum (optional) | AI model for content generation |
+| `deliveryState` | enum | `awaiting_content` / `ready` / `sending` / `sent` / `failed` |
+| `claimedAt` | Date (optional) | When cron claimed this item |
+| `sentAt` | Date (optional) | When the email was delivered |
+| `errorCode` | string (optional) | Machine-readable error on failure |
+| `errorMessage` | string (optional) | Human-readable error on failure |
+| `sortOrder` | number | Display ordering within schedule |
+
+Indexes: `{ scheduleId: 1, sortOrder: 1 }`, `{ userId: 1, deliveryState: 1 }`, unique sparse on `{ scheduleId, sourceMessageId }` and `{ scheduleId, sourceBulkEntryId }`.
+
 ### Profile
 
 | Field | Type | Description |
@@ -827,6 +1116,73 @@ Indexes: `{ sessionId: 1, sortOrder: 1 }`, `{ userId: 1, status: 1 }`.
 | `userId` | string | Who performed action |
 | `metadata` | Mixed | Context |
 | `ip` / `userAgent` | string | Request info |
+
+---
+
+## Audit Actions
+
+The system tracks 32 distinct audit actions in `src/models/audit-log.ts`:
+
+### Email Actions
+| Action | Description |
+|---|---|
+| `email.generated` | AI email generated (single, batch, or schedule) |
+| `email.regenerated` | Email regenerated with different model/settings |
+| `email.sent` | Email delivered via Gmail SMTP |
+| `email.send_failed` | SMTP delivery failed |
+| `email.credentials_saved` | Gmail credentials saved to profile |
+| `email.credentials_removed` | Gmail credentials deleted from profile |
+| `email.credentials_migrated_to_v2` | Credentials migrated from v1 to v2 encryption |
+
+### Auth Actions
+| Action | Description |
+|---|---|
+| `auth.login` | Successful login |
+| `auth.logout` | User logged out |
+| `auth.signup` | New account created |
+| `auth.failed_login` | Login attempt with invalid credentials |
+| `auth.session_refresh` | JWT token refreshed |
+
+### Session Actions
+| Action | Description |
+|---|---|
+| `session.created` | New session created |
+| `session.updated` | Session metadata updated |
+| `session.deleted` | Session soft-deleted |
+| `session.bulk_deleted` | All user sessions soft-deleted |
+| `session.archived` | Session archived |
+| `session.unarchived` | Session unarchived |
+
+### Schedule Actions
+| Action | Description |
+|---|---|
+| `schedule.created` | New schedule created |
+| `schedule.updated` | Schedule metadata updated |
+| `schedule.cancelled` | Schedule cancelled |
+| `schedule.email_added` | Email item added to schedule |
+| `schedule.email_sent` | Scheduled email delivered |
+| `schedule.email_failed` | Scheduled email delivery failed |
+
+### Telegram Actions
+| Action | Description |
+|---|---|
+| `telegram.linked` | Telegram account linked to user |
+| `telegram.unlinked` | Telegram account unlinked |
+| `telegram.login_code_generated` | Login code generated for Telegram |
+| `telegram.login_code_attempt` | Login code verification attempted |
+| `telegram.message_received` | Message received from Telegram |
+| `telegram.command_executed` | Bot command executed |
+| `telegram.email_generated` | Email generated via Telegram |
+| `telegram.email_sent` | Email sent via Telegram |
+| `telegram.email_send_failed` | Email send failed via Telegram |
+| `telegram.webhook_rejected` | Webhook request rejected |
+
+### System Actions
+| Action | Description |
+|---|---|
+| `model.switched` | AI model switched |
+| `api.error` | API error occurred |
+| `validation.error` | Input validation failed |
 
 ---
 
@@ -1033,6 +1389,24 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-07-01 — Email scheduling feature
+
+- **New scheduling system** — Users can now schedule emails for future delivery with full timezone support. Schedule single emails from compose/session view or batch entries from bulk generation.
+- **New database models** — `Schedule` (name, scheduledAt, timezone, status) and `ScheduledEmail` (recipient, subject, body, deliveryState) Mongoose schemas in `src/models/schedule.ts` and `src/models/scheduled-email.ts`.
+- **New API routes** — 6 RESTful endpoints under `/api/schedules/` (list, create, detail, update, cancel, process) plus nested email item CRUD under `/api/schedules/:id/emails/`. Protected by `requireAuth()` and ownership enforcement.
+- **New cron endpoint** — `GET/POST /api/cron/process-schedules` (protected by `CRON_SECRET`) atomically claims due items, generates AI content for batch entries, and sends via the user's Gmail SMTP.
+- **New server module** — `src/modules/schedule/` with `service.ts` (CRUD + cron processor), `validation.ts` (Zod schemas), and `types.ts` (DTOs). Includes deduplication via sparse unique indexes and resumable delivery state machine.
+- **New background worker** — `src/lib/schedule-worker.ts` starts an in-process worker via `src/instrumentation.ts` that checks due schedules every minute. Automatically disabled on Vercel (uses Vercel Cron instead).
+- **New frontend feature** — `src/features/schedule/` with API client, TanStack Query hooks (list/detail/active + all mutations), `AddToScheduleDialog` (pick existing or create new schedule inline with progress UI), `ScheduleFormFields` (name/date/time/timezone inputs), and status utility functions.
+- **New pages** — `/schedules` (list + create) and `/schedules/:id` (detail with email item cards, cancel, retry, remove actions) under `src/app/(app)/schedules/`.
+- **Schedule button on batch** — `BulkRow` and `BulkSendBar` gain a "Schedule" button (`.bulk-card__btn--schedule` orange variant, `.send-btn--schedule`) that opens `AddToScheduleDialog` with all generated entries.
+- **Schedule button on single compose** — `ResponseDisplay` success card offers scheduling via the shared dialog.
+- **New CSS** — ~200 lines of schedule classes in `globals.css` (`.schedule-card`, `.schedule-status`, `.schedule-dialog__*`, `.schedule-form-fields`, progress bar, email body preview).
+- **Validation tests** — `src/modules/schedule/validation.test.ts` covers schedule creation, single/batch payloads, snapshot edits, and cron defaults.
+- **New env vars** — `CRON_SECRET` for securing the cron endpoint, `SCHEDULE_BACKGROUND_WORKER`, `SCHEDULE_WORKER_INTERVAL_MS`, `SCHEDULE_WORKER_MAX_SCHEDULES`, `SCHEDULE_WORKER_MAX_EMAILS_PER_SCHEDULE` for worker configuration.
+- **Audit actions** — 6 new schedule-related audit actions: `schedule.created`, `schedule.updated`, `schedule.cancelled`, `schedule.email_added`, `schedule.email_sent`, `schedule.email_failed`.
+- Files changed: 25+ files across API routes, components, hooks, services, models, pages, CSS, and tests.
 
 ### 2026-07-01 — Resume data edit feature (commit `df12ba3`)
 

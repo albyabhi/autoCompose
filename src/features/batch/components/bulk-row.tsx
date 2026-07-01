@@ -11,11 +11,12 @@ interface BulkRowProps {
   entry: BulkEntryData;
   modelId: string;
   onPreview?: (entry: BulkEntryData) => void;
+  onSchedule?: (entry: BulkEntryData) => void;
   rowFiles?: File[];
   onRowFilesChange?: (files: File[]) => void;
 }
 
-export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesChange }: BulkRowProps) {
+export function BulkRow({ entry, modelId, onPreview, onSchedule, rowFiles = [], onRowFilesChange }: BulkRowProps) {
   const generateMutation = useGenerateEntry();
   const deleteMutation = useDeleteEntry();
   const updateMutation = useUpdateEntry();
@@ -300,6 +301,15 @@ export function BulkRow({ entry, modelId, onPreview, rowFiles = [], onRowFilesCh
               </button>
             </>
           )}
+          <button
+            className="bulk-card__btn bulk-card__btn--schedule"
+            onClick={() => onSchedule?.(entry)}
+            disabled={isDisabled || !entry.recipient || (!entry.generatedContent && entry.prompt.length < 10)}
+            aria-label="Add to schedule"
+            title="Attachments are not included in scheduled sends"
+          >
+            Schedule
+          </button>
           <button
             className="bulk-card__btn bulk-card__btn--delete"
             onClick={handleDelete}

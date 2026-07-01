@@ -11,9 +11,10 @@ interface BulkPreviewDialogProps {
   onClose: () => void;
   sharedFiles?: File[];
   rowFiles?: File[];
+  onSchedule?: (entry: BulkEntryData) => void;
 }
 
-export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles = [] }: BulkPreviewDialogProps) {
+export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles = [], onSchedule }: BulkPreviewDialogProps) {
   const sendMutation = useSendEntry();
   const sendWithAttachmentsMutation = useSendEntryWithAttachments();
   const uploadMutation = useUploadAttachments();
@@ -139,6 +140,13 @@ export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles =
                 onClick={handleSend}
               >
                 {uploadMutation.isPending ? "Uploading..." : sendMutation.isPending || sendWithAttachmentsMutation.isPending ? "Sending..." : "Send"}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => onSchedule?.(entry)}
+                title="Attachments are not included in scheduled sends"
+              >
+                Add to Schedule
               </Button>
             </div>
           </div>

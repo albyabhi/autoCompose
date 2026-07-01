@@ -268,7 +268,7 @@ export async function sendEntry(
     subject,
     body,
     attachments,
-    rateLimitKey: `batch-send:${userId}`,
+    rateLimitKey: `send-email:${userId}`,
     rateLimit: { maxRequests: 5, windowMs: 60_000 },
   });
 

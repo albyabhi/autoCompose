@@ -31,6 +31,7 @@ export interface GenerateEmailResult {
   modelUsed: string;
   id: string;
   sessionId?: string;
+  assistantMessageId?: string;
 }
 
 export async function generateEmail(params: GenerateEmailParams): Promise<GenerateEmailResult> {
@@ -109,8 +110,9 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     }, params.userId!)
   );
 
+  let assistantMessageId: string | undefined;
   if (sessionIdToUse && params.userId) {
-    await Message.create([
+    const messages = await Message.create([
       {
         sessionId: sessionIdToUse,
         role: "user",
@@ -125,6 +127,7 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
         metadata: { usage: response.usage },
       },
     ]);
+    assistantMessageId = messages[1]?._id.toString();
   }
 
   await AuditLog.create({
@@ -166,6 +169,7 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
     modelUsed: response.modelUsed,
     id: template._id.toString(),
     sessionId: sessionIdToUse,
+    assistantMessageId,
   };
 }
 

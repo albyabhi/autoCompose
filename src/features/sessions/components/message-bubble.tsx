@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { parseEmailContent } from "@/modules/email/content";
 import { SendEmailDialog } from "@/components/send-email-dialog";
+import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 import type { MessageData } from "../types";
 
 interface MessageBubbleProps {
@@ -15,6 +16,7 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [showFullPrompt, setShowFullPrompt] = useState(false);
   const [recipientLocal, setRecipientLocal] = useState(defaultRecipient ?? "");
   const recipient = defaultRecipient ?? recipientLocal;
@@ -41,10 +43,10 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
       <div className="message__content">
         {isAssistant ? (
           <>
-            {recipient && (
               <div className="message-recipient">
-                <span className="message-recipient-label">To:</span>
+                <label htmlFor={`msg-recipient-${message.id}`} className="message-recipient-label">To:</label>
                 <input
+                  id={`msg-recipient-${message.id}`}
                   className="message-recipient-input"
                   type="email"
                   value={recipient}
@@ -52,7 +54,6 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
                   placeholder="recipient@example.com"
                 />
               </div>
-            )}
             <div className="message-subject">
               <span className="message-subject-label">Subject:</span>
               <span className="message-subject-text">{subject}</span>
@@ -102,6 +103,14 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
           >
             Send via Email
           </button>
+          <button
+            className="send-btn send-btn--inline send-btn--schedule"
+            onClick={() => setScheduleOpen(true)}
+            disabled={!recipient?.trim()}
+            title={recipient?.trim() ? "Schedule this email" : "Add a recipient before scheduling"}
+          >
+            Add to Schedule
+          </button>
           {!emailConfigured && !isProfileLoading && (
             <Link
               className="send-btn-hint"
@@ -119,6 +128,22 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
           defaultSubject={subject}
           defaultBody={body}
           defaultRecipient={recipient || undefined}
+        />
+      )}
+      {isAssistant && (
+        <AddToScheduleDialog
+          open={scheduleOpen}
+          onClose={() => setScheduleOpen(false)}
+          emails={[
+            {
+              sourceType: "single",
+              sourceSessionId: message.sessionId,
+              sourceMessageId: message.id,
+              to: recipient,
+              subject,
+              body,
+            },
+          ]}
         />
       )}
     </div>

@@ -12,6 +12,8 @@ import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useRouter } from "next/navigation";
 import { BatchSettingsPanel } from "./batch-settings-panel";
 import type { BulkEntryData } from "../types";
+import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
+import type { AddScheduledEmailPayload } from "@/features/schedule/types";
 
 interface BatchSessionViewProps {
   sessionId: string;
@@ -26,6 +28,9 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
   const [sharedFiles, setSharedFiles] = useState<File[]>([]);
   const [rowFilesMap, setRowFilesMap] = useState<Record<string, File[]>>({});
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
+  const [schedulePayloads, setSchedulePayloads] = useState<AddScheduledEmailPayload[]>([]);
+  const [scheduleSkippedCount, setScheduleSkippedCount] = useState(0);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const batchUpdateMutation = useBatchUpdateCategory();
   const { data: profileData } = useProfile();
@@ -70,6 +75,28 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
 
   function handleRowFilesChange(entryId: string, files: File[]) {
     setRowFilesMap((prev) => ({ ...prev, [entryId]: files }));
+  }
+
+  function toSchedulePayload(entry: BulkEntryData): AddScheduledEmailPayload | null {
+    if (!entry.recipient?.trim()) return null;
+    if (entry.status === "generating" || entry.status === "sending" || entry.status === "sent") {
+      return null;
+    }
+    if (!entry.generatedContent && entry.prompt.length < 10) return null;
+    return {
+      sourceType: "batch",
+      sourceBulkEntryId: entry.id,
+      modelId,
+    };
+  }
+
+  function openScheduleDialog(targetEntries: BulkEntryData[]) {
+    const payloads = targetEntries
+      .map(toSchedulePayload)
+      .filter((payload): payload is AddScheduledEmailPayload => payload !== null);
+    setSchedulePayloads(payloads);
+    setScheduleSkippedCount(targetEntries.length - payloads.length);
+    setScheduleDialogOpen(true);
   }
 
   return (
@@ -121,12 +148,19 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
                 entry={entry}
                 modelId={modelId}
                 onPreview={setPreviewEntry}
+                onSchedule={(entry) => openScheduleDialog([entry])}
                 rowFiles={rowFilesMap[entry.id] ?? []}
                 onRowFilesChange={(files) => handleRowFilesChange(entry.id, files)}
               />
             ))}
           </div>
-          <BulkSendBar entries={entries} onComplete={() => {}} sharedFiles={sharedFiles} rowFilesMap={rowFilesMap} />
+          <BulkSendBar
+            entries={entries}
+            onComplete={() => {}}
+            sharedFiles={sharedFiles}
+            rowFilesMap={rowFilesMap}
+            onScheduleAll={() => openScheduleDialog(entries)}
+          />
         </div>
       )}
 
@@ -134,8 +168,16 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
         <BulkPreviewDialog
           entry={previewEntry}
           onClose={() => setPreviewEntry(null)}
+          onSchedule={(entry) => openScheduleDialog([entry])}
         />
       )}
+      <AddToScheduleDialog
+        open={scheduleDialogOpen}
+        onClose={() => setScheduleDialogOpen(false)}
+        emails={schedulePayloads}
+        skippedCount={scheduleSkippedCount}
+        title="Add Batch to Schedule"
+      />
     </div>
   );
 }

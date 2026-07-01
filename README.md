@@ -10,6 +10,7 @@ AI-powered professional email composition tool built with Next.js 16 App Router,
 - **Resume Parsing** — Upload PDF/DOCX/TXT resumes and extract structured data (skills, education, experience, projects) using AI
 - **Session Management** — Track email generation sessions with conversation history for iterative refinement
 - **Telegram Bot** — Generate and send emails entirely through Telegram with inline keyboards
+- **Email Scheduling** — Schedule single or batch emails for future delivery with timezone support, automated cron processing, and per-item retry
 - **User Profiles** — Manage personal info, professional details, writing preferences, and job application links
 
 ## Tech Stack
@@ -58,6 +59,11 @@ cp .env.local.example .env.local
 | `NVIDIA_BASE_URL` | Yes | NVIDIA API base URL |
 | `AUTH_SECRET` | Yes | NextAuth secret (generate with `openssl rand -base64 32`) |
 | `AUTH_URL` | No | Auth URL (defaults to `http://localhost:3000`) |
+| `CRON_SECRET` | No | Shared secret protecting `/api/cron/process-schedules` |
+| `SCHEDULE_BACKGROUND_WORKER` | No | Set to `false` to disable the local/self-hosted in-process schedule worker |
+| `SCHEDULE_WORKER_INTERVAL_MS` | No | Schedule worker tick interval in milliseconds (default: `60000`) |
+| `SCHEDULE_WORKER_MAX_SCHEDULES` | No | Max due schedules processed per worker tick (default: `5`) |
+| `SCHEDULE_WORKER_MAX_EMAILS_PER_SCHEDULE` | No | Max emails per schedule per worker tick (default: `10`) |
 | `NODE_ENV` | No | `development`, `production`, or `test` (default: `development`) |
 | `NEXT_PUBLIC_APP_URL` | No | Public app URL (defaults to `http://localhost:3000`) |
 | `TELEGRAM_BOT_TOKEN` | No | Telegram bot token from BotFather |
@@ -92,6 +98,7 @@ src/
 │   ├── layout/             # App shell (header, sidebar)
 │   ├── batch/              # Batch email generation
 │   ├── profile/            # Profile management
+│   ├── schedule/           # Email scheduling (add-to-schedule dialog, hooks, API client)
 │   └── sessions/           # Session management
 ├── hooks/                  # Custom React hooks
 ├── lib/                    # Infrastructure layer
@@ -105,6 +112,7 @@ src/
 │   ├── message/            # Message CRUD
 │   ├── profile/            # Profile management
 │   ├── resume/             # Resume parsing
+│   ├── schedule/           # Schedule CRUD, snapshot management, cron processing
 │   ├── session/            # Session management
 │   └── telegram/           # Telegram bot
 ├── types/                  # TypeScript declarations
@@ -143,8 +151,20 @@ src/
 | `PATCH` | `/api/bulk/entries/batch` | Required | Batch update category |
 | `POST` | `/api/bulk/generate` | Required | Generate entry via AI |
 | `POST` | `/api/bulk/send` | Required | Send entry via Gmail SMTP |
+| `GET` | `/api/schedules` | Required | List schedules (paginated) |
+| `POST` | `/api/schedules` | Required | Create a schedule |
+| `GET` | `/api/schedules/active` | Required | List active future schedules |
+| `GET` | `/api/schedules/:id` | Required | Get schedule with email items |
+| `PATCH` | `/api/schedules/:id` | Required | Update schedule (name/time/status) |
+| `DELETE` | `/api/schedules/:id` | Required | Cancel / delete a schedule |
+| `POST` | `/api/schedules/:id/emails` | Required | Add emails to a schedule |
+| `PATCH` | `/api/schedules/:id/emails/:emailId` | Required | Edit/retry a scheduled email |
+| `DELETE` | `/api/schedules/:id/emails/:emailId` | Required | Remove a scheduled email |
+| `GET/POST` | `/api/cron/process-schedules` | Cron Secret | Internal cron tick — processes due schedules |
 | `POST` | `/api/telegram/webhook` | Public | Telegram webhook |
 | `GET` | `/api/telegram/health` | Public | Telegram health check |
+
+Vercel production cron is configured in `vercel.json` to call `/api/cron/process-schedules` every minute. Vercel Hobby plans only support once-per-day cron jobs, so per-minute delivery requires Pro/Enterprise or an external cron service.
 
 ## AI Models
 
