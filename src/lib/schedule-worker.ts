@@ -81,11 +81,6 @@ export function startScheduleWorker(): void {
     return;
   }
 
-  if (process.env.VERCEL === "1") {
-    logger.info("Schedule background worker skipped on Vercel; use Vercel Cron instead");
-    return;
-  }
-
   const state = getWorkerState();
   if (state.started) return;
 
