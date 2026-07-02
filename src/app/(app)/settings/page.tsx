@@ -3,6 +3,7 @@
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { AiSettingsSection } from "@/features/profile/components/ai-settings-section";
 import { EmailCredentialsSection } from "@/features/profile/components/email-credentials-section";
+import { ContactsSection } from "@/features/profile/components/contacts-section";
 import { ResumeWidget } from "@/features/profile/components/resume-widget";
 import { TelegramCard } from "@/components/settings/telegram-card";
 import { ClearSessionsCard } from "@/components/settings/clear-sessions-card";
@@ -22,6 +23,7 @@ export default function SettingsPage() {
           writing: "Writing",
           ai: "AI Settings",
           email: "Email",
+          contacts: "Contacts",
           integrations: "Integrations",
           resume: "Resume",
           sessions: "Sessions",
@@ -32,6 +34,7 @@ export default function SettingsPage() {
           <TabTrigger value="writing">Writing</TabTrigger>
           <TabTrigger value="ai">AI</TabTrigger>
           <TabTrigger value="email">Email</TabTrigger>
+          <TabTrigger value="contacts">Contacts</TabTrigger>
           <TabTrigger value="integrations">Integrations</TabTrigger>
           <TabTrigger value="resume">Resume</TabTrigger>
           <TabTrigger value="sessions">Sessions</TabTrigger>
@@ -47,6 +50,9 @@ export default function SettingsPage() {
         </TabContent>
         <TabContent value="email">
           <EmailCredentialsSection />
+        </TabContent>
+        <TabContent value="contacts">
+          <ContactsSection />
         </TabContent>
         <TabContent value="integrations">
           <TelegramCard />

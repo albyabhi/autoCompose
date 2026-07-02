@@ -3,8 +3,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { validateAttachments } from "@/utils/attachments";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 
 interface SendEmailDialogProps {
   open: boolean;
@@ -35,6 +37,7 @@ interface ContentProps {
 }
 
 function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultRecipient }: ContentProps) {
+  const { data: profileData } = useProfile();
   const [to, setTo] = useState(defaultRecipient ?? "");
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState(defaultBody);
@@ -127,17 +130,19 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
 
   const formFields = (
     <>
-      <Input
-        id="send-email-to"
-        name="to"
-        type="email"
-        label="Recipient"
-        placeholder="recipient@example.com"
-        autoComplete="off"
-        required
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
-      />
+      <div className="field-group">
+        <label htmlFor="send-email-to" className="field-label">Recipient</label>
+        <ContactAutocomplete
+          contacts={profileData?.profile?.contacts ?? []}
+          id="send-email-to"
+          className="field-input"
+          placeholder="recipient@example.com"
+          autoComplete="off"
+          required
+          value={to}
+          onChange={setTo}
+        />
+      </div>
       <Input
         id="send-email-subject"
         name="subject"

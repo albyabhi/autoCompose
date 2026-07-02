@@ -4,9 +4,9 @@ AI-powered - AI Email Assistant
 
 professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
 
-**Document Version:** 1.4  
-**Last Updated:** 2026-07-01  
-**Last Commit:** scheduling feature
+**Document Version:** 1.4.2
+**Last Updated:** 2026-07-02
+**Last Commit:** telegram ui fix 1
 
 ---
 

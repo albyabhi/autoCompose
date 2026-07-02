@@ -4,6 +4,12 @@ import type { ProfessionalType } from "@/modules/profile/professional";
 export type FormalityLevel = "formal" | "semi-formal" | "casual";
 export type PreferredTone = "professional" | "friendly" | "neutral" | "warm" | "direct";
 
+export interface IContact {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface IProfile extends Document {
   userId: string;
   personal: {
@@ -38,6 +44,7 @@ export interface IProfile extends Document {
     encryptedDek?: string;
     dekVersion?: number;
   };
+  contacts?: IContact[];
     resume?: {
       rawText?: string;
       name?: string;
@@ -124,6 +131,13 @@ const profileSchema = new Schema<IProfile>(
       encryptedDek: { type: String },
       dekVersion: { type: Number },
     },
+    contacts: [
+      {
+        id: { type: String, required: true },
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, trim: true, lowercase: true },
+      },
+    ],
     resume: {
       rawText: { type: String },
       name: { type: String },

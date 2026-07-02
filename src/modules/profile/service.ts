@@ -74,6 +74,10 @@ export async function updateProfile(
     }
   }
 
+  if (data.contacts !== undefined) {
+    update["contacts"] = data.contacts;
+  }
+
   const profile = await Profile.findOneAndUpdate(
     ownedFilter(userId),
     { $set: update },

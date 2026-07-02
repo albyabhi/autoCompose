@@ -120,12 +120,21 @@ export const resumeSchema = z.object({
   projects: z.array(resumeProjectSchema),
 });
 
+export const contactSchema = z.object({
+  id: z.string().min(1, "Contact ID is required"),
+  name: z.string().min(1, "Name is required").max(100, "Name cannot exceed 100 characters"),
+  email: z.string().email("Invalid email address").max(320, "Email too long"),
+});
+
+export const contactsUpdateSchema = z.array(contactSchema).max(500, "Max 500 contacts allowed");
+
 export const profileUpdateSchema = z.object({
   personal: personalSchema.optional(),
   professional: professionalSchema.optional(),
   preferences: preferencesSchema.optional(),
   jobApplication: jobApplicationSchema.optional(),
   emailCredentials: emailCredentialsSchema.optional(),
+  contacts: contactsUpdateSchema.optional(),
 });
 
 export const profileCreateSchema = z.object({
@@ -139,6 +148,7 @@ export type ResumeData = z.infer<typeof resumeSchema>;
 export type ResumeUpdateData = z.infer<typeof resumeUpdateSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ProfileCreateInput = z.infer<typeof profileCreateSchema>;
+export type ContactData = z.infer<typeof contactSchema>;
 
 // ============================================================
 // FILE: src/modules/profile/validation.ts

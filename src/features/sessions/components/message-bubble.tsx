@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { parseEmailContent } from "@/modules/email/content";
+import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { SendEmailDialog } from "@/components/send-email-dialog";
 import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 import type { MessageData } from "../types";
@@ -45,12 +46,12 @@ export function MessageBubble({ message, defaultRecipient }: MessageBubbleProps)
           <>
               <div className="message-recipient">
                 <label htmlFor={`msg-recipient-${message.id}`} className="message-recipient-label">To:</label>
-                <input
+                <ContactAutocomplete
+                  contacts={profileData?.profile?.contacts ?? []}
                   id={`msg-recipient-${message.id}`}
                   className="message-recipient-input"
-                  type="email"
                   value={recipient}
-                  onChange={(e) => setRecipientLocal(e.target.value)}
+                  onChange={setRecipientLocal}
                   placeholder="recipient@example.com"
                 />
               </div>

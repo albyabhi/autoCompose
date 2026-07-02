@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { CATEGORY_OPTIONS, type EmailCategory } from "@/modules/email/categories";
 import { extractEmailFromText, parseEmailContent } from "@/modules/email/content";
+import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { useGenerateEntry, useDeleteEntry, useUpdateEntry } from "../hooks/use-bulk";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 import type { BulkEntryData } from "../types";
 
 interface BulkRowProps {
@@ -17,6 +19,7 @@ interface BulkRowProps {
 }
 
 export function BulkRow({ entry, modelId, onPreview, onSchedule, rowFiles = [], onRowFilesChange }: BulkRowProps) {
+  const { data: profileData } = useProfile();
   const generateMutation = useGenerateEntry();
   const deleteMutation = useDeleteEntry();
   const updateMutation = useUpdateEntry();
@@ -157,12 +160,12 @@ export function BulkRow({ entry, modelId, onPreview, onSchedule, rowFiles = [], 
             <label htmlFor={`bulk-recipient-${entry.id}`} className="bulk-card__label">
               Recipient
             </label>
-            <input
+            <ContactAutocomplete
+              contacts={profileData?.profile?.contacts ?? []}
               id={`bulk-recipient-${entry.id}`}
               className="field-input"
-              type="email"
               value={localRecipient}
-              onChange={(e) => setLocalRecipient(e.target.value)}
+              onChange={setLocalRecipient}
               disabled={isDisabled}
               placeholder="email@example.com"
             />

@@ -23,6 +23,7 @@ export interface ProfileSource {
   };
   jobApplication?: { resumeUrl?: string; linkedIn?: string; portfolio?: string };
   emailCredentials?: { gmailAddress?: string; encryptedAppPassword?: string };
+  contacts?: { id: string; name: string; email: string }[];
   resume?: {
     rawText?: string;
     email?: string;
@@ -209,6 +210,7 @@ export function sanitizeProfile(profile: ProfileSource | null): ProfileSource | 
     preferences: profile.preferences ?? {},
     jobApplication: profile.jobApplication ?? {},
     emailCredentials: safeEmailCredentials,
+    contacts: profile.contacts ?? [],
     ...(safeResume ? { resume: safeResume } : {}),
   }));
 }

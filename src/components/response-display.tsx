@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { cleanAIContent, parseEmailContent } from "@/modules/email/content";
+import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { SendEmailDialog } from "./send-email-dialog";
 import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 
@@ -82,12 +83,12 @@ export function ResponseDisplay({
       <div className="response-content">
           <div className="response-recipient">
             <label htmlFor="response-recipient-input" className="response-recipient-label">To:</label>
-            <input
+            <ContactAutocomplete
+              contacts={profileData?.profile?.contacts ?? []}
               id="response-recipient-input"
               className="response-recipient-input"
-              type="email"
               value={recipient}
-              onChange={(e) => setRecipientLocal(e.target.value)}
+              onChange={setRecipientLocal}
               placeholder="recipient@example.com"
             />
           </div>

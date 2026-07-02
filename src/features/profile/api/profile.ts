@@ -33,6 +33,7 @@ export interface ProfileData {
     gmailAddress: string | null;
     emailConfigured: boolean;
   };
+  contacts: { id: string; name: string; email: string }[];
 }
 
 export interface ProfileReadiness {
@@ -72,6 +73,12 @@ export async function removeEmailCredentials(): Promise<ProfileResponse> {
   return api.patch<ProfileResponse>("/api/profile", {
     emailCredentials: null,
   });
+}
+
+export async function updateContacts(
+  contacts: { id: string; name: string; email: string }[]
+): Promise<ProfileResponse> {
+  return api.patch<ProfileResponse>("/api/profile", { contacts });
 }
 
 // ============================================================
