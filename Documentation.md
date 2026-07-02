@@ -4,9 +4,9 @@ AI-powered - AI Email Assistant
 
 professional email composition tool built with Next.js 16 App Router, MongoDB, NVIDIA NIM, and a Neubrutalist design system.
 
-**Document Version:** 1.4.2
+**Document Version:** 1.4.3
 **Last Updated:** 2026-07-02
-**Last Commit:** telegram ui fix 1
+**Last Commit:** contacts updation
 
 ---
 
@@ -936,11 +936,16 @@ This runs the cron processor for a single schedule, processing all due items imm
 | Job Application | inline (ProfileForm) | Resume URL, LinkedIn, GitHub, Portfolio |
 | AI Settings | `AiSettingsSection` | Preferred AI Model (default for compose and resume parsing) |
 | Email Credentials | `EmailCredentialsSection` | Gmail address, encrypted App Password (5th section) |
+| Contacts | `ContactsSection` | Saved name + email pairs for recipient autocomplete across compose, session, batch, and send-email |
 | Resume | (see below) | AI-parsed skills, education, experience, projects |
 
 The first four sections are rendered by `ProfileForm` with the shared dirty-state / save button pattern. `AiSettingsSection` and `EmailCredentialsSection` are mounted as dedicated components beneath the form so they can host section-specific UX (status badges, destructive remove actions, password masking, help links).
 
 The default AI model for both email composition and resume parsing is set in **Settings → AI Settings → Preferred AI Model**. The per-action selector in compose and resume upload still allows one-off overrides without changing the saved preference. The default is applied on first render of the action form; changing the preference while a form is open does not retroactively update it.
+
+### Contacts Management
+
+The **Contacts** tab in Settings lets users save frequently-used contact pairs (name + email). Contacts are stored as an array on the profile document and surfaced via the `useProfile` hook. A `ContactAutocomplete` UI component (`src/components/ui/contact-autocomplete.tsx`) replaces the native email input on all recipient fields — compose, session messages, batch rows, and the send-email dialog — providing inline filtering by name or email with keyboard navigation and click-to-select. CRUD operations (add, edit, delete) are handled by the `ContactsSection` component and persisted via `PATCH /api/profile` with the `contacts` field. Input validation enforces non-empty name (max 100 chars), valid email (max 320 chars), and a maximum of 500 contacts per user.
 
 ### Resume Parsing & Editing
 
@@ -1096,6 +1101,7 @@ Indexes: `{ scheduleId: 1, sortOrder: 1 }`, `{ userId: 1, deliveryState: 1 }`, u
 | `preferences` | subdoc | Tone, formality, signature, language, preferred model |
 | `jobApplication` | subdoc | Resume, LinkedIn, portfolio URLs |
 | `emailCredentials` | subdoc | `gmailAddress` (string), `encryptedAppPassword` (AES-256-GCM hex) — both optional |
+| `contacts` | array | Saved contacts `{ id, name, email }[]` for recipient autocomplete |
 | `resume` | subdoc | AI-parsed skills, education, experience, projects (with `rawText` stripped from GET) |
 
 ### EmailTemplate
@@ -1323,6 +1329,7 @@ Every interactive component implements:
 | `Card` | `hover` (adds interactive shadow), `CardHeader/CardBody/CardFooter` |
 | `Skeleton` | `width`, `height`, `SkeletonCard`, `SkeletonList` |
 | `EmptyState` | `icon`, `title`, `description`, `action` |
+| `ContactAutocomplete` | `contacts`, `value`, `onChange`, standard input attrs — filters saved contacts by name/email |
 
 ### Email-sending UI classes (in `globals.css`)
 
@@ -1392,6 +1399,16 @@ Every query against this model must use `ownedFilter(userId)`.
 ---
 
 ## Changelog
+
+### 2026-07-02 — Contacts updation (commit `610a042`)
+
+- **New Contacts management** — Settings page gains a **Contacts** tab (`ContactsSection`) for managing saved name + email pairs. Supports add, edit (inline), and delete with confirmation. Persisted to `Profile.contacts` array via `PATCH /api/profile`.
+- **New `ContactAutocomplete` component** — Replaces native email inputs in `ResponseDisplay`, `MessageBubble`, `BulkRow`, and `SendEmailDialog`. Filters up to 5 contacts by case-insensitive substring match on name or email. Supports ArrowUp/ArrowDown/Enter/Escape keyboard navigation, click-to-select, and click-outside-to-close.
+- **New validation** — `contactSchema` and `contactsUpdateSchema` in `src/modules/profile/validation.ts` enforce name (1-100 chars), valid email, and max 500 contacts per user.
+- **Model update** — `IContact` interface and `contacts` field added to Profile schema in `src/models/profile.ts`.
+- **API integration** — `updateContacts()` in `src/features/profile/api/profile.ts`. `sanitizeProfile()` passes contacts through. Profile service persists `contacts` field on update.
+- **CSS** — New styles for contact autocomplete dropdown (`.contact-autocomplete`, `.contact-autocomplete__dropdown`, `.contact-autocomplete__option*`) and settings contacts list (`.settings-section__list`, `.settings-list-item`, `.settings-list-item__btn--edit/delete`). Removed redundant opacity overrides on recipient labels.
+- Files changed: 14 files across components, hooks, models, services, validation, and CSS.
 
 ### 2026-07-01 — Email scheduling feature
 

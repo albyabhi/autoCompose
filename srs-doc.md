@@ -261,6 +261,17 @@ AutoCompose is a self-contained web application built on the Next.js 16 App Rout
   - Full CRUD on resume sub-sections
 - **Input:** `PATCH /api/profile/resume` with structured resume data
 
+#### FR-008b: Saved Contacts
+- **Priority:** Medium
+- **Description:** Users can save frequently-used contact pairs (name + email) for quick recipient autocomplete.
+- **Input:** `PATCH /api/profile` with `contacts` array `{ id, name, email }[]`
+- **Processing:**
+  - Validate name (1-100 chars), email (valid format, max 320 chars)
+  - Enforce max 500 contacts per user
+  - Persist to `Profile.contacts` array
+- **Output:** Updated profile with contacts list
+- **UI:** `ContactAutocomplete` component replaces native email inputs on all recipient fields (compose, session, batch, send-email dialog) with inline filtering by name or email
+
 ### 3.3 AI Email Generation
 
 #### FR-009: Single Email Generation
@@ -839,6 +850,7 @@ None. AutoCompose is a cloud-hosted web application.
 | `preferences` | subdoc | formalityLevel, preferredTone, defaultSignature, preferredLanguage, preferredModel |
 | `jobApplication` | subdoc | resumeUrl, linkedIn, github, portfolio |
 | `emailCredentials` | subdoc | gmailAddress, encryptedAppPassword (v2 object), encryptedDek, dekVersion |
+| `contacts` | array | Saved contact pairs: `{ id, name, email }[]` for recipient autocomplete |
 | `resume` | subdoc | rawText, name, email, phone, linkedin, github, portfolio, parsedByModel, skills[], education[], experience[], projects[] |
 
 #### 6.1.3 Session
@@ -1250,6 +1262,7 @@ src/instrumentation.ts → startScheduleWorker() → setInterval(tick)
 
 | Date | Feature | Key Changes |
 |---|---|---|
+| 2026-07-02 | Saved Contacts | Contact management, autocomplete component, recipient field integration |
 | 2026-07-01 | Email Scheduling | Schedule CRUD, cron processing, delivery state machine, background worker |
 | 2026-07-01 | Resume Editor | Editable resume data, modular editor components |
 | 2026-07-01 | Batch Fixes | Optimistic update fix, GitHub field, UI refinements |
