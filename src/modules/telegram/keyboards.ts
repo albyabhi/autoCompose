@@ -15,8 +15,8 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
-        { text: "✉ Compose Email", callback_data: CB.compose },
-        { text: "❓ Help", callback_data: "tg:menu:help" },
+        { text: "Compose Email", callback_data: CB.compose },
+        { text: "Help", callback_data: "tg:menu:help" },
       ],
     ],
   };
@@ -39,7 +39,7 @@ export function categoryKeyboard(): InlineKeyboardMarkup {
       ],
       [
         { text: "General", callback_data: `${CB.categoryPrefix}custom` },
-        { text: "↩️ Main menu", callback_data: CB.menu },
+        { text: "Main Menu", callback_data: CB.menu },
       ],
     ],
   };
@@ -49,12 +49,12 @@ export function reviewKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
-        { text: "📤 Send", callback_data: CB.sendStart },
-        { text: "👤 To me", callback_data: CB.sendToMe },
+        { text: "Send", callback_data: CB.sendStart },
+        { text: "To Me", callback_data: CB.sendToMe },
       ],
       [
-        { text: "🔁 Regenerate", callback_data: CB.regenerate },
-        { text: "↩️ Main menu", callback_data: CB.menu },
+        { text: "Regenerate", callback_data: CB.regenerate },
+        { text: "Main Menu", callback_data: CB.menu },
       ],
     ],
   };
@@ -64,8 +64,8 @@ export function sendConfirmKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
-        { text: "✅ Send", callback_data: CB.sendConfirm },
-        { text: "↩️ Cancel", callback_data: CB.cancel },
+        { text: "Confirm and Send", callback_data: CB.sendConfirm },
+        { text: "Cancel", callback_data: CB.cancel },
       ],
     ],
   };

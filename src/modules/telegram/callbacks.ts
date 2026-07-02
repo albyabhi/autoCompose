@@ -15,6 +15,7 @@ import {
 } from "@/modules/telegram/flows/send";
 import { handleHelp } from "@/modules/telegram/commands";
 import { replyHtml, answerCb } from "@/modules/telegram/reply";
+import { T } from "@/modules/telegram/text-constants";
 
 export async function handleCallback(ctx: Context): Promise<void> {
   const data = ctx.callbackQuery?.data;
@@ -63,7 +64,7 @@ export async function handleCallback(ctx: Context): Promise<void> {
   }
 
   await answerCb(ctx);
-  await replyHtml(ctx, "Unknown action. Use /menu to return to the main menu.");
+  await replyHtml(ctx, T.unknownAction());
 }
 
 // ============================================================

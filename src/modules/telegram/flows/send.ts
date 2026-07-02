@@ -9,6 +9,7 @@ import { extractSubject, stripSubjectLine } from "@/modules/email/content";
 import { dispatchSendEmail, validateRecipientEmail } from "@/modules/email/dispatch";
 import { TELEGRAM_RATE_KEYS, TELEGRAM_RATE_LIMITS, checkTelegramRateLimit } from "@/modules/telegram/ratelimit";
 import { replyHtml, answerCb } from "@/modules/telegram/reply";
+import { T } from "@/modules/telegram/text-constants";
 import { getConfig } from "@/config";
 import { recordAudit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
@@ -47,9 +48,9 @@ async function resolveUserAndCreds(
 
 function settingsErrorMessage(reason: "unlinked" | "no_credentials", settingsUrl: string): string {
   if (reason === "unlinked") {
-    return "❌ This chat is not linked. Type /start to link.";
+    return T.notLinkedError();
   }
-  return `❌ Gmail credentials are not configured.\n\nAdd them in Settings → Email Credentials:\n${settingsUrl}`;
+  return T.gmailNotConfigured(settingsUrl);
 }
 
 export async function handleSendStart(ctx: Context): Promise<void> {
@@ -66,7 +67,7 @@ export async function handleSendStart(ctx: Context): Promise<void> {
     await answerCb(ctx, "Nothing to send");
     await replyHtml(
       ctx,
-      "❌ No draft to send. Use /menu → ✉ Compose Email to create one.",
+      T.noDraft(),
       { reply_markup: mainMenuKeyboard() }
     );
     return;
@@ -90,14 +91,13 @@ export async function handleSendStart(ctx: Context): Promise<void> {
     await answerCb(ctx, "Rate limited");
     await replyHtml(
       ctx,
-      "⚠️ You've hit the send rate limit (10/hour). Please wait and try again.",
+      T.rateLimited(),
       { reply_markup: mainMenuKeyboard() }
     );
     return;
   }
 
   await answerCb(ctx, "Send");
-
   if (state.extractedRecipient) {
     await saveState(chatId.toString(), userId, {
       step: "awaiting_subject",
@@ -114,9 +114,7 @@ export async function handleSendStart(ctx: Context): Promise<void> {
   });
   await replyHtml(
     ctx,
-    "📧 <b>Send Email</b>\n\n" +
-      "Who should I send it to?\n\n" +
-      "Send the recipient's email address, or /cancel to abort."
+    T.promptRecipient()
   );
 }
 
@@ -134,7 +132,7 @@ export async function handleSendToMe(ctx: Context): Promise<void> {
     await answerCb(ctx, "Nothing to send");
     await replyHtml(
       ctx,
-      "❌ No draft to send. Use /menu → ✉ Compose Email to create one.",
+      T.noDraft(),
       { reply_markup: mainMenuKeyboard() }
     );
     return;
@@ -158,7 +156,7 @@ export async function handleSendToMe(ctx: Context): Promise<void> {
     await answerCb(ctx, "Rate limited");
     await replyHtml(
       ctx,
-      "⚠️ You've hit the send rate limit (10/hour). Please wait and try again.",
+      T.rateLimited(),
       { reply_markup: mainMenuKeyboard() }
     );
     return;
@@ -178,8 +176,7 @@ export async function handleRecipientInput(ctx: Context, text: string): Promise<
   if (!validateRecipientEmail(trimmed)) {
     await replyHtml(
       ctx,
-      "❌ That doesn't look like a valid email address.\n\n" +
-        "Try again (e.g. <code>name@example.com</code>), or /cancel to abort."
+      T.invalidEmail()
     );
     return;
   }
@@ -204,7 +201,7 @@ export async function handleSubjectInput(ctx: Context, text: string): Promise<vo
   const to = state.pendingSendTo;
   if (!to || !state.draftSnapshot) {
     await saveState(chatId.toString(), userId, { step: "idle" });
-    await replyHtml(ctx, "❌ Send flow lost. Please start over with /menu.", {
+    await replyHtml(ctx, T.flowLost(), {
       reply_markup: mainMenuKeyboard(),
     });
     return;
@@ -217,8 +214,7 @@ export async function handleSubjectInput(ctx: Context, text: string): Promise<vo
     if (!auto || auto === "Email from AutoCompose") {
       await replyHtml(
         ctx,
-        "❌ Could not detect an auto-generated subject.\n\n" +
-          "Please type a custom subject, or /cancel to abort."
+        T.autoSubjectNotDetected()
       );
       return;
     }
@@ -226,8 +222,7 @@ export async function handleSubjectInput(ctx: Context, text: string): Promise<vo
   } else if (trimmed.length === 0) {
     await replyHtml(
       ctx,
-      "❌ Subject can't be empty.\n\n" +
-        `Type a subject, or /skip to use the auto-detected one: <i>${escapeForDisplay(auto)}</i>.`
+      T.subjectCannotBeEmpty(auto)
     );
     return;
   } else {
@@ -262,13 +257,13 @@ export async function handleSendConfirm(ctx: Context): Promise<void> {
     });
     await answerCb(ctx, "Missing data");
     await saveState(chatId.toString(), userId, { step: "idle" });
-    await replyHtml(ctx, "❌ Send flow lost. Please start over with /menu.", {
+    await replyHtml(ctx, T.flowLost(), {
       reply_markup: mainMenuKeyboard(),
     });
     return;
   }
 
-  await answerCb(ctx, "Sending…");
+  await answerCb(ctx, "Sending...");
   const creds = await resolveUserAndCreds(ctx);
   if (!creds.ok) {
     await replyHtml(ctx, settingsErrorMessage(creds.reason, creds.settingsUrl), {
@@ -296,9 +291,7 @@ export async function handleSendConfirm(ctx: Context): Promise<void> {
     });
     await replyHtml(
       ctx,
-      `✅ <b>Sent!</b>\n\n` +
-        `To: <code>${escapeForDisplay(to)}</code>\n` +
-        `Subject: <i>${escapeForDisplay(subject)}</i>`,
+      T.sent(to, subject),
       { reply_markup: mainMenuKeyboard() }
     );
     await clearState(chatId.toString());
@@ -312,7 +305,7 @@ export async function handleSendConfirm(ctx: Context): Promise<void> {
   });
   await replyHtml(
     ctx,
-    `❌ <b>Send failed</b>\n\n${escapeForDisplay(result.message)}`,
+    T.sendFailed(result.message),
     { reply_markup: sendConfirmKeyboard() }
   );
 }
@@ -325,7 +318,7 @@ export async function handleSendCancel(ctx: Context): Promise<void> {
     await clearState(chatId.toString());
   }
   await answerCb(ctx, "Cancelled");
-  await replyHtml(ctx, "Cancelled.", { reply_markup: mainMenuKeyboard() });
+  await replyHtml(ctx, T.cancelledFlow(), { reply_markup: mainMenuKeyboard() });
 }
 
 async function promptForSubject(
@@ -352,13 +345,10 @@ async function promptForSubjectWithRecipient(
   extracted?: boolean
 ): Promise<void> {
   const auto = draft ? extractSubject(draft) : "Email from AutoCompose";
-  const extractedNote = extracted ? " (auto-detected from prompt)" : "";
+  const extractedNote = extracted ? "(auto-detected)" : "";
   await replyHtml(
     ctx,
-    `📝 <b>Subject</b>\n\n` +
-      `To: <code>${escapeForDisplay(to)}</code>${extractedNote}\n\n` +
-      `Type a subject, or /skip to use the auto-detected one:\n` +
-      `<i>${escapeForDisplay(auto)}</i>`
+    T.subjectPrompt(to, auto, extractedNote)
   );
 }
 
@@ -368,10 +358,10 @@ async function showConfirm(
   subject: string,
   body: string
 ): Promise<void> {
-  const preview = body.length > 240 ? `${body.slice(0, 240)}…` : body;
+  const preview = body.length > 240 ? `${body.slice(0, 240)}...` : body;
   await replyHtml(
     ctx,
-    `📤 <b>Confirm send</b>\n\n` +
+    `Confirm send\n\n` +
       `To: <code>${escapeForDisplay(to)}</code>\n` +
       `Subject: <i>${escapeForDisplay(subject)}</i>\n\n` +
       `<b>Preview:</b>\n${escapeForDisplay(stripSubjectLine(preview))}`,

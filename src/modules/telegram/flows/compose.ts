@@ -9,8 +9,9 @@ import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
 import { categoryKeyboard, reviewKeyboard, mainMenuKeyboard } from "@/modules/telegram/keyboards";
 import { cleanAIContent, extractSubject, stripSubjectLine, extractEmailFromText } from "@/modules/email/content";
-import { escapeHtml, describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
+import { describeCategoryLabel, TELEGRAM_MAX_MESSAGE } from "@/modules/telegram/renderer";
 import { replyHtml, editHtml, answerCb } from "@/modules/telegram/reply";
+import { T } from "@/modules/telegram/text-constants";
 import { recordAudit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
@@ -34,7 +35,7 @@ export async function startCompose(ctx: Context): Promise<void> {
     draftSnapshot: null,
     pendingInput: null,
   });
-  await replyHtml(ctx, "Select a category:", { reply_markup: categoryKeyboard() });
+  await replyHtml(ctx, T.selectCategory(), { reply_markup: categoryKeyboard() });
 }
 
 export async function handleCategorySelection(ctx: Context, category: string): Promise<void> {
@@ -54,7 +55,7 @@ export async function handleCategorySelection(ctx: Context, category: string): P
   await answerCb(ctx);
   await editHtml(
     ctx,
-    `Category: <b>${escapeHtml(describeCategoryLabel(category))}</b>\n\nDescribe what you need (the more detail the better).`
+    T.promptInstructions(describeCategoryLabel(category))
   );
 }
 
@@ -73,11 +74,11 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
     return;
   }
   if (prompt.length < 10) {
-    await replyHtml(ctx, "Please provide a little more detail (at least 10 characters).");
+    await replyHtml(ctx, T.promptTooShort());
     return;
   }
   if (prompt.length > 5000) {
-    await replyHtml(ctx, "Prompt is too long. Please shorten it to under 5000 characters.");
+    await replyHtml(ctx, T.promptTooLong());
     return;
   }
 
@@ -87,7 +88,7 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
 
   const placeholder = await replyHtml(
     ctx,
-    `⏳ Generating with <b>${escapeHtml(MODEL_LABELS[modelId].name)}</b>…`
+    T.generating(MODEL_LABELS[modelId].name)
   );
   const placeholderMessageId =
     typeof placeholder === "object" && placeholder !== null && "message_id" in placeholder
@@ -116,27 +117,23 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
     const subject = extractSubject(cleaned);
     const strippedBody = stripSubjectLine(cleaned);
     const body = strippedBody.length > TELEGRAM_MAX_MESSAGE
-      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated, full text saved)`
+      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n${T.truncated()}`
       : strippedBody;
 
     const recipientLine = extracted
-      ? `📬 <b>Recipient:</b> ${escapeHtml(extracted)}\n\n`
+      ? `\n${T.recipientLine(extracted)}`
       : "";
 
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}` +
-        recipientLine,
+        T.draftResult(describeCategoryLabel(state.category), subject, body) + recipientLine,
         { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
       );
     } else {
       await replyHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}` +
-        recipientLine,
+        T.draftResult(describeCategoryLabel(state.category), subject, body) + recipientLine,
         { reply_markup: reviewKeyboard() }
       );
     }
@@ -149,7 +146,7 @@ export async function handlePromptMessage(ctx: Context, prompt: string): Promise
       userId,
       metadata: { reason: errCode, source: "telegram.generate" },
     });
-    const failMessage = "⚠️ Generation failed. Please try again or /cancel.";
+    const failMessage = T.generationFailed();
     if (placeholderMessageId !== undefined) {
       try {
         await editHtml(ctx, failMessage, { chatId: chatId, messageId: placeholderMessageId });
@@ -179,9 +176,9 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
     return;
   }
 
-  await answerCb(ctx, "Regenerating…");
+  await answerCb(ctx, "Regenerating...");
 
-  const placeholder = await replyHtml(ctx, "⏳ Regenerating…");
+  const placeholder = await replyHtml(ctx, T.regenerating());
   const placeholderMessageId =
     typeof placeholder === "object" && placeholder !== null && "message_id" in placeholder
       ? (placeholder as { message_id: number }).message_id
@@ -205,25 +202,23 @@ export async function handleRegenerate(ctx: Context): Promise<void> {
     const subject = extractSubject(cleaned);
     const strippedBody = stripSubjectLine(cleaned);
     const body = strippedBody.length > TELEGRAM_MAX_MESSAGE
-      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n…(truncated)`
+      ? `${strippedBody.slice(0, TELEGRAM_MAX_MESSAGE - 80)}\n\n${T.truncated()}`
       : strippedBody;
     if (placeholderMessageId !== undefined) {
       await editHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
+        T.draftResult(describeCategoryLabel(state.category), subject, body),
         { chatId: chatId, messageId: placeholderMessageId, reply_markup: reviewKeyboard() }
       );
     } else {
       await replyHtml(
         ctx,
-        `<b>${escapeHtml(describeCategoryLabel(state.category))}</b>\n\n` +
-        `📌 <b>Subject:</b> ${escapeHtml(subject)}\n\n${escapeHtml(body)}`,
+        T.draftResult(describeCategoryLabel(state.category), subject, body),
         { reply_markup: reviewKeyboard() }
       );
     }
   } catch {
-    const failMessage = "⚠️ Regeneration failed.";
+    const failMessage = T.generationFailed();
     if (placeholderMessageId !== undefined) {
       try {
         await editHtml(ctx, failMessage, { chatId: chatId, messageId: placeholderMessageId });
@@ -242,7 +237,7 @@ export async function handleMainMenu(ctx: Context): Promise<void> {
   const userId = await resolveUserIdFromContext(ctx);
   if (!userId) return;
   await clearState(chatId.toString());
-  const text = "🏠 <b>Main Menu</b>\n\nWhat would you like to do?";
+  const text = T.mainMenu();
   if (ctx.callbackQuery) {
     await answerCb(ctx);
     try {

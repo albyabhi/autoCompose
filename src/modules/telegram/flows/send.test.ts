@@ -150,7 +150,7 @@ describe("handleSubjectInput", () => {
 
     expect(mocks.replyHtml).toHaveBeenCalledWith(
       expect.any(Object),
-      expect.stringContaining("can't be empty")
+      expect.stringContaining("cannot be empty")
     );
     expect(mocks.saveState).not.toHaveBeenCalledWith(
       expect.any(String),
