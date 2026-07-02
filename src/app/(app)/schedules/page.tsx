@@ -176,30 +176,34 @@ export default function SchedulesPage() {
                     <span className={`schedule-status schedule-status--${status.className}`}>
                       {status.label}
                     </span>
-                    <button
-                      className="btn btn--danger btn--sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setScheduleToDelete({
-                          id: schedule.id,
-                          name: schedule.name,
-                          emailCount: schedule.totalCount ?? 0,
-                        });
-                        setShowDeleteConfirm(true);
-                      }}
-                      disabled={schedule.status !== "active" || deletingId !== null}
-                    >
-                      {isDeleting ? "Deleting..." : "Delete"}
-                    </button>
+                    {schedule.status === "active" && (
+                      <button
+                        className="btn btn--danger btn--sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setScheduleToDelete({
+                            id: schedule.id,
+                            name: schedule.name,
+                            emailCount: schedule.totalCount ?? 0,
+                          });
+                          setShowDeleteConfirm(true);
+                        }}
+                        disabled={deletingId !== null}
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="schedule-card__time">
                   {new Date(schedule.scheduledAt).toLocaleString()} ({schedule.timezone})
                 </div>
-                <div className={`schedule-countdown schedule-countdown--${countdown.tone}`}>
-                  {countdown.label}
-                </div>
+                {countdown.isActiveFuture || countdown.isDue ? (
+                  <div className={`schedule-countdown schedule-countdown--${countdown.tone}`}>
+                    {countdown.label}
+                  </div>
+                ) : null}
                 <div className="schedule-card__stats">
                   <span>{schedule.totalCount ?? 0} emails</span>
                   <span>{schedule.pendingCount ?? 0} pending</span>
