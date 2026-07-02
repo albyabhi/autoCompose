@@ -775,30 +775,33 @@ Register a new user account. **Public endpoint** — no authentication required.
 ### AppShell Layout
 
 ```
-┌──────────────────────────────────────────────────┐
-│ Header                                            │
-│ [☰] AutoCompose / PageTitle    [UserAvatar Name] │
-├──────────┬───────────────────────────────────────┤
-│ Sidebar  │ Content Area                           │
-│          │                                        │
-│ ▦ Dashboard │  ┌─────────────────────────────┐   │
-│ ✎ Compose   │  │  Page-specific content      │   │
-│ ☰ History   │  │                             │   │
-│ ⚙ Settings  │  └─────────────────────────────┘   │
-│ ────────    │                                    │
-│ SESSIONS    │                                    │
-│ [+]         │                                    │
-│ ┌────────┐  │                                    │
-│ │ Card 1  │  │                                    │
-│ │ Card 2  │  │                                    │
-│ │ Card 3  │  │                                    │
-└──────────┴───────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│ Header                                               │
+│ [☰] AutoCompose / PageTitle                          │
+├───────────┬─────────────────────────────────────────┤
+│ Sidebar   │ Content Area                             │
+│           │                                          │
+│ ▦ Dashboard│  ┌───────────────────────────────┐     │
+│ ✎ Compose  │  │  Page-specific content        │     │
+│ T Schedules│  │                               │     │
+│ ⚙ Settings │  └───────────────────────────────┘     │
+│ ────────   │                                        │
+│ SESSIONS   │                                        │
+│ [+]        │                                        │
+│ ┌────────┐ │                                        │
+│ │ Card 1  │ │                                        │
+│ │ Card 2  │ │                                        │
+│ │ Card 3  │ │                                        │
+│           │ │                                        │
+│ [UserBtn] │ │                                        │
+└───────────┴─────────────────────────────────────────┘
 ```
 
-- **Responsive**: Sidebar collapses to flyout on mobile (< 768px)
-- **Persistent**: Sidebar state preserved across navigation
+- **Responsive**: Sidebar collapses to flyout on mobile (< 768px) with backdrop overlay
+- **Persistent**: Sidebar open/closed state preserved across navigation via Zustand store
 - **Infinite scroll**: Session list loads more on scroll via `useInfiniteQuery`
 - **Keyboard shortcut**: `Cmd/Ctrl+K` navigates to the compose page (`/`) from anywhere in the app
+- **User menu**: `UserButton` is rendered in the sidebar footer, not the header
 
 ### Single Compose (GenerateForm)
 
