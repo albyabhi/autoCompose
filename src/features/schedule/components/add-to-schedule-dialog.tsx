@@ -232,13 +232,12 @@ export function AddToScheduleDialog({
               {message}
             </div>
           )}
-
-          <div className="dialog__actions">
-            <Button variant="ghost" onClick={onClose} disabled={isProcessing}>Cancel</Button>
-            <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit} loading={isProcessing}>
-              {isProcessing ? "Adding..." : "Add"}
-            </Button>
-          </div>
+        </div>
+        <div className="dialog__actions">
+          <Button variant="ghost" onClick={onClose} disabled={isProcessing}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit} loading={isProcessing}>
+            {isProcessing ? "Adding..." : "Add"}
+          </Button>
         </div>
       </div>
     </div>

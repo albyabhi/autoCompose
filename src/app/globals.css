@@ -2588,9 +2588,11 @@ body {
 .dialog--email {
   max-width: min(90vw, 720px);
   max-height: 90vh;
+  height: auto;
   display: flex;
   flex-direction: column;
   padding: 32px;
+  overflow-y: auto;
 }
 
 .dialog--email .dialog__body {

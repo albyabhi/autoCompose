@@ -69,66 +69,70 @@ export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles =
         </div>
 
         {showSent ? (
-          <div className="dialog__body">
-            <div className="settings-message settings-message--success">
-              Email sent successfully to {entry.recipient}.
-              {allFiles.length > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  {allFiles.length} file{allFiles.length !== 1 ? "s" : ""} attached.
-                </div>
-              )}
+          <>
+            <div className="dialog__body">
+              <div className="settings-message settings-message--success">
+                Email sent successfully to {entry.recipient}.
+                {allFiles.length > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    {allFiles.length} file{allFiles.length !== 1 ? "s" : ""} attached.
+                  </div>
+                )}
+              </div>
             </div>
             <div className="dialog__actions">
               <Button variant="primary" onClick={onClose}>Done</Button>
             </div>
-          </div>
+          </>
         ) : (
-          <div className="dialog__body">
-            <div className="field-group">
-              <label className="field-label">To</label>
-              <div className="field-input-readonly">{entry.recipient}</div>
-            </div>
-            <div className="field-group">
-              <label htmlFor="preview-subject" className="field-label">Subject</label>
-              <input
-                id="preview-subject"
-                className="field-input"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-              />
-            </div>
-            <div className="field-group">
-              <label htmlFor="preview-body" className="field-label">Body</label>
-              <textarea
-                id="preview-body"
-                className="field-textarea"
-                rows={10}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-              />
-            </div>
-            {allFiles.length > 0 && (
+          <>
+            <div className="dialog__body">
               <div className="field-group">
-                <label className="field-label">Attachments</label>
-                <div className="field-input-readonly">
-                  {allFiles.length} file{allFiles.length !== 1 ? "s" : ""}
-                  {hasSharedFiles && hasRowFiles && (
-                    <span style={{ opacity: 0.6, marginLeft: 8 }}>
-                      ({sharedFiles.length} shared, {rowFiles.length} row-specific)
-                    </span>
-                  )}
-                </div>
+                <label className="field-label">To</label>
+                <div className="field-input-readonly">{entry.recipient}</div>
               </div>
-            )}
-            {(() => {
-              const sendError = sendMutation.error ?? sendWithAttachmentsMutation.error ?? uploadMutation.error;
-              if (!sendError) return null;
-              return (
-                <div className="settings-message settings-message--error">
-                  {sendError instanceof Error ? sendError.message : "Failed to send"}
+              <div className="field-group">
+                <label htmlFor="preview-subject" className="field-label">Subject</label>
+                <input
+                  id="preview-subject"
+                  className="field-input"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+              </div>
+              <div className="field-group">
+                <label htmlFor="preview-body" className="field-label">Body</label>
+                <textarea
+                  id="preview-body"
+                  className="field-textarea"
+                  rows={10}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                />
+              </div>
+              {allFiles.length > 0 && (
+                <div className="field-group">
+                  <label className="field-label">Attachments</label>
+                  <div className="field-input-readonly">
+                    {allFiles.length} file{allFiles.length !== 1 ? "s" : ""}
+                    {hasSharedFiles && hasRowFiles && (
+                      <span style={{ opacity: 0.6, marginLeft: 8 }}>
+                        ({sharedFiles.length} shared, {rowFiles.length} row-specific)
+                      </span>
+                    )}
+                  </div>
                 </div>
-              );
-            })()}
+              )}
+              {(() => {
+                const sendError = sendMutation.error ?? sendWithAttachmentsMutation.error ?? uploadMutation.error;
+                if (!sendError) return null;
+                return (
+                  <div className="settings-message settings-message--error">
+                    {sendError instanceof Error ? sendError.message : "Failed to send"}
+                  </div>
+                );
+              })()}
+            </div>
             <div className="dialog__actions">
               <Button variant="ghost" onClick={onClose} disabled={sendMutation.isPending || sendWithAttachmentsMutation.isPending}>
                 Cancel
@@ -149,7 +153,7 @@ export function BulkPreviewDialog({ entry, onClose, sharedFiles = [], rowFiles =
                 Add to Schedule
               </Button>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
