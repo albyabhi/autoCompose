@@ -2,6 +2,9 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "edge") {
     const { startScheduleWorker } = await import("./lib/schedule-worker");
     startScheduleWorker();
+
+    const { startModelBenchmarkWorker } = await import("./lib/model-benchmark-worker");
+    startModelBenchmarkWorker();
   }
 }
 

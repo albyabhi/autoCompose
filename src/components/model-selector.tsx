@@ -1,10 +1,12 @@
 "use client";
 
-import { MODEL_LABELS, ModelId } from "@/modules/ai/types";
+import { MODEL_LABELS, type ModelId } from "@/modules/ai/types";
+
+type ModelSelectorValue = ModelId | "recommended";
 
 interface ModelSelectorProps {
-  value: ModelId;
-  onChange: (model: ModelId) => void;
+  value: ModelSelectorValue;
+  onChange: (model: ModelSelectorValue) => void;
 }
 
 export function ModelSelector({ value, onChange }: ModelSelectorProps) {
@@ -17,8 +19,16 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
         id="model-select"
         className="model-select"
         value={value}
-        onChange={(e) => onChange(e.target.value as ModelId)}
+        onChange={(e) => {
+          const next = e.target.value;
+          if (next === "recommended") {
+            onChange("recommended");
+            return;
+          }
+          onChange(next as ModelId);
+        }}
       >
+        <option value="recommended">Recommended (Fastest)</option>
         {Object.entries(MODEL_LABELS).map(([id, { name, description }]) => (
           <option key={id} value={id} title={description}>
             {name}

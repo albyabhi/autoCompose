@@ -46,6 +46,7 @@ export function GenerateForm() {
   const [tone, setTone] = useState<FormalityLevel | null>(null);
   const [modelId, setModelId] = useState<ModelId>("deepseek");
   const [userTouchedModel, setUserTouchedModel] = useState(false);
+  const [modelSelection, setModelSelection] = useState<ModelId | "recommended">("recommended");
   const [response, setResponse] = useState<string | null>(null);
   const [modelUsed, setModelUsed] = useState<string | null>(null);
   const [generatedSessionId, setGeneratedSessionId] = useState<string | undefined>(initialSessionId || undefined);
@@ -67,15 +68,26 @@ export function GenerateForm() {
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;
   const profileFormality = profileData?.profile?.preferences?.formalityLevel;
   const effectiveTone = tone ?? profileFormality;
-  const effectiveModelId =
-    !userTouchedModel &&
-    typeof storedPreferred === "string" &&
-    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
-      ? (storedPreferred as ModelId)
+
+  const effectiveModelId: ModelId =
+    !userTouchedModel && modelSelection === "recommended"
+      ? // When using “recommended”, we still send a deterministic modelId to the API.
+        // The actual recommended key may change on the server; on the client we fall back to
+        // the profile preferred model until the server recommendation is available.
+        (typeof storedPreferred === "string" &&
+        (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+          ? (storedPreferred as ModelId)
+          : modelId)
       : modelId;
 
-  const handleModelChange = (next: ModelId) => {
+  const handleModelChange = (next: ModelId | "recommended") => {
+    if (next === "recommended") {
+      setUserTouchedModel(false);
+      setModelSelection("recommended");
+      return;
+    }
     setUserTouchedModel(true);
+    setModelSelection(next);
     setModelId(next);
   };
 
@@ -160,7 +172,7 @@ export function GenerateForm() {
             </select>
           </div>
 
-          <ModelSelector value={effectiveModelId} onChange={handleModelChange} />
+          <ModelSelector value={userTouchedModel ? modelId : "recommended"} onChange={handleModelChange} />
         </div>
 
         <div className="form-controls">
