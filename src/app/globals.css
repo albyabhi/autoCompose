@@ -37,6 +37,7 @@
 }
 
 html {
+  font-size: clamp(13px, 3.6vw, 16px);
   height: 100%;
 }
 
@@ -67,7 +68,7 @@ body {
 }
 
 .page-title {
-  font-size: 56px;
+  font-size: 3.5rem;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -2px;
@@ -77,12 +78,12 @@ body {
 
 @media (max-width: 640px) {
   .page-title {
-    font-size: 36px;
+    font-size: 2.25rem;
   }
 }
 
 .page-subtitle {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 500;
   color: var(--black);
   opacity: 0.7;
@@ -120,7 +121,7 @@ body {
 }
 
 .field-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -131,7 +132,7 @@ body {
   width: 100%;
   padding: 12px 16px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -155,7 +156,7 @@ body {
   width: 100%;
   padding: 16px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
   line-height: 1.6;
   border: var(--border-w) solid var(--black);
@@ -176,7 +177,7 @@ body {
 }
 
 .field-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #666;
   text-align: right;
 }
@@ -189,7 +190,7 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .category-guidance {
@@ -214,7 +215,7 @@ body {
   border-radius: var(--radius);
   padding: 4px 12px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -232,7 +233,7 @@ body {
   width: 100%;
   padding: 16px 32px;
   font-family: var(--font);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -263,7 +264,7 @@ body {
 .copy-btn {
   padding: 12px 24px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -295,7 +296,7 @@ body {
 }
 
 .model-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -316,7 +317,7 @@ body {
   flex: 1;
   padding: 8px 16px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border: 2px solid transparent;
   border-radius: calc(var(--radius) - 2px);
@@ -361,17 +362,17 @@ body {
 }
 
 .empty-icon {
-  font-size: 48px;
+  font-size: 3rem;
   line-height: 1;
 }
 
 .empty-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
 .empty-text {
-  font-size: 16px;
+  font-size: 1rem;
   color: #666;
   max-width: 400px;
 }
@@ -400,7 +401,7 @@ body {
 }
 
 .loading-text {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -411,12 +412,12 @@ body {
 }
 
 .response-error-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
 .response-error-text {
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
@@ -434,12 +435,12 @@ body {
 }
 
 .response-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
 .response-model {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   padding: 4px 12px;
   background: var(--surface);
@@ -448,7 +449,7 @@ body {
 }
 
 .response-content {
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.8;
   white-space: pre-wrap;
   background: var(--surface);
@@ -472,7 +473,7 @@ body {
 
 .response-recipient-label {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #666;
   white-space: nowrap;
   text-transform: uppercase;
@@ -484,7 +485,7 @@ body {
   border: 1px solid var(--black);
   border-radius: 0;
   padding: 6px 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text);
   background: transparent;
   outline: none;
@@ -501,7 +502,7 @@ body {
 
 .response-subject-label {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--black);
   opacity: 0.6;
   white-space: nowrap;
@@ -511,7 +512,7 @@ body {
 
 .response-subject-text {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text);
 }
 
@@ -538,7 +539,7 @@ body {
 }
 
 .auth-page__logo {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
@@ -561,26 +562,26 @@ body {
 }
 
 .auth-card__icon {
-  font-size: 48px;
+  font-size: 3rem;
   line-height: 1;
 }
 
 .auth-card__title {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
 }
 
 .auth-card__text {
-  font-size: 16px;
+  font-size: 1rem;
   color: #555;
   line-height: 1.6;
   max-width: 360px;
 }
 
 .auth-card__text--small {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #888;
 }
 
@@ -600,7 +601,7 @@ body {
 }
 
 .auth-form__label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -610,7 +611,7 @@ body {
   width: 100%;
   padding: 14px 16px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -642,7 +643,7 @@ body {
   background: none;
   border: none;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--black);
   cursor: pointer;
@@ -655,7 +656,7 @@ body {
 }
 
 .auth-form__error {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--pink);
   padding: 8px 12px;
@@ -665,20 +666,20 @@ body {
 }
 
 .auth-form__field-error {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--pink);
   margin-top: 4px;
 }
 
 .auth-form__hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #888;
   line-height: 1.4;
 }
 
 .auth-form__footer {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #555;
   text-align: center;
   margin-top: 8px;
@@ -700,7 +701,7 @@ body {
   width: 100%;
   padding: 16px 32px;
   font-family: var(--font);
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -760,7 +761,7 @@ body {
 }
 
 .dashboard-header__logo {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
@@ -775,7 +776,7 @@ body {
 }
 
 .dashboard-header__link {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--black);
   text-decoration: none;
@@ -800,13 +801,13 @@ body {
 }
 
 .dashboard-main__title {
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 900;
   letter-spacing: -1px;
 }
 
 .dashboard-main__subtitle {
-  font-size: 18px;
+  font-size: 1.125rem;
   color: #666;
   margin-top: 8px;
 }
@@ -842,12 +843,12 @@ body {
 }
 
 .dashboard-card__title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 800;
 }
 
 .dashboard-card__text {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: #666;
   margin-top: 8px;
   line-height: 1.5;
@@ -865,7 +866,7 @@ body {
   gap: 12px;
   padding: 8px 16px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   background: var(--surface);
   border: var(--border-w) solid var(--black);
@@ -887,7 +888,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
 }
 
@@ -922,12 +923,12 @@ body {
 }
 
 .user-button__menu-name {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .user-button__menu-email {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #888;
   margin-top: 4px;
 }
@@ -941,7 +942,7 @@ body {
   width: 100%;
   padding: 14px 16px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   background: none;
   border: none;
@@ -966,7 +967,7 @@ body {
 
 .settings-message {
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -1013,12 +1014,12 @@ body {
 }
 
 .settings-section__title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 800;
 }
 
 .settings-section__description {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #888;
 }
 
@@ -1027,7 +1028,7 @@ body {
   background: var(--surface);
   border: 2px solid var(--black);
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -1050,7 +1051,7 @@ body {
 }
 
 .settings-field__label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1062,7 +1063,7 @@ body {
   width: 100%;
   padding: 10px 14px;
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -1100,7 +1101,7 @@ body {
 .settings-section__save {
   padding: 10px 32px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1144,18 +1145,18 @@ body {
 }
 
 .resume-upload__icon {
-  font-size: 36px;
+  font-size: 2.25rem;
   margin-bottom: 12px;
 }
 
 .resume-upload__text {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   margin-bottom: 6px;
 }
 
 .resume-upload__hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--gray-500);
   margin-bottom: 16px;
 }
@@ -1190,13 +1191,13 @@ body {
 }
 
 .resume-summary__stat-value {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .resume-summary__stat-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--gray-500);
@@ -1212,7 +1213,7 @@ body {
 .resume-summary__remove {
   background: transparent;
   color: var(--accent-red);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border: var(--border-w) solid var(--accent-red);
   border-radius: 6px;
@@ -1244,7 +1245,7 @@ body {
   border: 1px solid var(--black);
   border-radius: 4px;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -1257,7 +1258,7 @@ body {
 .resume-widget__loading {
   padding: 12px 0;
   color: var(--gray-500);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* Resume View Modal */
@@ -1294,7 +1295,7 @@ body {
 }
 
 .resume-modal__title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
@@ -1304,7 +1305,7 @@ body {
   border-radius: 4px;
   width: 32px;
   height: 32px;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1318,13 +1319,13 @@ body {
 
 .resume-modal__contact {
   padding: 10px 20px;
-  font-size: 14px;
+  font-size: 0.875rem;
   border-bottom: var(--border-w) solid var(--black);
   background: var(--gray-50);
 }
 
 .resume-summary__contact {
-  font-size: 14px;
+  font-size: 0.875rem;
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--gray-200);
@@ -1339,7 +1340,7 @@ body {
   flex: 1;
   padding: 10px 12px;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   background: none;
   border: none;
@@ -1381,7 +1382,7 @@ body {
 
 .resume-modal__empty {
   color: var(--gray-500);
-  font-size: 14px;
+  font-size: 0.875rem;
   text-align: center;
   padding: 20px;
 }
@@ -1393,24 +1394,24 @@ body {
 }
 
 .resume-entry__title {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   margin-bottom: 2px;
 }
 
 .resume-entry__sub {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--gray-600);
 }
 
 .resume-entry__meta {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--gray-500);
   margin-top: 2px;
 }
 
 .resume-entry__desc {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--gray-600);
   margin-top: 6px;
   line-height: 1.5;
@@ -1428,7 +1429,7 @@ body {
 }
 
 .resume-editor-page__title {
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
@@ -1436,7 +1437,7 @@ body {
 }
 
 .resume-editor-page__subtitle {
-  font-size: 16px;
+  font-size: 1rem;
   color: #888;
   font-weight: 500;
 }
@@ -1503,14 +1504,14 @@ body {
 }
 
 .resume-editor-section__toggle {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1;
   flex-shrink: 0;
   color: var(--black);
 }
 
 .resume-editor-section__title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1539,7 +1540,7 @@ body {
 }
 
 .resume-editor__hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #888;
   font-weight: 500;
 }
@@ -1553,7 +1554,7 @@ body {
   text-align: center;
   padding: 24px;
   color: #888;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border: 2px dashed var(--black);
   border-radius: var(--radius);
@@ -1573,7 +1574,7 @@ body {
 .resume-editor__add-btn {
   padding: 10px 20px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1624,7 +1625,7 @@ body {
   border: 2px solid var(--black);
   border-radius: 6px;
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -1638,7 +1639,7 @@ body {
   border-radius: 4px;
   background: var(--pink);
   color: var(--white);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   font-family: var(--font);
@@ -1684,7 +1685,7 @@ body {
 }
 
 .resume-editor__item-primary {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -1692,7 +1693,7 @@ body {
 }
 
 .resume-editor__item-secondary {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #888;
   white-space: nowrap;
   overflow: hidden;
@@ -1714,7 +1715,7 @@ body {
 .resume-editor__edit-btn {
   padding: 6px 14px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1733,7 +1734,7 @@ body {
 .resume-editor__save-btn {
   padding: 6px 14px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1757,7 +1758,7 @@ body {
 .resume-editor__delete-btn {
   padding: 6px 14px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1776,7 +1777,7 @@ body {
 .resume-editor__cancel-btn {
   padding: 6px 14px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1824,7 +1825,7 @@ body {
 .resume-editor__cancel-btn--large {
   padding: 10px 32px;
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1849,7 +1850,7 @@ body {
 
 @media (max-width: 640px) {
   .resume-editor-page__title {
-    font-size: 28px;
+    font-size: 1.75rem;
   }
   .resume-editor-section__body {
     padding: 14px;
@@ -1950,7 +1951,7 @@ body {
 }
 
 .app-header__logo {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
@@ -1959,12 +1960,12 @@ body {
 }
 
 .app-header__divider {
-  font-size: 20px;
+  font-size: 1.25rem;
   color: #999;
 }
 
 .app-header__title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: #555;
 }
@@ -2027,7 +2028,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
   background: none;
   border: 2px solid var(--black);
@@ -2058,7 +2059,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--black);
   text-decoration: none;
@@ -2078,13 +2079,13 @@ body {
 }
 
 .sidebar__nav-icon {
-  font-size: 18px;
+  font-size: 1.125rem;
   width: 24px;
   text-align: center;
 }
 
 .sidebar__nav-label {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -2102,7 +2103,7 @@ body {
 }
 
 .sidebar__sessions-title {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2114,7 +2115,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 800;
   background: var(--yellow);
   border: 2px solid var(--black);
@@ -2146,13 +2147,13 @@ body {
 }
 
 .sidebar__empty-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #888;
 }
 
 .sidebar__empty-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #aaa;
   margin-top: 4px;
 }
@@ -2160,7 +2161,7 @@ body {
 .sidebar__error {
   padding: 24px 16px;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--pink);
 }
 
@@ -2212,7 +2213,7 @@ body {
 }
 
 .session-card__title {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.3;
   overflow: hidden;
@@ -2224,7 +2225,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: #888;
 }
 
@@ -2252,7 +2253,7 @@ body {
   justify-content: center;
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   border-radius: 4px;
   opacity: 0;
@@ -2290,7 +2291,7 @@ body {
   width: 100%;
   padding: 8px 12px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   background: none;
   border: none;
@@ -2322,7 +2323,7 @@ body {
   flex: 1;
   padding: 6px 8px;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   border: 2px solid var(--black);
   border-radius: 4px;
@@ -2334,7 +2335,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   background: var(--green);
   border: 2px solid var(--black);
@@ -2356,7 +2357,7 @@ body {
   gap: 8px;
   padding: 12px 24px;
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2428,7 +2429,7 @@ body {
   width: 100%;
   padding: 12px 14px;
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -2447,7 +2448,7 @@ body {
 }
 
 .field-error {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--pink);
 }
@@ -2520,17 +2521,17 @@ body {
 }
 
 .empty-state__icon {
-  font-size: 48px;
+  font-size: 3rem;
   line-height: 1;
 }
 
 .empty-state__title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 800;
 }
 
 .empty-state__text {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: #888;
   max-width: 400px;
   line-height: 1.5;
@@ -2571,7 +2572,7 @@ body {
 }
 
 .dialog__title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.5px;
@@ -2618,7 +2619,7 @@ body {
   }
 
   .dialog--email .dialog__title {
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   .dialog--email .field-textarea {
@@ -2658,7 +2659,7 @@ body {
   justify-content: center;
   width: 40px;
   height: 40px;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   background: var(--white);
   border: var(--border-w) solid var(--black);
@@ -2678,7 +2679,7 @@ body {
 }
 
 .send-email-page__title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.5px;
@@ -2729,13 +2730,13 @@ body {
 }
 
 .session-detail__title {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -0.5px;
 }
 
 .session-detail__category {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2768,11 +2769,11 @@ body {
   }
 
   .session-detail__title {
-    font-size: 22px;
+    font-size: 1.375rem;
   }
 
   .session-detail__category {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
 
   .session-detail__actions {
@@ -2781,7 +2782,7 @@ body {
 
   .session-detail__actions .btn {
     width: 100%;
-    font-size: 13px;
+    font-size: 0.8125rem;
     padding: 10px 16px;
     min-height: 44px;
     box-shadow: 3px 3px 0 #000;
@@ -2809,7 +2810,7 @@ body {
 }
 
 .message__role {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2822,11 +2823,11 @@ body {
 .message__model {
   font-weight: 500;
   color: #888;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .message__content {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.7;
   white-space: pre-wrap;
 }
@@ -2842,7 +2843,7 @@ body {
 
 .message-subject-label {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--black);
   opacity: 0.6;
   white-space: nowrap;
@@ -2852,7 +2853,7 @@ body {
 
 .message-subject-text {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text);
 }
 
@@ -2867,7 +2868,7 @@ body {
 
 .message-recipient-label {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #666;
   white-space: nowrap;
   text-transform: uppercase;
@@ -2879,7 +2880,7 @@ body {
   border: 1px solid var(--black);
   border-radius: 0;
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text);
   background: transparent;
   outline: none;
@@ -2906,7 +2907,7 @@ body {
   background: none;
   border: none;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--blue);
   cursor: pointer;
@@ -2936,7 +2937,7 @@ body {
 }
 
 .sessions-page__title {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -1px;
 }
@@ -2965,13 +2966,13 @@ body {
 }
 
 .settings-page__title {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -1px;
 }
 
 .settings-page__subtitle {
-  font-size: 16px;
+  font-size: 1rem;
   color: #888;
 }
 
@@ -2997,7 +2998,7 @@ body {
   }
 
   .settings-page__title {
-    font-size: 22px;
+    font-size: 1.375rem;
   }
 }
 
@@ -3024,7 +3025,7 @@ body {
   flex-shrink: 0;
   padding: 10px 20px;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3087,7 +3088,7 @@ body {
     width: 100%;
     padding: 12px 40px 12px 16px;
     font-family: var(--font);
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -3122,13 +3123,13 @@ body {
 }
 
 .dashboard-content__title {
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 900;
   letter-spacing: -1px;
 }
 
 .dashboard-content__subtitle {
-  font-size: 18px;
+  font-size: 1.125rem;
   color: #666;
 }
 
@@ -3167,7 +3168,7 @@ body {
 }
 
 .auth-loading-screen__title {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
@@ -3185,7 +3186,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
   color: #999;
   transition: color 0.2s ease;
@@ -3203,7 +3204,7 @@ body {
 .auth-loading-screen__step-icon {
   width: 24px;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   flex-shrink: 0;
 }
 
@@ -3238,7 +3239,7 @@ body {
 }
 
 .auth-loading-screen__time {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   color: #555;
   letter-spacing: 0.5px;
@@ -3266,7 +3267,7 @@ body {
 .send-btn {
   padding: 10px 20px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3296,13 +3297,13 @@ body {
 }
 
 .send-btn--inline {
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 8px 14px;
   box-shadow: 3px 3px 0 #000;
 }
 
 .send-btn-hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--black);
   text-decoration: underline;
@@ -3333,7 +3334,7 @@ body {
   align-items: center;
   justify-content: center;
   font-family: var(--font);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
   line-height: 1;
   color: var(--black);
@@ -3380,7 +3381,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3498,14 +3499,14 @@ body {
      wrapping text on narrow modals. */
   .resume-modal__tab {
     padding: 10px 6px;
-    font-size: 12px;
+    font-size: 0.75rem;
     line-height: 1.2;
   }
 
   /* Resume modal header: keep title + close button on one row without
      pushing the title off-screen. */
   .resume-modal__title {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
@@ -3518,14 +3519,14 @@ body {
 }
 
 .telegram-card__title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: -0.5px;
   text-transform: uppercase;
 }
 
 .telegram-card__muted {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #555;
   line-height: 1.5;
 }
@@ -3538,7 +3539,7 @@ body {
 }
 
 .telegram-card__error {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--pink);
   font-weight: 700;
 }
@@ -3554,7 +3555,7 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3576,7 +3577,7 @@ body {
 
 .telegram-card__username {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .telegram-card__code {
@@ -3590,7 +3591,7 @@ body {
 }
 
 .telegram-card__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3606,7 +3607,7 @@ body {
 
 .telegram-card__code-value {
   font-family: var(--font);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: 2px;
   padding: 8px 14px;
@@ -3645,7 +3646,7 @@ body {
 .compose-page__toggle-btn {
   padding: 8px 24px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3695,7 +3696,7 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3705,7 +3706,7 @@ body {
 }
 
 .batch-compose__title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.5px;
@@ -3713,7 +3714,7 @@ body {
 }
 
 .batch-compose__subtitle {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #555;
   line-height: 1.5;
   margin: 0;
@@ -3754,7 +3755,7 @@ body {
 /* --- Card Hints --- */
 
 .batch-compose__card-hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #666;
   margin: 0 0 12px 0;
   line-height: 1.4;
@@ -3763,7 +3764,7 @@ body {
 /* --- Stats --- */
 
 .batch-compose__stats {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #888;
   padding: 4px 0;
@@ -3782,7 +3783,7 @@ body {
 /* --- Field Hint (used by ModelSelector) --- */
 
 .field-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #666;
   margin: 4px 0 0 0;
   line-height: 1.4;
@@ -3814,7 +3815,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 800;
   font-family: var(--font);
   border: var(--border-w) solid var(--black);
@@ -3848,7 +3849,7 @@ body {
   width: 70px;
   padding: 10px 12px;
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   text-align: center;
   border: var(--border-w) solid var(--black);
@@ -3887,7 +3888,7 @@ body {
 }
 
 .batch-toolbar__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3903,7 +3904,7 @@ body {
   width: 70px;
   padding: 10px 12px;
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -3919,7 +3920,7 @@ body {
   min-width: 160px;
   padding: 10px 36px 10px 12px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -3937,7 +3938,7 @@ body {
 }
 
 .batch-toolbar__count {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #888;
   padding: 10px 0;
@@ -3978,12 +3979,12 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
 .bulk-card__display-label {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -4008,7 +4009,7 @@ body {
   background: none;
   border: none;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--blue);
   cursor: pointer;
@@ -4025,7 +4026,7 @@ body {
   display: block;
   margin-top: 4px;
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   background: var(--surface);
   border: 2px solid #ddd;
@@ -4037,7 +4038,7 @@ body {
   background: none;
   border: none;
   font-family: var(--font);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: var(--blue);
   cursor: pointer;
@@ -4062,13 +4063,13 @@ body {
 }
 
 .bulk-card__preview-subject {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #222;
 }
 
 .bulk-card__preview-body {
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: #555;
   white-space: pre-wrap;
@@ -4082,7 +4083,7 @@ body {
 }
 
 .bulk-card__order {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   color: #888;
   text-transform: uppercase;
@@ -4106,7 +4107,7 @@ body {
 }
 
 .bulk-card__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4123,7 +4124,7 @@ body {
 }
 
 .bulk-card__error {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--pink);
   font-weight: 700;
   padding: 8px 12px;
@@ -4135,7 +4136,7 @@ body {
 .bulk-card__readonly {
   display: block;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   background: var(--surface);
   border: 2px solid #ddd;
@@ -4155,7 +4156,7 @@ body {
 .bulk-card__badge {
   display: inline-block;
   padding: 3px 10px;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -4203,7 +4204,7 @@ body {
   text-align: center;
   color: #888;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .bulk-table__add-row {
@@ -4212,7 +4213,7 @@ body {
   justify-content: center;
   padding: 8px 20px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   border: var(--border-w) solid var(--black);
   border-radius: var(--radius);
@@ -4243,7 +4244,7 @@ body {
   gap: 6px;
   padding: 8px 14px;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -4300,7 +4301,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   flex-wrap: wrap;
 }
@@ -4345,7 +4346,7 @@ body {
 }
 
 .bulk-send-bar__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -4392,13 +4393,13 @@ body {
 }
 
 .schedule-card__title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .schedule-card__time {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -4407,7 +4408,7 @@ body {
   border: 2px solid var(--black);
   border-radius: 4px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   background: var(--yellow);
@@ -4435,7 +4436,7 @@ body {
 
 .btn--sm {
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 900;
 }
 
@@ -4445,7 +4446,7 @@ body {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -4472,14 +4473,14 @@ body {
 
 .modal h3 {
   margin: 0 0 12px 0;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .modal p {
   margin: 0 0 20px 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -4492,7 +4493,7 @@ body {
 .schedule-status {
   display: inline-block;
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 900;
   text-transform: uppercase;
   border: 2px solid var(--black);
@@ -4540,7 +4541,7 @@ body {
 }
 
 .schedule-form-fields__timezone {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -4554,7 +4555,7 @@ body {
   background: var(--yellow);
   border: 2px solid var(--black);
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -4567,7 +4568,7 @@ body {
   flex: 1;
   padding: 10px 16px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 900;
   text-transform: uppercase;
   border: 2px solid var(--black);
@@ -4590,7 +4591,7 @@ body {
 
 .schedule-dialog__progress-text {
   font-weight: 900;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-transform: uppercase;
   margin-bottom: 12px;
 }
@@ -4613,7 +4614,7 @@ body {
   display: flex;
   gap: 16px;
   margin-top: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -4636,7 +4637,7 @@ body {
   background: var(--surface);
   border: 2px solid var(--black);
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -4651,7 +4652,7 @@ body {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 6px;
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -4667,7 +4668,7 @@ body {
 .field-input-readonly {
   padding: 8px 12px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 0.875rem;
   border: 2px solid #ddd;
   border-radius: var(--radius);
   background: var(--surface);
@@ -4688,7 +4689,7 @@ body {
 }
 
 .attachment-upload__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4718,21 +4719,21 @@ body {
 }
 
 .attachment-upload__icon {
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 
 .attachment-upload__text {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .attachment-upload__hint {
-  font-size: 11px;
+  font-size: 0.6875rem;
   opacity: 0.6;
 }
 
 .attachment-upload__error {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--pink);
   padding: 6px 10px;
@@ -4748,7 +4749,7 @@ body {
 }
 
 .attachment-upload__summary {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -4763,11 +4764,11 @@ body {
   background: var(--surface);
   border: 2px solid var(--black);
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .attachment-upload__chip-icon {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .attachment-upload__chip-name {
@@ -4779,7 +4780,7 @@ body {
 }
 
 .attachment-upload__chip-size {
-  font-size: 11px;
+  font-size: 0.6875rem;
   opacity: 0.6;
   white-space: nowrap;
 }
@@ -4790,7 +4791,7 @@ body {
   justify-content: center;
   width: 20px;
   height: 20px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   border: 2px solid var(--black);
   border-radius: 4px;
@@ -4810,7 +4811,7 @@ body {
 }
 
 .bulk-card__attachment-info {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--blue);
   padding: 4px 0;
@@ -4827,7 +4828,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
   font-family: var(--font);
   background: var(--yellow);
@@ -4871,7 +4872,7 @@ body {
   justify-content: center;
   width: 36px;
   height: 36px;
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   background: var(--white);
   border: 3px solid var(--black);
@@ -4894,7 +4895,7 @@ body {
 }
 
 .batch-help-dialog__tip {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: #333;
   padding-left: 18px;
@@ -4934,7 +4935,7 @@ body {
   justify-content: center;
   width: 40px;
   height: 40px;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   background: var(--white);
   border: 3px solid var(--black);
@@ -4948,7 +4949,7 @@ body {
 }
 
 .batch-help-dialog-page__title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.5px;
@@ -4969,7 +4970,7 @@ body {
     right: 16px;
     width: 44px;
     height: 44px;
-    font-size: 22px;
+    font-size: 1.375rem;
   }
 }
 
@@ -4987,7 +4988,7 @@ body {
   .batch-stepper__btn {
     width: 44px;
     height: 44px;
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   .batch-toolbar {
@@ -5028,15 +5029,15 @@ body {
 
 @media (max-width: 640px) {
   .batch-compose__title {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .batch-compose__subtitle {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .batch-compose__step-badge {
-    font-size: 10px;
+    font-size: 0.625rem;
     padding: 3px 8px;
   }
 
@@ -5062,7 +5063,7 @@ body {
   .bulk-card__btn {
     flex: 1;
     justify-content: center;
-    font-size: 11px;
+    font-size: 0.6875rem;
     padding: 6px 8px;
   }
 }
@@ -5110,7 +5111,7 @@ body {
 }
 
 .batch-settings-panel__title {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -5122,7 +5123,7 @@ body {
   justify-content: center;
   width: 36px;
   height: 36px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   font-family: var(--font);
   background: var(--yellow);
@@ -5177,7 +5178,7 @@ body {
   gap: 6px;
   padding: 8px 16px;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -5257,14 +5258,14 @@ body {
 }
 
 .contact-autocomplete__option-name {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.3;
   opacity: 1;
 }
 
 .contact-autocomplete__option-email {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #333;
   line-height: 1.3;
   opacity: 1;
@@ -5279,7 +5280,7 @@ body {
 }
 
 .settings-section__list-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -5306,13 +5307,13 @@ body {
 }
 
 .settings-list-item__name {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.3;
 }
 
 .settings-list-item__detail {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #555;
   line-height: 1.3;
 }
@@ -5327,7 +5328,7 @@ body {
 .settings-list-item__btn {
   padding: 6px 14px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
