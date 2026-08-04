@@ -54,7 +54,7 @@ describe("category-aware profile context", () => {
     expect(readiness.job_application.missingSections).toEqual(
       expect.arrayContaining(["professional", "jobApplication", "resume", "preferences"])
     );
-    expect(readiness.complaint.missingSections).toEqual(["preferences"]);
+    expect(readiness.complaint.missingSections).toEqual(["preferences", "contactInfo"]);
   });
 
   it("uses only the active professional branch in prompt context", () => {
@@ -71,5 +71,54 @@ describe("category-aware profile context", () => {
     expect(student).toContain("STUDENT");
     expect(student).toContain("University");
     expect(student).not.toContain("Hidden Company");
+  });
+
+  it("includes CONTACT INFO section with phone and email from profile", () => {
+    const context = buildProfileContext(profile, "job_application", "React role");
+    const text = context?.sections.join("\n") ?? "";
+    expect(text).toContain("CONTACT INFO");
+    expect(text).toContain("Phone: secret-phone");
+  });
+
+  it("deduplicates phone — prefers personal.phone over resume.phone", () => {
+    const p: ProfileSource = {
+      personal: { fullName: "Ada", phone: "personal-phone" },
+      resume: { phone: "resume-phone", skills: [], education: [], experience: [], projects: [] },
+      preferences: { formalityLevel: "formal", preferredTone: "professional" },
+    };
+    const text = buildProfileContext(p, "job_application", "Engineer")?.sections.join("\n") ?? "";
+    expect(text).toContain("Phone: personal-phone");
+    expect(text).not.toContain("resume-phone");
+  });
+
+  it("deduplicates email — prefers gmailAddress over resume.email", () => {
+    const p: ProfileSource = {
+      personal: { fullName: "Ada" },
+      emailCredentials: { gmailAddress: "ada@gmail.com" },
+      resume: { email: "ada@resume.com", skills: [], education: [], experience: [], projects: [] },
+      preferences: { formalityLevel: "formal", preferredTone: "professional" },
+    };
+    const text = buildProfileContext(p, "job_application", "Engineer")?.sections.join("\n") ?? "";
+    expect(text).toContain("Email: ada@gmail.com");
+    expect(text).not.toContain("ada@resume.com");
+  });
+
+  it("omits CONTACT INFO section when no contact data exists", () => {
+    const p: ProfileSource = {
+      personal: { fullName: "Ada" },
+      preferences: { formalityLevel: "formal", preferredTone: "professional" },
+    };
+    const text = buildProfileContext(p, "job_application", "Engineer")?.sections.join("\n") ?? "";
+    expect(text).not.toContain("CONTACT INFO");
+  });
+
+  it("includes GitHub in APPLICATION LINKS when present", () => {
+    const p: ProfileSource = {
+      personal: { fullName: "Ada" },
+      jobApplication: { github: "https://github.com/ada" },
+      preferences: { formalityLevel: "formal", preferredTone: "professional" },
+    };
+    const text = buildProfileContext(p, "job_application", "Engineer")?.sections.join("\n") ?? "";
+    expect(text).toContain("GitHub: https://github.com/ada");
   });
 });

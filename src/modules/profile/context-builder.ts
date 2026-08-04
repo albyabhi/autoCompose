@@ -21,7 +21,7 @@ export interface ProfileSource {
     preferredLanguage?: string;
     preferredModel?: string;
   };
-  jobApplication?: { resumeUrl?: string; linkedIn?: string; portfolio?: string };
+  jobApplication?: { resumeUrl?: string; linkedIn?: string; github?: string; portfolio?: string };
   emailCredentials?: { gmailAddress?: string; encryptedAppPassword?: string };
   contacts?: { id: string; name: string; email: string }[];
   resume?: {
@@ -134,6 +134,15 @@ export function buildProfileContext(
     addSection(lines, "PERSONAL", personal, budget);
   }
 
+  if (selectedSections.includes("contactInfo")) {
+    const contact: string[] = [];
+    const phone = profile.personal?.phone || profile.resume?.phone;
+    if (phone) contact.push(`Phone: ${phone}`);
+    const email = profile.emailCredentials?.gmailAddress || profile.resume?.email;
+    if (email) contact.push(`Email: ${email}`);
+    addSection(lines, "CONTACT INFO", contact, budget);
+  }
+
   if (selectedSections.includes("professional")) {
     const active = getActiveProfessionalEntries(profile.professional);
     if (active) addSection(lines, active.title, active.entries, budget);
@@ -143,6 +152,7 @@ export function buildProfileContext(
     const links = [
       profile.jobApplication?.resumeUrl && `Resume: ${profile.jobApplication.resumeUrl}`,
       profile.jobApplication?.linkedIn && `LinkedIn: ${profile.jobApplication.linkedIn}`,
+      profile.jobApplication?.github && `GitHub: ${profile.jobApplication.github}`,
       profile.jobApplication?.portfolio && `Portfolio: ${profile.jobApplication.portfolio}`,
     ].filter(Boolean) as string[];
     addSection(lines, "APPLICATION LINKS", links, budget);

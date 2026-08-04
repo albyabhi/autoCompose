@@ -31,7 +31,7 @@ const LANGUAGES = [
 ];
 
 interface SectionConfig {
-  key: Exclude<ProfileSection, "resume">;
+  key: SectionKey;
   title: string;
   description: string;
   fields: {
@@ -260,7 +260,7 @@ function SectionForm({
   );
 }
 
-type SectionKey = "personal" | "professional" | "preferences" | "jobApplication";
+type SectionKey = Exclude<ProfileSection, "resume" | "contactInfo">;
 
 interface ProfileFormProps {
   sections?: SectionKey[];
@@ -270,7 +270,7 @@ export function ProfileForm({ sections }: ProfileFormProps) {
   const { data, isLoading, isError } = useProfile();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category") ?? "";
-  const relevantSections = new Set(
+  const relevantSections = new Set<string>(
     isEmailCategory(categoryParam) ? CATEGORY_POLICIES[categoryParam].profileSections : []
   );
 

@@ -18,6 +18,8 @@ export abstract class BaseAIProvider implements AIProvider {
       sections.push("");
       sections.push("=== SELECTED PROFILE CONTEXT ===");
       sections.push(...profileContext.sections);
+      sections.push("");
+      sections.push("If user contact information is provided (phone, email), include it in the email signature or closing unless the user provides a specific signature.");
     }
 
     sections.push("");
