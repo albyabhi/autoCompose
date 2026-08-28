@@ -55,3 +55,20 @@ export type CreateEntriesInput = z.infer<typeof createEntriesSchema>;
 export type UpdateEntryInput = z.infer<typeof updateEntrySchema>;
 export type GenerateEntryInput = z.infer<typeof generateEntrySchema>;
 export type SendEntryInput = z.infer<typeof sendEntrySchema>;
+
+// ============================================================
+// FILE: src/modules/bulk/validation.ts
+// ============================================================
+// PURPOSE: Input validation schemas for all bulk email operations — ensures users can't create invalid batch entries.
+// HOW IT WORKS: Zod schemas for each bulk operation:
+//   - baseEntrySchema: Common fields — category (defaults to "custom"), prompt (max 5000 chars), recipient (max 320 chars).
+//   - createEntrySchema: Single entry creation — requires sessionId + base fields.
+//   - createEntriesSchema: Bulk creation — requires sessionId + array of entries (at least 1).
+//   - updateEntrySchema: Partial updates — optional category, prompt (10-5000 chars if provided), recipient (must be valid email if provided). Only allowed on pending/failed entries.
+//   - generateEntrySchema: AI generation — requires entryId, optional modelId (defaults to "deepseek").
+//   - sendEntrySchema: Sending — requires entryId.
+//   - batchUpdateSchema: Change category for all entries in a session — requires sessionId + category.
+//   - listEntriesSchema: List entries — requires sessionId.
+//   All schemas export TypeScript types (CreateEntryInput, etc.) for type-safe service calls.
+// INTEGRATION: Used by batch API routes (src/app/api/batch/**/route.ts) before calling bulk service (src/modules/bulk/service.ts).
+// ============================================================

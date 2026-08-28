@@ -34,11 +34,13 @@ export function boundConversationHistory(
 // ============================================================
 // FILE: src/modules/session/history-budget.ts
 // ============================================================
-// PURPOSE: Limits conversation history to fit within AI token budgets.
-// HOW IT WORKS: boundConversationHistory() takes messages in chronological order,
-//   walks backwards from the most recent, and selects up to HISTORY_MESSAGE_LIMIT
-//   (8) messages whose total characters stay within HISTORY_CHARACTER_BUDGET (6000).
-//   If a message exceeds the remaining budget, it is sliced to fit. This prevents
-//   token overflow while preserving the most recent context for multi-turn emails.
-// INTEGRATION: Used by email service to trim history before AI completion calls
+// PURPOSE: Prevents the AI from receiving too much conversation history — keeps only the most relevant recent messages within token limits.
+// HOW IT WORKS: boundConversationHistory(messages, budget=6000 chars, limit=8 messages) takes a full conversation (chronological) and returns a trimmed version:
+//   1. Starts from the MOST RECENT message and works backward.
+//   2. Adds messages to the result (prepending) until either 8 messages are selected OR total characters reach 6000.
+//   3. If a single message exceeds the remaining character budget, it's truncated (keeps the end of the message).
+//   4. Returns { messages: selected[], characterCount: total }.
+//   This ensures the AI gets recent context without exceeding token limits. The 6000 char budget leaves room for system prompt + user prompt + profile context + response.
+//   Constants: HISTORY_MESSAGE_LIMIT=8, HISTORY_CHARACTER_BUDGET=6000.
+// INTEGRATION: Used by email service (src/modules/email/service.ts) when building AI requests for existing sessions. Called with messages from getMessageHistory() (session service).
 // ============================================================

@@ -66,10 +66,18 @@ export async function POST(request: NextRequest) {
 // ============================================================
 // FILE: src/app/api/send-email/route.ts
 // ============================================================
-// PURPOSE: API endpoint for sending emails via Gmail SMTP (POST /api/send-email).
-// HOW IT WORKS: Authenticates the user, validates the request body against
-//   sendEmailSchema (to, subject, body), and delegates to dispatchSendEmail()
-//   with rate limiting (5 sends/minute). Returns success or wraps dispatch
-//   errors as AppError responses with appropriate status codes.
-// INTEGRATION: Email dispatch module, auth session, rate limiter
+// PURPOSE: The "send this email" API endpoint — delivers a composed email via Gmail SMTP using the user's stored credentials.
+// HOW IT WORKS: POST /api/send-email (supports both JSON and multipart/form-data for attachments):
+//   1. Authentication: requireAuth() gets the logged-in user.
+//   2. Request parsing: If multipart/form-data, extracts to/subject/body from form fields and attachments from files. If JSON, parses body directly.
+//   3. Validation: sendEmailSchema validates to (email), subject (1-200 chars), body (1-20000 chars).
+//   4. Sending: Calls dispatchSendEmail() (src/modules/email/dispatch.ts) which:
+//      - Rate limits: 5 sends/minute per user.
+//      - Fetches user's Gmail credentials from Profile, decrypts (v1 or v2 envelope).
+//      - Sends via SMTP (sender.ts).
+//      - Logs audit on success/failure.
+//      - Triggers v1->v2 migration if legacy credentials used.
+//   5. Response: success(200) with {sent: true, messageId} or failure with error code/message/status.
+//   Attachments: FormData files converted to {filename, buffer, contentType} and passed to dispatch.
+// INTEGRATION: Email dispatch (dispatchSendEmail), auth (requireAuth), rate limiter, attachment parser (src/utils/attachments.ts), API response helpers, AppError for typed errors.
 // ============================================================

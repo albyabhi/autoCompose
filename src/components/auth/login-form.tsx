@@ -160,12 +160,12 @@ export function LoginForm() {
 // ============================================================
 // FILE: src/components/auth/login-form.tsx
 // ============================================================
-// PURPOSE: Login form component with email/password fields and validation.
-// HOW IT WORKS: Uses React's useActionState to handle form submission. The
-//   loginAction function validates email format and password length, then calls
-//   signIn("credentials") with redirect:false. On success, navigates to the
-//   callback URL (from search params or /dashboard). Shows field-level and
-//   form-level error messages. Supports pending state for loading UI.
-// PROPS: None (standalone page component)
-// INTEGRATION: NextAuth signIn, React useActionState, Next.js router
+// PURPOSE: The sign-in page form — email/password validation, "Show password" toggle, and seamless redirect after login.
+// HOW IT WORKS: Page-level component using React 19's useActionState for form handling:
+//   - State: email, password, showPassword, pending (submitting).
+//   - loginAction(formData): Validates email format (regex) and password length (min 8). Calls NextAuth signIn("credentials", {email, password, redirect: false, callbackUrl}). On error: returns field errors. On success: returns {success: true, callbackUrl}.
+//   - On success: renders AuthLoadingScreen (animated) then redirects to callbackUrl.
+//   - UI: Email field (type=email), Password field with Show/Hide toggle, submit button with pending state, field-level and form-level error messages, "Create account" link to /register.
+//   - Hidden callbackUrl field preserves redirect destination from URL params.
+// INTEGRATION: NextAuth signIn(), React useActionState, useSearchParams, useRouter, AuthLoadingScreen component. Used by /login page (src/app/login/page.tsx).
 // ============================================================

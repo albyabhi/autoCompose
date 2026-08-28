@@ -45,11 +45,12 @@ export type ListSessionsInput = z.infer<typeof listSessionsSchema>;
 // ============================================================
 // FILE: src/modules/session/validation.ts
 // ============================================================
-// PURPOSE: Zod schemas for validating session CRUD and list inputs.
-// HOW IT WORKS: createSessionSchema requires title (1-200 chars) and category
-//   (defaults to "custom"). updateSessionSchema makes title optional.
-//   addMessageSchema validates prompt (1-5000 chars), modelId, and optional
-//   temperature/maxTokens. listSessionsSchema handles pagination (page,
-//   pageSize 1-100), search, and isArchived with type coercion for query params.
-// INTEGRATION: Used by session API routes and service functions
+// PURPOSE: Input validation rules for session operations — ensures users can't create sessions with invalid data.
+// HOW IT WORKS: Zod schemas for each session operation:
+//   - createSessionSchema: Requires title (1-200 chars), category from 7 email types (defaults to "custom"), optional metadata object.
+//   - updateSessionSchema: Partial update — title optional (1-200 if provided), metadata optional.
+//   - addMessageSchema: For adding a message to a session — prompt required (1-5000 chars), modelId from registered AI models (defaults to "deepseek"), optional temperature (0-2) and maxTokens (64-4096).
+//   - listSessionsSchema: Pagination — page (min 1), pageSize (1-100), search string (max 200), isArchived boolean (with string-to-boolean coercion for query params).
+//   All schemas export TypeScript types for type-safe service calls.
+// INTEGRATION: Used by session API routes (src/app/api/sessions/**/route.ts) before calling session service (src/modules/session/service.ts). Email categories from src/modules/email/categories.ts, AI model IDs from src/modules/ai/types.ts.
 // ============================================================

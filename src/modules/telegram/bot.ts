@@ -44,12 +44,13 @@ export function isTelegramEnabled(): boolean {
 // ============================================================
 // FILE: src/modules/telegram/bot.ts
 // ============================================================
-// PURPOSE: Initializes and caches the grammY Bot instance for Telegram integration.
-// HOW IT WORKS: initBot() creates a Bot with the configured token, calls bot.init()
-//   to fetch bot info, and registers a middleware that delegates all updates to
-//   handleUpdate(). The bot instance is cached in a promise singleton to avoid
-//   re-initialization. getBot() returns the cached instance. ensureBotMiddleware()
-//   is an alias for getBot(). isTelegramEnabled() checks if Telegram env vars are set.
-// [SECURITY] Server-only - bot token never exposed to client
-// INTEGRATION: grammY Bot SDK, config, webhook handler
+// PURPOSE: Initializes and manages the Telegram bot connection — the bridge between Telegram and AutoCompose.
+// HOW IT WORKS: Uses grammY (a Telegram Bot framework) to create a single, cached bot instance:
+//   - initBot(): Creates Bot with token from config, calls bot.init() to verify connection with Telegram, registers middleware that forwards all updates to handleUpdate() (in webhook.ts). Returns the Bot instance.
+//   - getBot(): Returns the cached bot promise — creates it on first call, reuses on subsequent calls. Prevents multiple connections.
+//   - ensureBotMiddleware(): Alias for getBot(), used by the webhook route to ensure bot is ready before processing updates.
+//   - isTelegramEnabled(): Quick check if both bot token and webhook secret are configured.
+//   The bot token is a secret — never exposed to the client. All update handling happens server-side.
+// [SECURITY] Server-only — marked with "server-only" import. Bot token never leaves the server.
+// INTEGRATION: grammY Bot SDK; config (src/config/index.ts) for token; webhook handler (src/modules/telegram/webhook.ts) for update processing; called by webhook route (src/app/api/telegram/webhook/route.ts) and status route (src/app/api/telegram/status/route.ts).
 // ============================================================

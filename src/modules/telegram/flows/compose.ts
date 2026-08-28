@@ -267,13 +267,14 @@ async function resolveUserIdFromContext(ctx: Context): Promise<string | null> {
 // ============================================================
 // FILE: src/modules/telegram/flows/compose.ts
 // ============================================================
-// PURPOSE: Implements the multi-step email composition flow via Telegram bot.
-// HOW IT WORKS: startCompose() resets state to "selecting_category" and shows the
-//   category keyboard. handleCategorySelection() saves the chosen category and prompts
-//   for details. handlePromptMessage() validates the prompt (10-5000 chars), loads the
-//   user's preferred model, sends a "generating" placeholder, calls generateFromTelegram(),
-//   and edits the placeholder with the result + review keyboard. handleRegenerate()
-//   re-generates using the same prompt. handleMainMenu() clears state and shows the
-//   main menu. resolveUserIdFromContext() looks up the user by their Telegram chatId.
-// INTEGRATION: AI bridge, state module, keyboards, content cleaner, audit logger
+// PURPOSE: The step-by-step conversation flow for writing emails in Telegram — from picking a category to reviewing the AI-generated draft.
+// HOW IT WORKS: Manages a state machine stored per-user (in TelegramState collection):
+//   1. startCompose(): Entry point. Clears any old state, sets step="selecting_category", shows category keyboard (7 email types).
+//   2. handleCategorySelection(): User picked a category. Validates it, sets step="awaiting_prompt", tells user what details to include for that category.
+//   3. handlePromptMessage(): User typed their prompt. Validates length (10-5000 chars). Gets user's profile for preferred AI model. Sends "Generating with [Model]..." placeholder message. Calls generateFromTelegram() (ai-bridge.ts) which calls the email generation service. On success: extracts subject/body, detects recipient email in prompt, saves draft ID + content in state, edits placeholder with formatted draft + review keyboard (Send, Regenerate, Cancel). On error: logs audit, shows error message.
+//   4. handleRegenerate(): User tapped "Regenerate". Uses the saved draftSnapshot (original prompt) to generate a fresh version with the same category/model. Updates state with new draft.
+//   5. handleMainMenu(): Returns to main menu, clears all composition state.
+//   6. resolveUserIdFromContext(): Helper that looks up the AutoCompose user ID from the Telegram chat ID (links chat to account).
+//   State transitions: selecting_category -> awaiting_prompt -> idle (with draft saved) -> (regenerate stays in idle) -> send flow or cancel.
+// INTEGRATION: ai-bridge.ts (generateFromTelegram), state module (saveState/loadState/clearState), keyboards (categoryKeyboard, reviewKeyboard, mainMenuKeyboard), content parser (cleanAIContent, extractSubject, stripSubjectLine, extractEmailFromText), renderer (describeCategoryLabel), reply helpers, audit logging, User/Profile models. Called by webhook.ts and callbacks.ts.
 // ============================================================

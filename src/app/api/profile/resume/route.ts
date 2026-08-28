@@ -125,10 +125,12 @@ export async function DELETE() {
 // ============================================================
 // FILE: src/app/api/profile/resume/route.ts
 // ============================================================
-// PURPOSE: API endpoint for uploading, retrieving, and deleting parsed resumes.
-// HOW IT WORKS: POST accepts multipart FormData with a file (PDF/DOCX/TXT, max 10MB)
-//   and optional modelId. Uses Server-Sent Events (NDJSON) to stream progress updates
-//   during parsing. GET returns the stored resume data. DELETE removes the resume
-//   from the profile. File type and size are validated before processing.
-// INTEGRATION: Resume service (uploadAndParseResume), auth, AI types
+// PURPOSE: API endpoint for resume upload/parsing with real-time progress streaming, plus CRUD for the parsed resume data.
+// HOW IT WORKS:
+//   - POST /api/profile/resume: Multipart FormData upload (PDF/DOCX/TXT, max 10MB). Validates file type/size. Accepts optional modelId for AI parsing. Returns a Server-Sent Events stream (NDJSON) with progress events: {type: "progress", progress: 0-100, message} then {type: "success", data: {resume}} or {type: "error", message}. Calls uploadAndParseResume() which extracts text -> AI parses -> saves to Profile. Real-time progress enables UI to show "Extracting text...", "Analyzing with AI...", "Structuring data...", "Finalizing...".
+//   - GET /api/profile/resume: Returns stored resume data (sans rawText) for the current user.
+//   - PATCH /api/profile/resume: Partial update of resume fields (skills, education, experience, projects, contact info) validated against resumeUpdateSchema.
+//   - DELETE /api/profile/resume: Removes the entire resume section from the profile.
+//   File validation: Only application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain accepted.
+// INTEGRATION: Resume service (uploadAndParseResume, getResume, updateResume, deleteResume), auth (requireAuth), AI types (modelIdSchema), validation (resumeUpdateSchema), AppError/ValidationError. Called by resume widget component (src/features/profile/components/resume-widget.tsx).
 // ============================================================

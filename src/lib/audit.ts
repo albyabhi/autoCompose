@@ -41,11 +41,8 @@ export async function recordAudit(entry: AuditEntry): Promise<void> {
 // ============================================================
 // FILE: src/lib/audit.ts
 // ============================================================
-// PURPOSE: Records audit trail entries for significant user actions.
-// HOW IT WORKS: recordAudit() takes an action type, entity info, and metadata,
-//   then creates an AuditLog document in MongoDB. It also logs the event via
-//   the logger. Failures are caught and logged but do not propagate - audit
-//   logging is fire-and-forget to avoid disrupting the main operation.
-// INTEGRATION: MongoDB (AuditLog model), used by email, session, auth, and
-//   Telegram modules to track email generation, sending, and auth events
+// PURPOSE: Creates a permanent, tamper-evident log of important user actions for security and debugging.
+// HOW IT WORKS: When something important happens (email generated, sent, schedule created, user logged in, Telegram bot used), the code calls recordAudit() with an action name (like "email.generated"), what entity was affected (like "EmailTemplate" with its ID), and extra context (which AI model, which user, IP address). This creates an AuditLog document in MongoDB that can never be modified — only appended. If the database is temporarily unavailable, the error is logged but the main operation continues uninterrupted (fire-and-forget).
+//   Common actions tracked: email.generated, email.sent, schedule.created, schedule.email_sent, schedule.email_failed, telegram.message_received, email.credentials_saved, email.credentials_migrated_to_v2.
+// INTEGRATION: MongoDB via AuditLog model (src/models/audit-log.ts); uses connectDB (src/lib/db.ts) and logger (src/lib/logger.ts); called from email service (src/modules/email/service.ts), schedule service (src/modules/schedule/service.ts), profile service (src/modules/profile/service.ts), Telegram webhook (src/modules/telegram/webhook.ts), and session service (src/modules/session/service.ts).
 // ============================================================

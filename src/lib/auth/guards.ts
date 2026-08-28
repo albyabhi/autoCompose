@@ -47,12 +47,12 @@ export function withOptionalAuth(handler: OptionalAuthHandler) {
 // ============================================================
 // FILE: src/lib/auth/guards.ts
 // ============================================================
-// PURPOSE: Higher-order functions that wrap API route handlers with auth checks.
-// HOW IT WORKS: withAuth() calls requireAuth() before the handler; if auth
-//   fails, it returns a structured error response. The handler receives the
-//   authenticated CurrentUser. withOptionalAuth() works similarly but passes
-//   null instead of throwing when unauthenticated. Both extract route params
-//   from the Next.js context and pass them to the handler.
+// PURPOSE: Wrapper functions that add authentication to API route handlers — the "easy mode" for protected endpoints.
+// HOW IT WORKS: Two higher-order functions that wrap Next.js App Router handlers:
+//   - withAuth(handler): Requires authentication. Calls requireAuth() (throws UnauthorizedError if no session). If auth succeeds, calls your handler with (request, user, params). If auth fails, returns failure(error) response automatically. Extracts route params from Next.js context.
+//   - withOptionalAuth(handler): Authentication optional. Tries to get session; if found, passes minimal CurrentUser; if not, passes null. Never throws for missing auth.
+//   Both wrap errors in failure() for consistent responses. Used instead of manually calling requireAuth() in every route.
+//   Type signatures ensure handlers receive CurrentUser and params correctly.
 // [SECURITY] Server-only - enforces authentication on API routes
-// INTEGRATION: Next.js API routes, requireAuth, api-response utilities
+// INTEGRATION: Next.js App Router (NextRequest, context.params), requireAuth (src/lib/auth/session.ts), api-response (failure). Used by API routes that need auth (e.g., /api/sessions, /api/profile).
 // ============================================================

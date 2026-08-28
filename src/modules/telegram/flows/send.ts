@@ -392,14 +392,15 @@ async function resolveUserIdFromContext(ctx: Context): Promise<string | null> {
 // ============================================================
 // FILE: src/modules/telegram/flows/send.ts
 // ============================================================
-// PURPOSE: Implements the multi-step email sending flow via Telegram bot.
-// HOW IT WORKS: handleSendStart() validates credentials and moves to "awaiting_recipient".
-//   handleSendToMe() shortcuts to subject prompt using the user's Gmail address.
-//   handleRecipientInput() validates the email and moves to "awaiting_subject".
-//   handleSubjectInput() accepts custom subject or /skip for auto-detected one, then
-//   shows confirmation preview. handleSendConfirm() dispatches the email via
-//   dispatchSendEmail(), records audit, and shows success/failure. handleSendCancel()
-//   clears state and returns to menu. All steps rate-limit sends to 10/hour.
-// [SECURITY] Credentials decrypted transiently for SMTP only
-// INTEGRATION: Email dispatch, state module, keyboards, rate limiter, audit logger
+// PURPOSE: The step-by-step conversation flow for sending an email in Telegram — from choosing recipient to confirming and sending.
+// HOW IT WORKS: Manages state machine (in TelegramState) for sending a composed draft:
+//   1. handleSendStart(): User tapped "Send" on a draft. Checks user is linked and has Gmail credentials configured. Rate limits (10 sends/hour). If prompt had an email address, auto-detected it -> jumps to subject prompt. Otherwise -> asks for recipient email (step="awaiting_recipient").
+//   2. handleSendToMe(): User tapped "Send to me". Shortcut that uses their own Gmail address as recipient -> jumps to subject prompt.
+//   3. handleRecipientInput(): User typed an email. Validates format. If valid -> step="awaiting_subject", shows subject prompt with auto-detected subject from draft.
+//   4. handleSubjectInput(): User typed subject or "/skip" to use auto-detected. Validates not empty. If valid -> step="awaiting_send_confirm", shows confirmation preview with To, Subject, and first 240 chars of body.
+//   5. handleSendConfirm(): User confirmed. Calls dispatchSendEmail() (email/dispatch.ts) which decrypts credentials, sends via SMTP, logs audit. On success: shows "Sent!", clears state, returns to menu. On failure: shows error, keeps confirm keyboard for retry.
+//   6. handleSendCancel(): User cancelled. Clears state, returns to menu.
+//   Helpers: resolveUserAndCreds() verifies linked account + Gmail credentials. resolveUserIdFromContext() looks up user ID from chat ID. promptForSubject*() and showConfirm() format messages.
+// INTEGRATION: Email dispatch (src/modules/email/dispatch.ts), state module (src/modules/telegram/state.ts), keyboards (sendConfirmKeyboard, mainMenuKeyboard), rate limiter (src/modules/telegram/ratelimit.ts), content parser (extractSubject, stripSubjectLine), audit logging, User/Profile models. Called by webhook.ts and callbacks.ts.
+// [SECURITY] Credentials decrypted in memory only for SMTP send; never logged.
 // ============================================================

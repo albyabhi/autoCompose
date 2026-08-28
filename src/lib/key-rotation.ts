@@ -192,15 +192,12 @@ export async function getKeyStatus(): Promise<KeyStatusReport> {
 // ============================================================
 // FILE: src/lib/key-rotation.ts
 // ============================================================
-// PURPOSE: KEK rotation utilities for annual key rotation of envelope encryption.
-// HOW IT WORKS: rotateKEK() takes old and new AUTH_SECRET values, iterates all
-//   v2 Profile documents, decrypts each DEK with the old KEK (old AUTH_SECRET + userId),
-//   re-encrypts with the new KEK (new AUTH_SECRET + userId), and writes back the
-//   updated encryptedDek and incremented dekVersion. getKeyStatus() reports
-//   counts of v1 vs v2 credentials and the latest dekVersion. rotateUserDEK()
-//   handles a single user (used internally and by scripts).
-// [SECURITY] Server-only — requires both old and new AUTH_SECRET at invocation time.
-//   Old secret must be provided explicitly; it is never read from config during rotation.
-// INTEGRATION: Uses Profile model, connectDB. Designed to be called from CLI scripts
-//   or admin endpoints during annual rotation.
+// PURPOSE: Rotates the master encryption key (KEK) once per year so that even if an old AUTH_SECRET is compromised, it can't decrypt current user credentials.
+// HOW IT WORKS: The envelope encryption system (crypto.ts) derives each user's KEK from AUTH_SECRET + userId. If AUTH_SECRET ever needs to change (annual rotation or suspected leak), this module re-encrypts every user's DEK without ever seeing their actual password:
+//   1. rotateKEK(oldSecret, newSecret): Finds all users with v2 credentials, decrypts each DEK using the OLD secret, re-encrypts it with the NEW secret, saves the updated encryptedDek and increments dekVersion. Runs in a loop, logs progress, continues on individual failures.
+//   2. getKeyStatus(): Reports how many users are on v1 (legacy) vs v2 (envelope) encryption, and the highest dekVersion in use.
+//   3. rotateUserDEK(): Internal helper for a single user.
+//   This is designed to be run as a one-time admin script (src/scripts/migrate-credentials-v2.ts) during a maintenance window. Both old and new secrets must be provided explicitly — neither is read from config.
+// [SECURITY] Server-only. Requires both secrets at runtime. Old secret never stored. Run annually or after any AUTH_SECRET exposure.
+// INTEGRATION: Uses Profile model (src/models/profile.ts) to read/write encryptedDek and dekVersion; connectDB (src/lib/db.ts); mirrors low-level crypto helpers from crypto.ts for server-only isolation; called by migration script (src/scripts/migrate-credentials-v2.ts).
 // ============================================================

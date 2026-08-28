@@ -35,8 +35,8 @@ Input.displayName = "Input";
 // ============================================================
 // FILE: src/components/ui/input.tsx
 // ============================================================
-// PURPOSE: A form input component with optional label and error message display.
-// HOW IT WORKS: Uses forwardRef to wrap a native <input>, generating a stable id from the label text, conditionally rendering a <label> and error paragraph, and applying an error CSS class when validation fails.
-// PROPS: label (string), error (string), plus all native input HTML attributes.
-// INTEGRATION: React (forwardRef), no external dependencies.
+// PURPOSE: Standard text input with label and validation error — consistent Neubrutalist styling across all forms.
+// HOW IT WORKS: forwardRef wraps native <input>. Auto-generates id from label (e.g., "Email Address" -> "input-email-address"). Renders <label> if provided. Applies error class (field-input--error) and shows error message paragraph when error prop is provided. Wraps everything in field-group div for consistent spacing.
+// PROPS: label (string), error (string), plus all native HTMLInputElement attributes (type, value, onChange, placeholder, required, etc.).
+// INTEGRATION: React (forwardRef), Neubrutalist CSS. Used in SendEmailDialog, ProfileForm, LoginForm, RegisterForm, ContactAutocomplete, etc.
 // ============================================================

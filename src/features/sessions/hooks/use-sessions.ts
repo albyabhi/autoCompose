@@ -16,7 +16,7 @@ import {
   toggleArchive,
   clearAllSessions,
 } from "../api/sessions";
-import type { SessionData, SessionWithMessages, MessageData } from "../types";
+import type { SessionData, SessionWithMessages, MessageData } from "@/modules/session/types";
 import type { CreateSessionInput, UpdateSessionInput } from "@/modules/session/validation";
 
 const SESSIONS_KEY = ["sessions"] as const;

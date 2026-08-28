@@ -42,10 +42,8 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
 // ============================================================
 // FILE: src/components/model-selector.tsx
 // ============================================================
-// PURPOSE: Dropdown selector for choosing an AI model from the available options.
-// HOW IT WORKS: Renders a <select> with all 8 models from MODEL_LABELS. Each option
-//   shows the model name with a tooltip showing the description. Controlled component
-//   with value/onChange props.
-// PROPS: value (ModelId), onChange (callback with new ModelId)
-// INTEGRATION: AI types (MODEL_LABELS, ModelId)
+// PURPOSE: Dropdown for picking which AI model writes the email — shows all 8 NVIDIA NIM models with descriptions as tooltips.
+// HOW IT WORKS: Controlled <select> component. Options: "Recommended (Fastest)" (uses server-side fastest model) + 8 specific models from MODEL_LABELS (deepseek, nemotron, gptOss, mistralSmall, llamaMaverick, minimaxM27, llamaNemotronNano, nemotron3Ultra). Each option has title attribute with description. value/onChange props make it controlled.
+// PROPS: value (ModelId | "recommended"), onChange(model: ModelId | "recommended") => void.
+// INTEGRATION: AI types (MODEL_LABELS, ModelId from src/modules/ai/types.ts). Used by GenerateForm component.
 // ============================================================

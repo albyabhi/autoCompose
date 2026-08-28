@@ -40,8 +40,13 @@ export function AppShell({ children, title }: AppShellProps) {
 // ============================================================
 // FILE: src/features/layout/components/app-shell.tsx
 // ============================================================
-// PURPOSE: The top-level layout wrapper providing header, sidebar, and main content area.
-// HOW IT WORKS: Reads the sidebarOpen state from the layout store and toggles a CSS class on the body container. Renders the Header, Sidebar, and a main content area for children.
-// PROPS: children (ReactNode), title (string).
-// INTEGRATION: layout-store (Zustand), Header, Sidebar components.
+// PURPOSE: The main layout wrapper for all authenticated pages — provides the header, collapsible sidebar, and content area.
+// HOW IT WORKS: Client component that reads sidebarOpen from the Zustand layout store. Renders:
+//   - Header: Top bar with app title, user avatar, notifications.
+//   - Sidebar: Navigation (Dashboard, Sessions, Schedules, Batch, Settings) + toggle button.
+//   - Content: Main area with children (the actual page).
+//   CSS class on body toggles between "sidebar open" and "sidebar closed" states.
+//   Keyboard shortcut: Cmd/Ctrl+K navigates to dashboard (home).
+// PROPS: children (ReactNode - the page content), title (string - page title shown in header).
+// INTEGRATION: layout-store (Zustand for sidebarOpen), Header component, Sidebar component. Wraps all (app) route group pages via src/app/(app)/layout.tsx.
 // ============================================================

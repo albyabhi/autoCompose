@@ -200,18 +200,12 @@ export function decrypt(stored: string): string {
 // ============================================================
 // FILE: src/lib/crypto.ts
 // ============================================================
-// PURPOSE: AES-256-GCM encryption with envelope encryption (v2) and legacy v1 support.
-// HOW IT WORKS: v1 derives a single key from AUTH_SECRET via scrypt and encrypts all
-//   data with that key — simple but no blast-radius isolation. v2 generates a random
-//   32-byte DEK per user, encrypts the app password with the DEK, then encrypts the
-//   DEK with a user-specific KEK derived from AUTH_SECRET + userId salt. This means
-//   compromising AUTH_SECRET alone does not expose any user's plaintext credentials —
-//   the attacker would also need each userId. encryptV2/decryptV2 handle the full
-//   envelope; migrateV1ToV2 transitions legacy ciphertexts. encryptV1/decryptV1 are
-//   retained for backward compatibility during migration. detectVersion() inspects
-//   the stored payload and routes to the correct decryptor.
-// [SECURITY] Server-only — handles encrypted credential storage. KEK is derived
-//   per-user; blast radius is isolated to individual accounts.
-// INTEGRATION: Uses AUTH_SECRET from config; Profile model stores v2 fields
-//   (encryptedDek, dekVersion); dispatch.ts and profile service consume these functions.
+// PURPOSE: Encrypts and decrypts user email credentials using envelope encryption (v2) with legacy v1 support.
+// HOW IT WORKS: This file protects Gmail app passwords stored in the database. Instead of using one master key for everyone (v1), v2 uses "envelope encryption" — a two-layer approach:
+//   1. Each user gets a unique random key (DEK - Data Encryption Key) that encrypts their password
+//   2. That DEK is then encrypted with a user-specific master key (KEK - Key Encryption Key) derived from AUTH_SECRET + userId
+//   This means even if someone steals the AUTH_SECRET, they still need each user's ID to decrypt their password — limiting damage to one account at a time.
+//   Functions: encryptV2/decryptV2 (main v2 operations), migrateV1ToV2 (upgrade old format), encryptV1/decryptV1 (legacy), detectVersion (auto-detects format).
+// [SECURITY] Server-only — never sent to browsers. Uses AES-256-GCM (authenticated encryption). KEK is per-user; blast radius is isolated.
+// INTEGRATION: Reads AUTH_SECRET from src/config/index.ts; Profile model (src/models/profile.ts) stores encryptedDek, encryptedAppPassword, dekVersion; used by profile service (src/modules/profile/service.ts) when saving credentials, and by email dispatch (src/modules/email/dispatch.ts) when sending emails.
 // ============================================================

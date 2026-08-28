@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client";
-import type { SessionData, SessionWithMessages, PaginatedResult, MessageData } from "../types";
+import type { SessionData, SessionWithMessages, PaginatedResult, MessageData } from "@/modules/session/types";
 import type { CreateSessionInput, UpdateSessionInput } from "@/modules/session/validation";
 
 export async function fetchSessions(params?: {

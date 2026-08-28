@@ -199,18 +199,15 @@ export async function dispatchSendEmail(
 // ============================================================
 // FILE: src/modules/email/dispatch.ts
 // ============================================================
-// PURPOSE: High-level email sending orchestrator with validation, auth, and audit.
-// HOW IT WORKS: dispatchSendEmail() validates the recipient email, subject length,
-//   and body length. Applies rate limiting if configured. Fetches the user's
-//   encrypted Gmail credentials from their Profile. Detects whether credentials are
-//   v1 (legacy single-key) or v2 (envelope with per-user DEK) and decrypts accordingly.
-//   After a successful send with v1 credentials, triggers lazy migration to v2 via
-//   migrateUserCredentialsToV2(). Records audit entries for both success (email.sent)
-//   and failure (email.send_failed). Returns a typed result discriminated by
-//   ok:true/false with specific error codes.
-// [SECURITY] Decrypts credentials in memory only, never persists plaintext.
-//   v2 credentials are isolated per-user; v1 ciphertexts are migrated on use.
-// INTEGRATION: Profile model (encrypted credentials), crypto.ts (decryptV1/decryptV2),
-//   profile/service.ts (migrateUserCredentialsToV2), sender.ts, rate limiter,
-//   audit logger. Used by Telegram send flow and API route.
+// PURPOSE: The complete "send email" workflow — validates input, checks rate limits, decrypts user's Gmail credentials, sends via SMTP, and logs everything.
+// HOW IT WORKS: dispatchSendEmail() is the single entry point for sending emails from anywhere in the app (web UI, Telegram bot, scheduled sends, bulk sends):
+//   1. Validation: Checks recipient is a valid email, subject 1-200 chars, body 1-20000 chars.
+//   2. Rate limiting: Optional per-user rate limit (default 5 emails/minute) to protect Gmail reputation.
+//   3. Credential lookup: Fetches user's Profile to find their Gmail address and encrypted app password.
+//   4. Decryption: Detects v1 (legacy) vs v2 (envelope) format. v2: decrypts DEK with user-specific KEK, then decrypts password with DEK. v1: decrypts with global key. If v1, flags for lazy migration.
+//   5. Send: Calls sender.ts with decrypted password. On success, logs audit "email.sent". If v1 was used, triggers background migration to v2.
+//   6. Error handling: Distinguishes auth failures (bad password -> "CREDENTIALS_INVALID", user must re-enter) from network/send failures ("SEND_FAILED", retryable).
+//   Returns a discriminated union: {ok: true, messageId} or {ok: false, code, message, status}.
+// [SECURITY] Server-only. Decrypts credentials in memory only — never logs or persists plaintext. v2 envelope encryption isolates blast radius.
+// INTEGRATION: Profile model (credentials), crypto.ts (decryptV1/V2), profile/service.ts (migrateUserCredentialsToV2), sender.ts (SMTP), rate-limit.ts (checkRateLimit), audit.ts (recordAudit). Called by: API route (src/app/api/send-email/route.ts), Telegram send flow (src/modules/telegram/flows/send.ts), bulk send (src/modules/bulk/service.ts), schedule processor (src/modules/schedule/service.ts).
 // ============================================================

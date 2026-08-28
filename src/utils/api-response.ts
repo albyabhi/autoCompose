@@ -59,11 +59,13 @@ export function failure(error: unknown): NextResponse<ApiErrorResponse> {
 // ============================================================
 // FILE: src/utils/api-response.ts
 // ============================================================
-// PURPOSE: Standardized JSON response helpers for Next.js API routes.
-// HOW IT WORKS: success() wraps data in { success: true, data } format.
-//   created() is a 201 convenience wrapper. failure() handles errors:
-//   AppError instances get their code/message/status preserved; unknown
-//   errors become a generic INTERNAL_ERROR with 500 status. All responses
-//   are logged via the logger for debugging.
-// INTEGRATION: Used by all API routes for consistent response format
+// PURPOSE: Consistent JSON response format for all API routes — {success: true, data} or {success: false, error: {code, message, details}}.
+// HOW IT WORKS: Three helper functions that every API route uses:
+//   - success(data, status=200): Returns {success: true, data} with given HTTP status.
+//   - created(data): Shortcut for 201 Created — returns {success: true, data} with status 201.
+//   - failure(error): Handles any error:
+//     * If it's an AppError (from src/lib/errors.ts): preserves error.code, error.message, error.details, and error.statusCode. Logs as warn.
+//     * If it's any other error (unexpected): returns generic INTERNAL_ERROR with status 500. Logs as error with stack trace.
+//   All responses use NextResponse.json(). This ensures every endpoint returns the same shape, making frontend error handling simple.
+// INTEGRATION: Used by ALL API routes (src/app/api/**/route.ts). AppError from src/lib/errors.ts. Logger from src/lib/logger.ts.
 // ============================================================

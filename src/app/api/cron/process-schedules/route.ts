@@ -69,10 +69,12 @@ export async function POST(request: NextRequest) {
 // ============================================================
 // FILE: src/app/api/cron/process-schedules/route.ts
 // ============================================================
-// PURPOSE: Secret-protected cron endpoint for processing due schedules.
-// HOW IT WORKS: Supports Vercel Cron GET requests with Authorization: Bearer
-//   CRON_SECRET and manual POST requests with either that header or x-cron-secret.
-//   Each tick logs start/finish metadata and delegates resumable item processing.
-// [SECURITY] Does not use user auth; protected only by the shared cron secret.
-// INTEGRATION: Config, schedule service/validation, API response helpers.
+// PURPOSE: The automated cron endpoint that runs on a schedule (e.g., every minute) to find due email campaigns and send their emails.
+// HOW IT WORKS: Two entry points, both protected by CRON_SECRET (not user auth):
+//   - GET /api/cron/process-schedules: Called by Vercel Cron (or any scheduler) with Authorization: Bearer CRON_SECRET header. Uses conservative defaults: maxSchedules=5, maxEmailsPerSchedule=1 (one email per schedule per tick).
+//   - POST /api/cron/process-schedules: Manual trigger (e.g., for testing) with JSON body {maxSchedules, maxEmailsPerSchedule}. Also accepts x-cron-secret header.
+//   Both verify the secret via assertCronAuthorized() which checks Authorization: Bearer <secret> or x-cron-secret header.
+//   processCronTick() validates input against processSchedulesSchema, logs start, calls processDueSchedules() (schedule service), logs finish with counts (schedulesChecked, itemsProcessed, sent, failed, generated), returns result.
+//   Security: No user session — only the shared CRON_SECRET protects it. Runs in Node.js runtime (not Edge) for MongoDB access.
+// INTEGRATION: Config (CRON_SECRET), schedule service (processDueSchedules), schedule validation (processSchedulesSchema), logger, API response helpers.
 // ============================================================

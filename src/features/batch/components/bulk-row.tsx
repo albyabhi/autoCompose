@@ -7,7 +7,7 @@ import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { AttachmentUpload } from "@/components/ui/attachment-upload";
 import { useGenerateEntry, useDeleteEntry, useUpdateEntry } from "../hooks/use-bulk";
 import { useProfile } from "@/features/profile/hooks/use-profile";
-import type { BulkEntryData } from "../types";
+import type { BulkEntryData } from "@/modules/bulk/types";
 
 interface BulkRowProps {
   entry: BulkEntryData;
@@ -217,6 +217,14 @@ export function BulkRow({ entry, modelId, onPreview, onSchedule, rowFiles = [], 
           </button>
           {cancelBtn}
           <button
+            className="bulk-card__btn bulk-card__btn--collapse"
+            onClick={() => setIsEditing(false)}
+            disabled={isDisabled}
+            aria-label="Collapse entry"
+          >
+            Collapse
+          </button>
+          <button
             className="bulk-card__btn bulk-card__btn--delete"
             onClick={handleDelete}
             disabled={isDeleting}
@@ -281,9 +289,9 @@ export function BulkRow({ entry, modelId, onPreview, onSchedule, rowFiles = [], 
             className="bulk-card__btn bulk-card__btn--edit"
             onClick={() => setIsEditing(true)}
             disabled={isDisabled || entry.status === "sending"}
-            aria-label="Edit entry"
+            aria-label="Expand entry"
           >
-            Edit
+            Expand
           </button>
           {entry.status === "generated" && (
             <>

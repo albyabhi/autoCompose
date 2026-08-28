@@ -90,14 +90,13 @@ export function resolveGenerationCategory(
 // ============================================================
 // FILE: src/modules/email/categories.ts
 // ============================================================
-// PURPOSE: Defines the 7 email categories and their AI prompt policies.
-// HOW IT WORKS: EMAIL_CATEGORIES is the canonical list of supported types
-//   (job_application, leave_request, sick_leave, resignation, complaint,
-//   meeting_request, custom). CATEGORY_POLICIES maps each category to its
-//   display label, which profile sections to inject into prompts, guidance
-//   strings for the UI, and a specific AI instruction that shapes the
-//   generated email. resolveGenerationCategory() merges requested and
-//   session categories, preferring the session's category.
-// INTEGRATION: Used by AI provider (prompt building), email service,
-//   frontend model selector, and session model validation
+// PURPOSE: Defines the 7 types of emails the app can write and tells the AI how to write each one.
+// HOW IT WORKS: Each category has a policy that controls:
+//   - label: Human-readable name shown in the UI (e.g., "Job Application")
+//   - profileSections: Which parts of the user's profile to feed to the AI (e.g., job_application gets personal + professional + resume + jobApplication + preferences + contactInfo; sick_leave only gets personal + professional + preferences + contactInfo)
+//   - promptGuidance: Hints shown to the user about what to include in their prompt
+//   - aiInstruction: The actual instruction sent to the AI that shapes the email's tone and structure
+//   Categories: job_application (tailored cover letters), leave_request (formal time off), sick_leave (concise, no medical details), resignation (professional notice), complaint (factual + resolution), meeting_request (scannable agenda), custom (free-form).
+//   resolveGenerationCategory() merges the requested category with the session's category (session wins).
+// INTEGRATION: Used by AI provider factory (src/modules/ai/factory.ts) when building system prompts, email service (src/modules/email/service.ts) for context selection, session model validation, frontend model selector (src/components/model-selector.tsx), and Telegram flows.
 // ============================================================

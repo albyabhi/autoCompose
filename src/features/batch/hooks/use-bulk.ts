@@ -17,7 +17,7 @@ import {
   uploadAttachments,
   batchUpdateCategory,
 } from "../api/bulk";
-import type { BulkEntryData, CreateEntryPayload } from "../types";
+import type { BulkEntryData, CreateEntryPayload } from "@/modules/bulk/types";
 
 const BULK_KEY = ["bulk-entries"] as const;
 

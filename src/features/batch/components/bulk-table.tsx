@@ -5,7 +5,7 @@ import { BulkRow } from "./bulk-row";
 import { BulkSendBar } from "./bulk-send-bar";
 import { BulkPreviewDialog } from "./bulk-preview-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { BulkEntryData } from "../types";
+import type { BulkEntryData } from "@/modules/bulk/types";
 import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 import type { AddScheduledEmailPayload } from "@/features/schedule/types";
 

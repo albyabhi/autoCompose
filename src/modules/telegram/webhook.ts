@@ -157,14 +157,19 @@ export async function clearAllTelegramState(chatId: string): Promise<void> {
 // ============================================================
 // FILE: src/modules/telegram/webhook.ts
 // ============================================================
-// PURPOSE: Central update dispatcher that routes Telegram updates to handlers.
-// HOW IT WORKS: handleUpdate() processes each incoming Telegram update: (1) Checks
-//   for duplicate updateIds via idempotency module, (2) Routes callback queries
-//   to handleCallback(), (3) Routes text commands (/start, /menu, /cancel, /help,
-//   /status, /compose) to their handlers with audit logging, (4) For non-command
-//   messages, loads the user's conversation state and routes based on step:
-//   awaiting_prompt -> handlePromptMessage, awaiting_recipient -> handleRecipientInput,
-//   awaiting_subject -> handleSubjectInput. Unlinked chats get a prompt to /start.
-//   Rate limiting is applied to login code attempts.
-// INTEGRATION: All Telegram submodules (commands, callbacks, flows, state, keyboards)
+// PURPOSE: The central router for every message and button press from Telegram — decides what code handles each user interaction.
+// HOW IT WORKS: handleUpdate() is called for every incoming Telegram update (message, button press, etc.):
+//   1. Idempotency: Checks updateId against idempotency module (src/modules/telegram/idempotency.ts) to ignore duplicates (Telegram sometimes retries).
+//   2. Callback queries (button presses): Routes to handleCallback() (src/modules/telegram/callbacks.ts).
+//   3. Text commands: Matches /start, /menu, /cancel, /help, /status, /compose to their handlers in commands.ts, with audit logging.
+//   4. Regular messages: If the chat is linked to an AutoCompose user, loads their conversation state (src/modules/telegram/state.ts) and routes by step:
+//      - awaiting_prompt: User is writing the email prompt -> handlePromptMessage() (flows/compose.ts)
+//      - awaiting_recipient: User is entering recipient email -> handleRecipientInput() (flows/send.ts)
+//      - awaiting_subject: User is entering subject -> handleSubjectInput() (flows/send.ts)
+//      - awaiting_send_confirm: User must use buttons, not text
+//      - Other: Shows main menu
+//   5. Unlinked chats: Replies with "Type /start to begin linking."
+//   6. Rate limiting on login code attempts to prevent abuse.
+//   clearAllTelegramState(): Admin helper to wipe a chat's conversation state.
+// INTEGRATION: All Telegram submodules: commands.ts, callbacks.ts, flows/compose.ts, flows/send.ts, state.ts, keyboards.ts, idempotency.ts, ratelimit.ts, reply.ts. Called by bot middleware (src/modules/telegram/bot.ts).
 // ============================================================

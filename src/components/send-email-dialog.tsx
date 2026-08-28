@@ -288,14 +288,13 @@ function SendEmailDialogContent({ onClose, defaultSubject, defaultBody, defaultR
 // ============================================================
 // FILE: src/components/send-email-dialog.tsx
 // ============================================================
-// PURPOSE: Modal dialog for composing and sending an email via Gmail SMTP.
-//   On desktop, renders a centered dialog with backdrop. On mobile (≤640px),
-//   renders a full-screen page-like view with back arrow and scrollable form.
-// HOW IT WORKS: Opens with pre-filled subject and body from the generated email.
-//   User enters recipient email, can edit subject/body, and clicks Send. Calls
-//   /api/send-email via the API client. Shows success/error states. Supports
-//   Escape key to close and backdrop click. Detects mobile via matchMedia and
-//   switches layout accordingly — no consumer changes needed.
-// PROPS: open (boolean), onClose (callback), defaultSubject, defaultBody
-// INTEGRATION: API client (post to /api/send-email), UI components (Button, Input)
+// PURPOSE: The "Send this email" dialog — a modal on desktop, full-screen page on mobile. Pre-fills subject/body from the generated email, lets user pick recipient from contacts, add attachments, and send via Gmail SMTP.
+// HOW IT WORKS: React component with responsive layout switching:
+//   LAYOUT: Uses matchMedia (via useSyncExternalStore) to detect ≤640px. Mobile: full-screen page with back arrow, fixed header, scrollable form. Desktop: centered dialog with backdrop, Escape key closes, backdrop click closes.
+//   STATE: to (recipient), subject, body (pre-filled from props), files (attachments), sending/success/error states.
+//   CONTACTS: ContactAutocomplete input populated from user's profile contacts.
+//   ATTACHMENTS: AttachmentUpload component handles file selection (max 5 files, 10MB each, validated by validateAttachments).
+//   SUBMISSION (handleSend): If files attached -> FormData POST to /api/send-email. If no files -> JSON POST. On success: shows "Email sent successfully" with attachment count, Done button closes dialog. On error: shows error message, keeps form.
+//   PROPS: open (boolean), onClose (callback), defaultSubject, defaultBody, defaultRecipient (optional, auto-detected from prompt).
+// INTEGRATION: API client (fetch /api/send-email), profile hook (useProfile for contacts), UI components (Button, Input, ContactAutocomplete, AttachmentUpload), attachment validation (validateAttachments). Called by ResponseDisplay component after email generation.
 // ============================================================

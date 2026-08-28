@@ -296,3 +296,19 @@ export async function sendEntry(
     return { ok: false, error: result.message };
   }
 }
+
+// ============================================================
+// FILE: src/modules/bulk/service.ts
+// ============================================================
+// PURPOSE: Manages batch email operations — create multiple emails in a session, generate them with AI, and send them individually.
+// HOW IT WORKS: A "bulk session" is a Session with many BulkEntry children (each = one recipient + prompt). Flow:
+//   - createEntry()/createEntries(): Add entries to a session. Validates session exists and belongs to user. Auto-orders by sortOrder.
+//   - listEntries(): Returns all entries for a session in order.
+//   - updateEntry(): Updates prompt/recipient/category for pending/failed entries only (not sent/generating).
+//   - deleteEntry(): Removes an entry.
+//   - batchUpdateCategory(): Changes category for all pending/failed entries in a session.
+//   - generateEntry(): The AI generation step. Sets status="generating", calls AI provider with user's profile context, parses subject from result, saves generatedContent + subject + modelUsed, sets status="generated". On error: sets status="failed" with errorMessage. Logs audit.
+//   - sendEntry(): Sends a generated entry. Rate limited (5/min). Calls dispatchSendEmail() which handles credential decryption + SMTP. On success: status="sent", audit log. On failure: status back to "generated" with error.
+//   Entries flow: pending -> generating -> generated -> sending -> sent (or failed -> generated on retry).
+// INTEGRATION: Session/BulkEntry models; AI provider factory; profile service + context builder; email content parser; email dispatch; audit logging; auth ownership. Used by batch API routes (src/app/api/batch/**/route.ts) and batch UI components (src/features/batch/components/**).
+// ============================================================

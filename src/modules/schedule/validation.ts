@@ -77,9 +77,14 @@ export type ProcessSchedulesInput = z.infer<typeof processSchedulesSchema>;
 // ============================================================
 // FILE: src/modules/schedule/validation.ts
 // ============================================================
-// PURPOSE: Zod schemas for schedule creation, listing, editing, and item updates.
-// HOW IT WORKS: Validates schedule metadata, discriminates single snapshots from
-//   batch-entry sources, and constrains editable scheduled email snapshots.
-//   Cron options are bounded to keep each processing tick small.
-// INTEGRATION: Used by schedule API routes and cron route before service calls.
+// PURPOSE: Input validation rules for all schedule operations — ensures users can't create invalid schedules or emails.
+// HOW IT WORKS: Uses Zod schemas to define exactly what data is allowed for each operation:
+//   - createScheduleSchema: name (1-120 chars), scheduledAt (must be valid future date), timezone (e.g., "America/New_York"), optional emails array.
+//   - addScheduledEmailSchema: Discriminated union — "single" emails have to/subject/body/category/prompt/modelId; "batch" emails reference a bulkEntryId and modelId.
+//   - listSchedulesSchema: Pagination (page, pageSize) and optional status filter.
+//   - updateScheduleSchema: Partial updates to name/date/timezone/status (active/cancelled). Requires at least one field.
+//   - updateScheduledEmailSchema: Can edit to/subject/body, or set retry=true to re-send a failed email.
+//   - processSchedulesSchema: Cron limits — max 20 schedules per run, max 50 emails per schedule (prevents timeout).
+//   All schemas export TypeScript types (CreateScheduleInput, etc.) for type-safe service calls.
+// INTEGRATION: Used by schedule API routes (src/app/api/schedules/**/route.ts), cron route (src/app/api/cron/process-schedules/route.ts), and schedule service (src/modules/schedule/service.ts) for input validation before database operations.
 // ============================================================

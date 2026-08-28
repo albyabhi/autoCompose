@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client";
-import type { BulkEntryData, CreateEntryPayload } from "../types";
+import type { BulkEntryData, CreateEntryPayload } from "@/modules/bulk/types";
 
 export async function createBatchSession(): Promise<{ id: string; title: string }> {
   return api.post<{ id: string; title: string }>("/api/bulk/session");

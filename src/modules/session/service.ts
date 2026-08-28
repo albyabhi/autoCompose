@@ -247,13 +247,16 @@ export async function getMessageHistory(
 // ============================================================
 // FILE: src/modules/session/service.ts
 // ============================================================
-// PURPOSE: CRUD operations for email generation sessions with pagination and search.
-// HOW IT WORKS: Provides createSession(), getSession(), listSessions(),
-//   updateSession(), deleteSession() (soft-delete), and toggleArchive().
-//   listSessions() supports pagination, text search on title, and archive
-//   filtering. It also aggregates message counts per session in a single
-//   query for efficient list rendering. getMessageHistory() fetches the
-//   most recent N messages (limited by HISTORY_MESSAGE_LIMIT) for AI context.
-//   All operations enforce ownership via userId filtering.
-// INTEGRATION: Session and Message models, history-budget for message limits
+// PURPOSE: Manages conversation sessions — each session is a thread of emails on one topic (job application, leave request, etc.).
+// HOW IT WORKS: Each user owns multiple Sessions. All operations filter by userId for isolation.
+//   - createSession(userId, {title, category}): Creates a new session with title (e.g., "Job Application 3") and category. Returns SessionData.
+//   - getSession(sessionId, userId): Returns session + all its messages (chronological) with message details (id, role, content, modelUsed, metadata).
+//   - listSessions(userId, {page, pageSize, search, isArchived}): Paginated list with optional text search on title and archive filter. Efficiently aggregates message counts and last message timestamps per session in one query.
+//   - updateSession(): Updates title and/or metadata.
+//   - deleteSession(): Soft delete — sets isDeleted=true, deletedAt=now. Preserves data but hides from lists.
+//   - clearAllSessions(): Soft-deletes all user's sessions at once.
+//   - toggleArchive(): Archives/unarchives a session (hidden from default list but not deleted).
+//   - getMessageHistory(): Returns last 8 messages (HISTORY_MESSAGE_LIMIT) for AI context, ordered oldest-first. Used by email service for multi-turn conversations.
+//   All queries use { userId, isDeleted: false } to enforce ownership.
+// INTEGRATION: Session/Message models (src/models/session.ts, src/models/message.ts); history-budget.ts (HISTORY_MESSAGE_LIMIT); auth ownership (ownedFilter); audit logging (implicit via email service). Called by session API routes (src/app/api/sessions/**/route.ts), email service (src/modules/email/service.ts), and UI hooks (src/features/sessions/hooks/use-sessions.ts).
 // ============================================================

@@ -30,6 +30,10 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface SessionWithMessages extends SessionData {
+  messages: MessageData[];
+}
+
 export interface SessionListOptions {
   page?: number;
   pageSize?: number;

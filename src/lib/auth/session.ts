@@ -42,12 +42,11 @@ async function hydrateUser(userId: string): Promise<CurrentUser> {
 // ============================================================
 // FILE: src/lib/auth/session.ts
 // ============================================================
-// PURPOSE: Server-only session utilities for checking auth and hydrating user data.
-// HOW IT WORKS: getServerSession() is a cached wrapper around NextAuth's auth().
-//   requireAuth() checks the session and throws UnauthorizedError if missing,
-//   then hydrates the full user from MongoDB (User + Profile documents).
-//   hydrateUser() combines user data and profile existence into a CurrentUser
-//   object. All functions use React.cache() for per-request deduplication.
-// [SECURITY] Server-only - contains authentication logic
-// INTEGRATION: NextAuth, User model, Profile model
+// PURPOSE: Verifies the user is logged in and loads their complete profile data for use in server-side code (API routes, server components).
+// HOW IT WORKS: Wraps NextAuth (the authentication library) with React's cache() so the session is only fetched once per request, even if multiple functions call it.
+//   - getServerSession(): Returns the raw NextAuth session (may be null if not logged in). Used when you need to check auth optionally.
+//   - requireAuth(): Calls getServerSession(), throws UnauthorizedError if no session, then calls hydrateUser() to fetch the full user record from MongoDB (User collection) and check if they have a Profile. Returns a CurrentUser object with: userId, name, email, role, onboardingCompleted, profileCompleted (boolean), avatar.
+//   - hydrateUser(): Internal helper that queries the User and Profile collections.
+//   This runs on the server only — never in the browser. Every API route that needs the current user calls requireAuth() at the start.
+// INTEGRATION: Uses NextAuth (src/auth.ts) for session cookies/JWT; User model (src/models/user.ts) and Profile model (src/models/profile.ts) for database lookups; CurrentUser type from src/lib/auth/types.ts; called by all protected API routes (src/app/api/**/route.ts) and server components.
 // ============================================================

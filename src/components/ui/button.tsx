@@ -36,8 +36,8 @@ Button.displayName = "Button";
 // ============================================================
 // FILE: src/components/ui/button.tsx
 // ============================================================
-// PURPOSE: A reusable button component with variant styles and loading state.
-// HOW IT WORKS: Uses forwardRef to wrap a native <button>, mapping a variant prop to CSS class names and rendering a spinner span when loading. The button is disabled while loading or when the disabled prop is set.
-// PROPS: variant ("primary" | "secondary" | "danger" | "ghost"), loading (boolean), plus all native button HTML attributes.
-// INTEGRATION: React (forwardRef), no external dependencies.
+// PURPOSE: The app's standard button — consistent styling, variants, and loading state across all forms and dialogs.
+// HOW IT WORKS: forwardRef wraps a native <button>. Maps variant prop to CSS classes (btn--primary, btn--secondary, btn--danger, btn--ghost from Neubrutalist design system). When loading=true: disables button, shows spinner (btn__loader). Disabled state also handles native disabled prop. All other button attributes (onClick, type, etc.) pass through via {...props}.
+// PROPS: variant ("primary" | "secondary" | "danger" | "ghost", default "primary"), loading (boolean), plus all native HTMLButtonElement attributes (onClick, type, disabled, etc.).
+// INTEGRATION: React (forwardRef), Neubrutalist CSS variables. Used everywhere: GenerateForm, SendEmailDialog, ProfileForm, SessionView, Header, Sidebar, etc.
 // ============================================================

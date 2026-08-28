@@ -104,11 +104,8 @@ export type AppConfig = ReturnType<typeof getConfig>;
 // ============================================================
 // FILE: src/config/index.ts
 // ============================================================
-// PURPOSE: Centralizes and validates all environment variables using Zod schemas.
-// HOW IT WORKS: Defines a strict schema for required env vars (MongoDB URI,
-//   NVIDIA API key, auth secret, etc.) and optional ones (Telegram tokens).
-//   On first access, parses process.env through Zod; in production, invalid
-//   vars throw an error. In development, they log a warning but continue.
-//   getConfig() returns a typed, nested config object with sensible defaults.
-// INTEGRATION: Reads from process.env, provides config to all other modules
+// PURPOSE: Validates and provides all environment configuration in one place so the rest of the app doesn't have to worry about missing or malformed settings.
+// HOW IT WORKS: Uses Zod (a validation library) to define exactly what environment variables are required, what format they must be in (URLs, minimum lengths, etc.), and sensible defaults. On first use, it reads process.env, validates everything against the schema, and caches the result. In production, invalid config crashes the app immediately (fail fast). In development, it warns but continues so you can test. The getConfig() function returns a structured object with sections: mongodb (connection details), nvidia (AI API keys and model IDs), auth (secrets, rate limits), app (environment, URLs), telegram (bot tokens, webhook secrets).
+//   Key settings: 8 AI models available via NVIDIA NIM; AUTH_SECRET must be 32+ chars (used for encryption and JWT); MongoDB pool size 1-10; Telegram optional but enables bot features.
+// INTEGRATION: Read by db.ts (MongoDB connection), crypto.ts (AUTH_SECRET for encryption), auth.ts (NextAuth config), telegram/bot.ts (bot token), schedule worker, AI factory, and every module that needs external service credentials.
 // ============================================================

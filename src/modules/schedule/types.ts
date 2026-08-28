@@ -73,8 +73,14 @@ export interface ProcessSchedulesResult {
 // ============================================================
 // FILE: src/modules/schedule/types.ts
 // ============================================================
-// PURPOSE: DTO types returned by the schedule module and API routes.
-// HOW IT WORKS: Defines serialized schedule, scheduled email, detail, list,
-//   and cron-processing result shapes for frontend and route consumers.
-// INTEGRATION: Used by schedule service, API clients, hooks, and components.
+// PURPOSE: TypeScript interfaces for all data shapes returned by the schedule module — what the frontend and API routes receive.
+// HOW IT WORKS: Defines the exact structure of schedule data at every level:
+//   - ScheduleData: Core schedule info (id, name, date, timezone, status) plus optional counts (total/pending/sent/failed emails).
+//   - ScheduledEmailData: One email in a schedule — includes source tracking (single vs batch, original session/message/bulk entry IDs), recipient, subject, body, category, AI model, delivery state (awaiting_content/ready/sending/sent/failed), timestamps, and sort order.
+//   - ScheduleDetailData: ScheduleData + full emails array (for detail view).
+//   - PaginatedScheduleResult: List response with items, total count, pagination metadata.
+//   - AddScheduledEmailsResult: Created emails + count of skipped duplicates.
+//   - ProcessSchedulesResult: Cron job summary — how many schedules checked, items processed, sent, failed, AI-generated.
+//   All dates are ISO strings (serialized for JSON). These types are used by the API client, React Query hooks, and UI components.
+// INTEGRATION: Used by schedule service (src/modules/schedule/service.ts) for return types, API routes (src/app/api/schedules/**/route.ts) for responses, hooks (src/features/schedule/hooks/use-schedules.ts), and UI components (src/app/(app)/schedules/**).
 // ============================================================

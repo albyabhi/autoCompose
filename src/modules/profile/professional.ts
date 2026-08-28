@@ -102,13 +102,12 @@ export function isProfessionalFieldVisible(
 // ============================================================
 // FILE: src/modules/profile/professional.ts
 // ============================================================
-// PURPOSE: Utilities for managing student vs working professional profile types.
-// HOW IT WORKS: inferProfessionalType() detects the type from data fields (student
-//   if college/degree present, working_professional if designation/organization).
-//   isProfessionalComplete() checks if required fields for the detected type are
-//   filled. normalizeProfessionalForSave() clears irrelevant fields based on type
-//   (e.g., clears work fields for students). getActiveProfessionalEntries() returns
-//   display-ready entries for UI rendering. isProfessionalFieldVisible() controls
-//   field visibility in forms based on selected type.
-// INTEGRATION: Used by profile service, context builder, and profile form component
+// PURPOSE: Handles the "Student vs Working Professional" distinction in profiles — different fields, different validation, different display.
+// HOW IT WORKS: Users can be either a student (college + degree) or working professional (job title + department + company). The type can be set explicitly or inferred from which fields are filled.
+//   - inferProfessionalType(): If user explicitly set type, use that. Otherwise auto-detect: if college/degree filled -> student; if designation/organization filled -> working_professional; if both or neither -> undefined (not set).
+//   - isProfessionalComplete(): For students, requires both college AND degree. For working professionals, requires both designation AND organization.
+//   - normalizeProfessionalForSave(): Before saving to database, clears the irrelevant fields for the selected type (e.g., if student, clears designation/department/organization). Keeps data clean.
+//   - getActiveProfessionalEntries(): Returns display-ready data for the AI context builder — title ("STUDENT" or "WORKING PROFESSIONAL") + relevant entries as strings.
+//   - isProfessionalFieldVisible(): UI helper — shows/hides form fields based on selected type.
+// INTEGRATION: Used by profile service (src/modules/profile/service.ts) when saving, context builder (src/modules/profile/context-builder.ts) for AI context, profile form component (src/features/profile/components/profile-form.tsx), and validation (src/modules/profile/validation.ts).
 // ============================================================

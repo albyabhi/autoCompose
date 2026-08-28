@@ -143,13 +143,13 @@ export async function clearStatesForChatIds(chatIds: string[]): Promise<number> 
 // ============================================================
 // FILE: src/modules/telegram/state.ts
 // ============================================================
-// PURPOSE: Manages multi-step conversation state for Telegram bot interactions.
-// HOW IT WORKS: Provides loadState/saveState/clearState for the state machine.
-//   loadStateForUser() returns the current state or an idle default. saveState()
-//   applies a partial patch to the state document with optimistic concurrency
-//   control via version number - if expectedVersion is provided and doesn't match,
-//   it throws STATE_CONFLICT. Fields are set/unset dynamically based on the patch.
-//   States auto-expire after 24 hours via TTL index. clearState() deletes the
-//   state document entirely.
-// INTEGRATION: TelegramState model, used by webhook, compose flow, and send flow
+// PURPOSE: Stores and manages the Telegram bot's conversation state for each user — remembers where they are in a multi-step flow (composing, sending, etc.).
+// HOW IT WORKS: Each Telegram chat gets one state document (TelegramState collection) with a TTL index (auto-expires after 24 hours of inactivity):
+//   - TelegramStateSnapshot: The state shape — step (idle/selecting_category/awaiting_prompt/awaiting_recipient/awaiting_subject/awaiting_send_confirm), optional category, draftId, draftSnapshot (full email text), pendingSendTo, pendingSubject, extractedRecipient, pageOffset (for pagination), pendingInput, version (for concurrency).
+//   - loadStateForUser(chatId, userId): Returns current state or a fresh "idle" snapshot if none exists.
+//   - saveState(chatId, userId, patch, expectedVersion): Partial update — only changes the fields provided in patch. Uses optimistic locking: if expectedVersion is given, only updates if the database version matches (prevents race conditions when user taps buttons rapidly). Increments version on every save. Upserts if no expectedVersion.
+//   - clearState(chatId): Deletes the state document (used on /cancel, /menu, or after successful send).
+//   - clearStatesForChatIds(): Batch delete for admin cleanup.
+//   State flows: Compose (selecting_category -> awaiting_prompt -> idle with draft) and Send (awaiting_recipient -> awaiting_subject -> awaiting_send_confirm -> idle).
+// INTEGRATION: TelegramState model (src/models/telegram-state.ts) with TTL index; used by compose flow (src/modules/telegram/flows/compose.ts), send flow (src/modules/telegram/flows/send.ts), webhook (src/modules/telegram/webhook.ts), and callbacks.
 // ============================================================

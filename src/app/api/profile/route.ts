@@ -44,10 +44,10 @@ export async function PATCH(request: NextRequest) {
 // ============================================================
 // FILE: src/app/api/profile/route.ts
 // ============================================================
-// PURPOSE: API endpoint for reading and updating user profiles (GET/PATCH /api/profile).
-// HOW IT WORKS: GET returns the sanitized profile (no raw text or encrypted passwords)
-//   plus per-category readiness status showing which sections are complete. PATCH
-//   validates partial updates against profileUpdateSchema and merges them into the
-//   existing profile. Both return the sanitized profile and readiness map.
-// INTEGRATION: Profile service, context builder (sanitization + readiness), auth
+// PURPOSE: API endpoint for the user's profile — GET to view, PATCH to update. Returns sanitized data plus readiness status for each email category.
+// HOW IT WORKS:
+//   - GET /api/profile: requireAuth() for user. getProfile() fetches profile. If none exists, returns {profile: null, readiness: all categories missing}. If exists, sanitizeProfile() strips sensitive fields (rawText, encrypted passwords) and buildAllCategoryReadiness() shows which profile sections are complete vs missing for each of the 7 email categories.
+//   - PATCH /api/profile: requireAuth() for user. Validates request body against profileUpdateSchema (all sections optional). updateProfile() merges updates — handles emailCredentials specially (encrypts v2, audits save/remove). Returns sanitized profile + readiness.
+//   Both endpoints use sanitizeProfile() so the frontend never receives raw resume text or encrypted credentials.
+// INTEGRATION: Profile service (getProfile, updateProfile), context builder (sanitizeProfile, buildAllCategoryReadiness), auth (requireAuth), API response helpers. Called by profile settings page and onboarding flow.
 // ============================================================

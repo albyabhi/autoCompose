@@ -152,15 +152,17 @@ export type ContactData = z.infer<typeof contactSchema>;
 
 // ============================================================
 // FILE: src/modules/profile/validation.ts
-// =================================================>
-// PURPOSE: Zod schemas for validating profile create/update inputs and resume data.
-// HOW IT WORKS: personalSchema validates name (required) and optional phone/location.
-//   professionalSchema uses superRefine to enforce type-specific required fields
-//   (college+degree for students, designation+organization for professionals) and
-//   transforms via normalizeProfessionalForSave. preferencesSchema validates
-//   formality, tone, language, and model choice. emailCredentialsSchema validates
-//   Gmail address + 16-char app password (with whitespace stripped). resumeSchema
-//   validates the full parsed resume structure. profileUpdateSchema and
-//   profileCreateSchema compose these into request-level schemas.
-// INTEGRATION: Used by profile API routes and service functions
+// ============================================================
+// PURPOSE: Input validation rules for all profile data — ensures users can't save invalid or incomplete information.
+// HOW IT WORKS: Uses Zod schemas to define exact validation rules for each profile section:
+//   - personalSchema: fullName required (1-100 chars), phone optional (max 30), location optional (max 200).
+//   - professionalSchema: Requires type (student/working_professional). Uses superRefine for conditional validation: students MUST have college + degree; professionals MUST have designation + organization. Then transforms via normalizeProfessionalForSave to clear irrelevant fields.
+//   - preferencesSchema: formalityLevel (formal/semi-formal/casual), preferredTone (professional/friendly/neutral/warm/direct), defaultSignature (max 500), preferredLanguage, preferredModel (must be a registered AI model ID).
+//   - emailCredentialsSchema: Gmail address (valid email) + appPassword (exactly 16 chars after stripping spaces — Google's format). Or null to remove credentials.
+//   - jobApplicationSchema: Optional URLs for resume, LinkedIn, GitHub, portfolio (validated as URLs).
+//   - resumeSchema/resumeUpdateSchema: Full parsed resume structure with limits (skills max 15, education max 5, experience max 10, projects max 10).
+//   - contactSchema: id, name (1-100), email (valid). contactsUpdateSchema: array max 500 contacts.
+//   - profileUpdateSchema: All sections optional (partial updates). profileCreateSchema: personal required, others optional.
+//   All schemas export TypeScript types (ProfileUpdateInput, ProfileCreateInput, ContactData, etc.) for type-safe service calls.
+// INTEGRATION: Used by profile API routes (src/app/api/profile/route.ts, src/app/api/profile/resume/route.ts), profile service (src/modules/profile/service.ts), and frontend forms (src/features/profile/components/profile-form.tsx).
 // ============================================================

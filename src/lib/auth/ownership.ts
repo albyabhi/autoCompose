@@ -36,12 +36,12 @@ export function withUserId<T>(
 // ============================================================
 // FILE: src/lib/auth/ownership.ts
 // ============================================================
-// PURPOSE: Utilities for enforcing resource ownership in database queries.
-// HOW IT WORKS: ownedFilter() creates a MongoDB filter that includes userId,
-//   ensuring queries only return the user's own data. requireOwnership()
-//   fetches a document by ID + userId, throwing NotFoundError if not found
-//   (hides existence from other users). assertOwnership() validates an
-//   existing entity belongs to the user. withUserId() injects userId into
-//   data objects before database insertion.
-// INTEGRATION: Used by service modules for data isolation between users
+// PURPOSE: Ensures users can only access their own data in the database — the foundation of multi-tenant isolation.
+// HOW IT WORKS: Provides four helper functions that every service uses when querying MongoDB:
+//   - ownedFilter(userId, extra): Returns a filter object like { userId: "abc", ...extra } that gets added to every database query. This guarantees User A never sees User B's emails, schedules, or profile.
+//   - requireOwnership(model, id, userId): Fetches a document by ID but ONLY if it belongs to userId. Throws NotFoundError if missing or owned by someone else (doesn't reveal whether the document exists at all).
+//   - assertOwnership(entity, userId): Checks an already-loaded document belongs to the current user. Throws if not.
+//   - withUserId(data, userId): Adds userId to a new document before saving it to the database.
+//   These are used in every service: email, schedule, profile, session, bulk, Telegram — anywhere data is read or written.
+// INTEGRATION: Imported by all service modules (src/modules/*/service.ts) and API routes. The Profile, Session, Schedule, EmailTemplate, BulkEntry, ScheduledEmail, and AuditLog models all have a userId field that these functions filter on.
 // ============================================================

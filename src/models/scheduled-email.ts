@@ -110,10 +110,14 @@ if (process.env.NODE_ENV !== "production") {
 // ============================================================
 // FILE: src/models/scheduled-email.ts
 // ============================================================
-// PURPOSE: Mongoose schema for the individual emails inside a schedule.
-// HOW IT WORKS: Each row stores source traceability plus a durable recipient
-//   and content snapshot when content exists. Rows can also hold frozen prompt,
-//   category, and model metadata so cron can generate missing content later.
-//   Delivery state acts as a resumable queue and atomic claim guard.
-// INTEGRATION: Used by schedule service, schedule detail API, and cron sender.
+// PURPOSE: One email within a scheduled campaign — a durable snapshot that can be generated later by the cron job and sent exactly once.
+// HOW IT WORKS: Mongoose schema for the ScheduledEmail collection. Each belongs to one Schedule (scheduleId) and one user (userId).
+//   SOURCE TRACEABILITY: sourceType ("single" = composed individually, "batch" = from bulk entry) + sourceSessionId / sourceMessageId / sourceBulkEntryId link back to the original composition.
+//   CONTENT: to (recipient, required), subject, body (both optional until generated), category, prompt, modelId (for AI generation if needed).
+//   DELIVERY STATE MACHINE: "awaiting_content" (needs AI generation) -> "ready" (has subject+body) -> "sending" (claimed by cron, prevents duplicates) -> "sent" (success) OR "failed" (errorCode, errorMessage). claimedAt timestamps the claim.
+//   sortOrder: Display/send order within the schedule.
+//   Unique index on scheduleId+sourceBulkEntryId (for batch deduplication). Sparse index on scheduleId+sourceMessageId (for single deduplication).
+//   Indexes: scheduleId+sortOrder (ordered fetch), userId+deliveryState (user queries), unique compound for batch deduplication.
+// FIELDS: scheduleId, userId, sourceType, sourceSessionId, sourceMessageId, sourceBulkEntryId, to, subject, body, category, prompt, modelId, deliveryState, claimedAt, sentAt, errorCode, errorMessage, sortOrder, createdAt, updatedAt.
+// INTEGRATION: Schedule service (CRUD, cron processor), Schedule model (parent), BulkEntry/Session/Message models (source references), cron route.
 // ============================================================

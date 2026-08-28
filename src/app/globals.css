@@ -4280,6 +4280,7 @@ body {
 .bulk-card__btn--delete { background: var(--white); color: var(--pink); }
 .bulk-card__btn--edit { background: var(--yellow); color: var(--black); }
 .bulk-card__btn--cancel { background: var(--surface); color: #666; }
+.bulk-card__btn--collapse { background: var(--surface); color: #666; }
 .bulk-card__btn--schedule { background: var(--orange); color: var(--black); }
 
 /* =========== BULK SEND BAR =========== */

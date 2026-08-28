@@ -183,16 +183,16 @@ export const Profile =
 // ============================================================
 // FILE: src/models/profile.ts
 // ============================================================
-// PURPOSE: Mongoose schema for user profiles containing personal, professional,
-//   and preference data used to personalize AI-generated emails.
-// HOW IT WORKS: Stores structured user data across 5 sections: personal info
-//   (name, phone, location), professional details (student or working professional),
-//   writing preferences (formality, tone, language, preferred model), job application
-//   links, Gmail credentials (encrypted with envelope encryption v2), and parsed
-//   resume data (skills, education, experience, projects). The resume section is
-//   populated by the resume parser and injected into AI prompts via the context builder.
-// FIELDS: userId (unique), personal, professional, preferences, jobApplication,
-//   emailCredentials (encrypted + v2 envelope fields), resume (parsed structure)
-// INTEGRATION: Used by profile service, context builder, email dispatch, and
-//   resume parser. emailCredentials.encryptedAppPassword is decrypted by crypto.ts
+// PURPOSE: The user's complete profile — personal info, work history, writing preferences, and encrypted Gmail credentials — all used to personalize AI-generated emails.
+// HOW IT WORKS: Mongoose schema for the Profile collection. One profile per user (userId unique index). Six sections:
+//   1. personal: fullName (required), phone, location.
+//   2. professional: type ("student" | "working_professional"), then role-specific fields — student: college, degree; professional: designation, department, organization.
+//   3. preferences: formalityLevel (formal/semi-formal/casual), preferredTone (professional/friendly/neutral/warm/direct), defaultSignature, preferredLanguage, preferredModel (AI model key).
+//   4. jobApplication: Links for job hunting — resumeUrl, linkedIn, github, portfolio.
+//   5. emailCredentials: Gmail SMTP credentials stored securely — gmailAddress, encryptedAppPassword (v1 legacy or v2 envelope), encryptedDek (v2 only), dekVersion (v2 only). Decrypted by crypto.ts at send time.
+//   6. contacts: Array of {id, name, email} for quick recipient selection.
+//   7. resume: Parsed from uploaded PDF/DOCX/TXT — rawText, name, email, phone, linkedin, github, portfolio, parsedByModel, skills[], education[], experience[], projects[].
+//   The resume data is injected into AI prompts by context-builder.ts based on email category.
+// FIELDS: userId (unique), personal, professional, preferences, jobApplication, emailCredentials, contacts, resume, createdAt, updatedAt.
+// INTEGRATION: Profile service (CRUD), context builder (AI prompt injection), email dispatch (credential decryption), resume parser (storage), schedule processor, Telegram bot. emailCredentials uses envelope encryption v2 from crypto.ts.
 // ============================================================

@@ -34,7 +34,13 @@ export const useLayoutStore = create<LayoutState>((set) => ({
 // ============================================================
 // FILE: src/features/layout/stores/layout-store.ts
 // ============================================================
-// PURPOSE: Zustand store managing UI layout state for sidebar visibility and active view.
-// HOW IT WORKS: Creates a Zustand store with sidebarOpen (desktop), mobileSidebarOpen (mobile overlay), and activeView (compose/sessions/settings/dashboard). Exposes toggle and setter actions consumed by Header, Sidebar, and AppShell.
-// INTEGRATION: Zustand (create).
+// PURPOSE: Global UI state manager (Zustand) for layout things that multiple components need — sidebar visibility, current page view, and draft persistence.
+// HOW IT WORKS: Zustand store with 5 state pieces:
+//   - sidebarOpen: Desktop sidebar expanded/collapsed (default true).
+//   - mobileSidebarOpen: Mobile sidebar overlay visible (default false).
+//   - activeView: Current top-level page — "dashboard" | "compose" | "sessions" | "settings" (default "dashboard").
+//   - draft: Saved GenerateForm draft {prompt, category} for surviving navigation (default null).
+//   Actions: toggleSidebar, setSidebarOpen, setMobileSidebarOpen, setActiveView, setDraft, clearDraft.
+//   Components: Header (toggles sidebar), Sidebar (reads sidebarOpen), AppShell (reads sidebarOpen for CSS class), GenerateForm (saves/reads draft), navigation (sets activeView).
+// INTEGRATION: Zustand create(). Used by Header, Sidebar, AppShell, GenerateForm, and navigation components.
 // ============================================================

@@ -61,11 +61,14 @@ export function isAppError(error: unknown): error is AppError {
 // ============================================================
 // FILE: src/lib/errors.ts
 // ============================================================
-// PURPOSE: Defines a custom error class hierarchy for structured error handling.
-// HOW IT WORKS: AppError is the base class with code, statusCode, and details.
-//   Subclasses (ValidationError=400, NotFoundError=404, RateLimitError=429,
-//   UnauthorizedError=401, ForbiddenError=403, AIProviderError=502) provide
-//   semantic error types. isAppError() is a type guard for catching errors
-//   in API routes and returning consistent HTTP responses.
-// INTEGRATION: Used by all API routes and service modules for error handling
+// PURPOSE: Defines a family of custom error classes so the app can handle different problems in a consistent, predictable way.
+// HOW IT WORKS: AppError is the base class that adds three useful properties to regular JavaScript errors: a machine-readable code (like "VALIDATION_ERROR"), an HTTP status code (like 400), and optional extra details. Six specialized subclasses cover common scenarios:
+//   - ValidationError (400): User sent bad data (missing fields, wrong format)
+//   - NotFoundError (404): Requested resource doesn't exist or user isn't authorized to see it
+//   - UnauthorizedError (401): User isn't logged in or session expired
+//   - ForbiddenError (403): User is logged in but not allowed to do this action
+//   - RateLimitError (429): Too many requests too quickly
+//   - AIProviderError (502): The AI service (NVIDIA NIM) failed or timed out
+//   The isAppError() function helps API routes detect these custom errors and return proper HTTP responses instead of crashing.
+// INTEGRATION: Used everywhere — API routes (src/app/api/**/route.ts), service modules (src/modules/*/service.ts), and middleware. When you throw new NotFoundError("Schedule not found"), the API route catches it and returns a 404 with a clean JSON error.
 // ============================================================

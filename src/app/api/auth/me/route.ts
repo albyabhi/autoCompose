@@ -13,9 +13,10 @@ export async function GET() {
 // ============================================================
 // FILE: src/app/api/auth/me/route.ts
 // ============================================================
-// PURPOSE: API endpoint for fetching the current authenticated user (GET /api/auth/me).
-// HOW IT WORKS: Calls getCurrentUser() which checks the session, hydrates the user
-//   from MongoDB, and returns a CurrentUser object or null. Returns the user data
-//   wrapped in the standard success response format.
-// INTEGRATION: Auth current-user module, api-response helpers
+// PURPOSE: Returns the current user's enriched profile (role, onboarding status, profile completion, avatar) for client-side hooks.
+// HOW IT WORKS: GET /api/auth/me:
+//   1. Calls getCurrentUser() (src/lib/auth/current-user.ts) which: checks NextAuth session, hydrates user from MongoDB (User + Profile), returns CurrentUser object with userId, name, email, role, onboardingCompleted, profileCompleted, avatar.
+//   2. Returns success(200) with {user: CurrentUser} or null if not authenticated.
+//   Called by useCurrentUser hook (src/hooks/use-current-user.ts) on initial auth and manual refetch.
+// INTEGRATION: Auth current-user module (src/lib/auth/current-user.ts), api-response helpers (success/failure), NextAuth session.
 // ============================================================

@@ -475,15 +475,19 @@ export async function deleteResume(userId: string): Promise<void> {
 // ============================================================
 // FILE: src/modules/resume/service.ts
 // ============================================================
-// PURPOSE: Parses uploaded resumes (PDF/DOCX/TXT) and extracts structured data using AI.
-// HOW IT WORKS: extractTextFromFile() handles format-specific text extraction:
-//   PDF via pdfjs-dist (with DOMMatrix polyfill for Node), DOCX via mammoth,
-//   TXT as raw string. parseResumeWithAI() first uses regex to extract simple
-//   fields (email, phone, LinkedIn, GitHub, portfolio), then makes a single
-//   AI call with a comprehensive prompt to extract structured data (name,
-//   skills, education, experience, projects). Results are merged with regex
-//   fallbacks and validated against a Zod schema. uploadAndParseResume()
-//   orchestrates the full flow: extract text -> parse -> upsert profile -> store
-//   resume data. getResume() and deleteResume() provide retrieval and cleanup.
-// INTEGRATION: AI provider (NVIDIA NIM), Profile model, pdfjs-dist, mammoth
+// PURPOSE: Parses uploaded resume files (PDF, DOCX, TXT) and extracts structured profile data using AI — name, skills, education, experience, projects, and contact info.
+// HOW IT WORKS: Two main parts:
+//   1. extractTextFromFile(buffer, filename): Detects file type by extension and extracts plain text:
+//      - .txt: Direct UTF-8 decode
+//      - .pdf: Uses pdfjs-dist with a DOMMatrix polyfill (required for Node.js). Iterates all pages, extracts text content.
+//      - .docx: Uses mammoth library for raw text extraction.
+//      - Other: Throws UNSUPPORTED_FILE_TYPE error.
+//   2. parseResumeWithAI(rawText, modelId): Single-shot AI extraction with regex fallbacks:
+//      - Step 1: Regex extracts simple fields (email, phone, LinkedIn, GitHub, portfolio URLs) — fast, no AI needed.
+//      - Step 2: One AI call with a detailed system prompt asking for JSON with name, skills, education, experience, projects. Tries twice (with/without "Return ONLY JSON" instruction). Validates result against Zod schema.
+//      - Step 3: Merges AI results with regex fallbacks, enforces limits (skills 15, education 5, experience 10, projects 10).
+//   3. uploadAndParseResume(): Orchestrates full flow — extract text -> parse with AI (with progress callbacks) -> upsert profile -> save resume data to Profile model.
+//   4. getResume/updateResume/deleteResume(): Profile resume CRUD.
+//   Progress callbacks enable UI to show: 10% extracting, 40% AI analyzing, 80% structuring, 90% finalizing, 100% done.
+// INTEGRATION: AI provider factory (NVIDIA NIM); Profile model (stores resume); pdfjs-dist (PDF), mammoth (DOCX); profile service (upsertProfile); Zod for validation. Called by resume API route (src/app/api/profile/resume/route.ts) and resume widget (src/features/profile/components/resume-widget.tsx).
 // ============================================================

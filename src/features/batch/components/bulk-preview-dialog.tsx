@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { parseEmailContent } from "@/modules/email/content";
 import { useSendEntry, useSendEntryWithAttachments, useUploadAttachments } from "../hooks/use-bulk";
-import type { BulkEntryData } from "../types";
+import type { BulkEntryData } from "@/modules/bulk/types";
 
 interface BulkPreviewDialogProps {
   entry: BulkEntryData;

@@ -38,11 +38,14 @@ export async function POST(request: NextRequest) {
 // ============================================================
 // FILE: src/app/api/generate/route.ts
 // ============================================================
-// PURPOSE: API endpoint for generating AI-powered emails (POST /api/generate).
-// HOW IT WORKS: Authenticates the user via requireAuth(), applies rate limiting
-//   (10 requests/minute per user), validates the request body against
-//   generateEmailSchema, and delegates to generateEmail() service. Returns
-//   the generated email content, model used, and session ID. Creates a new
-//   session if no sessionId is provided.
-// INTEGRATION: Email service, rate limiter, auth session, Zod validation
+// PURPOSE: The main "write an email" API endpoint — takes a prompt, calls AI, returns a polished email.
+// HOW IT WORKS: POST /api/generate:
+//   1. Authentication: requireAuth() gets the logged-in user (throws 401 if not logged in).
+//   2. Rate limiting: checkRateLimit() allows 10 generations/minute per user (key: "generate:{userId}").
+//   3. Validation: Request body validated against generateEmailSchema (prompt, category, modelId, optional temperature/maxTokens/tone/sessionId).
+//   4. Generation: Calls generateEmail() service (src/modules/email/service.ts) which handles profile context, conversation history, AI call, and persistence.
+//   5. Response: Returns created(201) with {content, modelUsed, id, sessionId, assistantMessageId}.
+//   If no sessionId provided, a new session is created automatically.
+//   All errors (auth, validation, rate limit, AI failure) are caught and returned as standardized failure responses.
+// INTEGRATION: Email service (generateEmail), rate limiter (src/lib/rate-limit.ts), auth (requireAuth), validation (generateEmailSchema from src/modules/email/validation.ts), API response helpers (created/failure from src/utils/api-response.ts).
 // ============================================================

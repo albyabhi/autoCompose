@@ -58,11 +58,16 @@ export const EmailTemplate =
 // ============================================================
 // FILE: src/models/email-template.ts
 // ============================================================
-// PURPOSE: Mongoose schema for storing generated email templates/history.
-// HOW IT WORKS: Records each generated email with its category, original prompt,
-//   generated content, model used, and optional userId. Provides an audit trail
-//   of all email generations. Indexes on createdAt and userId+createdAt support
-//   retrieval of recent templates and user-specific history.
-// FIELDS: category, prompt, generatedEmail, modelUsed, userId, metadata
-// INTEGRATION: Used by email service to store generation results
+// PURPOSE: Stores every AI-generated email as a permanent record — the user's generation history.
+// HOW IT WORKS: Mongoose schema for the EmailTemplate collection. Created by email service after each generation. Fields:
+//   - category: Email type (job_application, leave_request, etc.).
+//   - prompt: User's original instructions (max 5000 chars).
+//   - generatedEmail: Full AI response (subject + body).
+//   - modelUsed: Which AI model generated it (e.g., "deepseek-ai/deepseek-v4-flash").
+//   - userId: Owner (optional for legacy, indexed for user history).
+//   - metadata: Flexible extra data.
+//   Indexes: createdAt (recent first), userId+createdAt (user's history).
+//   This is separate from Session/Message — it's a flat history of all generations across all sessions.
+// FIELDS: category, prompt, generatedEmail, modelUsed, userId, metadata, createdAt, updatedAt.
+// INTEGRATION: Email service (stores results), audit logging (references templateId), potential future "regenerate from history" feature.
 // ============================================================

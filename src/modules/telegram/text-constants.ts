@@ -52,8 +52,6 @@ export const T = {
   selectCategory: () =>
     `${b("New Email")}\nSelect a category:`,
 
-  unknownCategory: () => `Unknown category`,
-
   promptInstructions: (categoryLabel: string) =>
     `${b(categoryLabel)}\n\nDescribe what you need (the more detail the better).`,
 
@@ -120,10 +118,6 @@ export const T = {
 
   autoSubjectNotDetected: () =>
     `Could not detect an auto-generated subject.\n\nPlease type a custom subject, or /cancel to abort.`,
-
-  missingData: () => `Missing data`,
-
-  sending: () => `Sending...`,
 
   sent: (to: string, subject: string) =>
     `${b("Sent")}\n\n` +

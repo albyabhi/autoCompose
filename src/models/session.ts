@@ -73,13 +73,18 @@ export const Session =
 // ============================================================
 // FILE: src/models/session.ts
 // ============================================================
-// PURPOSE: Mongoose schema for email generation sessions (conversation containers).
-// HOW IT WORKS: Each session groups messages for a specific email category.
-//   Fields include title, category (from 7 predefined types), userId for
-//   ownership, and soft-delete/archive flags. Compound indexes on
-//   userId+isDeleted+createdAt and userId+isArchived+createdAt enable
-//   efficient listing queries. A text index on title and metadata.tags
-//   supports search.
-// FIELDS: title, category, userId, metadata, isArchived, isDeleted, deletedAt
-// INTEGRATION: Used by session service, message model, and frontend session list
+// PURPOSE: Represents a conversation thread for email generation — groups related messages (user prompts + AI responses) under one topic.
+// HOW IT WORKS: Mongoose schema for the Session collection. Each user can have many sessions. Fields:
+//   - title: Human-readable name (e.g., "Job Application 3"). Max 200 chars.
+//   - category: One of 7 email types (job_application, leave_request, sick_leave, resignation, complaint, meeting_request, custom). Default "custom".
+//   - type: "single" (one-off email) or "batch" (bulk campaign).
+//   - userId: Owner — indexed for fast user-scoped queries.
+//   - metadata: Flexible object for extra data (tags, etc.).
+//   - isArchived: Hidden from default list but not deleted.
+//   - isDeleted: Soft delete — hidden from lists, data preserved.
+//   - deletedAt: Timestamp when soft-deleted.
+//   Indexes: userId+isDeleted+createdAt (main list), userId+isArchived+createdAt (archive list), text index on title+metadata.tags (search).
+//   Messages are stored separately in the Message collection with sessionId reference.
+// FIELDS: title, category, userId, type, metadata, isArchived, isDeleted, deletedAt, createdAt, updatedAt.
+// INTEGRATION: Session service (CRUD), Message model (messages belong to session), email service (creates sessions for new conversations), session list UI, session API routes.
 // ============================================================

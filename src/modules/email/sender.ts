@@ -66,12 +66,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ messageId:
 // ============================================================
 // FILE: src/modules/email/sender.ts
 // ============================================================
-// PURPOSE: Low-level Gmail SMTP email sender using nodemailer.
-// HOW IT WORKS: buildTransporter() creates a nodemailer transport configured
-//   for Gmail's SMTP server (port 465, SSL). sendEmail() formats the "from"
-//   field with optional sender name, sends the email as plain text, and
-//   returns the messageId. The transporter is always closed in the finally
-//   block to prevent connection leaks.
-// [SECURITY] Server-only - receives decrypted app passwords transiently
-// INTEGRATION: Gmail SMTP (smtp.gmail.com:465), called by dispatch module
+// PURPOSE: Actually sends the email through Gmail's SMTP server using the user's Gmail address and app password.
+// HOW IT WORKS: This is the lowest-level email sending code — it knows how to talk to Gmail but nothing about the app's business logic.
+//   - buildTransporter(): Creates a Nodemailer connection to smtp.gmail.com on port 465 (SSL/TLS) with the user's credentials. Timeouts: 10s connect, 15s socket.
+//   - sendEmail(): Takes the recipient, subject, body, sender's Gmail address, decrypted app password, optional sender name, and optional attachments. Formats the "From" header (e.g., "John Doe <john@gmail.com>"), sends as plain text, returns Gmail's messageId. Always closes the connection in a finally block to prevent leaks.
+//   This module receives the DECRYPTED app password transiently — it never stores it. The password comes from the profile service which decrypts it from the envelope encryption (crypto.ts).
+// [SECURITY] Server-only — marked with "server-only" import. Handles plaintext credentials briefly in memory only.
+// INTEGRATION: Gmail SMTP (smtp.gmail.com:465); called by dispatch.ts (src/modules/email/dispatch.ts) which handles rate limiting, credential decryption, and audit logging; used by bulk send (src/modules/bulk/service.ts) and schedule processing (src/modules/schedule/service.ts).
 // ============================================================

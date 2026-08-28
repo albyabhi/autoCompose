@@ -256,12 +256,14 @@ export function GenerateForm() {
 // ============================================================
 // FILE: src/components/generate-form.tsx
 // ============================================================
-// PURPOSE: Main email generation form with category, model, and prompt inputs.
-// HOW IT WORKS: Manages form state for prompt, category, and model selection.
-//   Supports cloning prompts from existing sessions via URL params. On submit,
-//   calls /api/generate and displays the result. Shows profile readiness warnings
-//   for missing sections. Uses the user's preferred model from profile as default.
-//   Invalidates sessions cache on success and navigates to the new session.
-// PROPS: None (standalone page component)
-// INTEGRATION: Email categories, AI types, profile hook, session hook, API client
+// PURPOSE: The main "write an email" form on the dashboard — category picker, model selector, prompt textarea, and tone toggle, plus live guidance and profile completeness warnings.
+// HOW IT WORKS: Client-side React component that manages the entire email composition UI:
+//   STATE: prompt (textarea), category (dropdown), modelId (ModelSelector), tone (formal/semi-formal/casual toggle), response (AI result), loading/error states, extractedRecipient (auto-detected email in prompt).
+//   INITIALIZATION: Reads URL params for sessionId (continue existing conversation) or clone=true (copy prompt from session). Restores draft from layout store (survives navigation).
+//   MODEL SELECTION: Defaults to "recommended" (server-side fastest model). User can pick specific model. If profile has preferredModel, uses that as fallback.
+//   SUBMISSION (handleSubmit): POSTs to /api/generate with prompt, category, modelId, tone, sessionId. On success: shows ResponseDisplay with generated email, clears draft, invalidates sessions cache, navigates to session page if new.
+//   PROFILE READINESS: Shows warning if current category needs profile sections that aren't filled (e.g., job_application needs professional + resume). Links to settings.
+//   CATEGORY GUIDANCE: Shows "For best results, include:" with category-specific hints from CATEGORY_POLICIES.
+//   PROPS: None (page-level component).
+// INTEGRATION: Email categories (CATEGORY_OPTIONS, CATEGORY_POLICIES), AI types (ModelId, FormalityLevel), profile hook (useProfile), session hook (useAppSession), layout store (draft persistence), API client (fetch), ResponseDisplay component, extractEmailFromText utility.
 // ============================================================

@@ -7,7 +7,7 @@ import { parseEmailContent } from "@/modules/email/content";
 import { ContactAutocomplete } from "@/components/ui/contact-autocomplete";
 import { SendEmailDialog } from "@/components/send-email-dialog";
 import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
-import type { MessageData } from "../types";
+import type { MessageData } from "@/modules/session/types";
 
 interface MessageBubbleProps {
   message: MessageData;

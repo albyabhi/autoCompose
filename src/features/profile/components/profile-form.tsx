@@ -322,8 +322,14 @@ export function ProfileForm({ sections }: ProfileFormProps) {
 // ============================================================
 // FILE: src/features/profile/components/profile-form.tsx
 // ============================================================
-// PURPOSE: A multi-section settings form for editing the user's personal, professional, preferences, and job application profile data.
-// HOW IT WORKS: Loads the profile via useProfile, determines which sections are relevant to the current email category from URL params, and renders a SectionForm for each. Each section tracks local dirty state, validates required fields, and calls useUpdateProfile on save. Also includes AiSettingsSection and EmailCredentialsSection at the bottom.
-// PROPS: None (self-contained page component).
-// INTEGRATION: useProfile/useUpdateProfile hooks, CATEGORY_POLICIES, isProfessionalFieldVisible, AiSettingsSection, EmailCredentialsSection, SkeletonList.
+// PURPOSE: The profile settings page — a multi-section form for Personal info, Professional details, Writing Preferences, and Job Application links, plus AI settings and Gmail credentials.
+// HOW IT WORKS: Page-level component that loads the user's profile and renders editable sections:
+//   SECTIONS: personal (name, phone, location), professional (Student/Working Professional + conditional fields), preferences (formality, tone, signature, language), jobApplication (URLs). Each section is a SectionForm sub-component.
+//   RELEVANCE HIGHLIGHTING: Reads ?category= URL param. Sections required by that email category (from CATEGORY_POLICIES) get highlighted (settings-section--relevant).
+//   SectionForm: Tracks local field values, dirty state, validates required fields on save, calls useUpdateProfile mutation. Shows success/error messages.
+//   Conditional fields: Professional section shows college/degree for students, designation/department/organization for professionals (via isProfessionalFieldVisible).
+//   Bottom: AiSettingsSection (preferred model) and EmailCredentialsSection (Gmail app password) rendered if no specific sections prop.
+//   Skeleton loading: Shows SkeletonList while profile loads.
+// PROPS: sections (optional SectionKey[] to filter which sections to render).
+// INTEGRATION: useProfile/useUpdateProfile hooks (TanStack Query), CATEGORY_POLICIES (email categories), professional.ts (field visibility), AiSettingsSection, EmailCredentialsSection, SkeletonList. Called by settings page (src/app/(app)/settings/page.tsx).
 // ============================================================

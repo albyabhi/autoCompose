@@ -11,7 +11,7 @@ import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useRouter } from "next/navigation";
 import { BatchSettingsPanel } from "./batch-settings-panel";
-import type { BulkEntryData } from "../types";
+import type { BulkEntryData } from "@/modules/bulk/types";
 import { AddToScheduleDialog } from "@/features/schedule/components/add-to-schedule-dialog";
 import type { AddScheduledEmailPayload } from "@/features/schedule/types";
 

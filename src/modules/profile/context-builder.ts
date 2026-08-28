@@ -228,15 +228,18 @@ export function sanitizeProfile(profile: ProfileSource | null): ProfileSource | 
 // ============================================================
 // FILE: src/modules/profile/context-builder.ts
 // ============================================================
-// PURPOSE: Builds AI-ready profile context strings from user profile data.
-// HOW IT WORKS: buildProfileContext() assembles a budgeted text representation
-//   of the user's profile based on the email category's required sections. It
-//   includes personal info, professional details, job application links, resume
-//   data (ranked by keyword relevance to the prompt), and writing preferences.
-//   Resume items are ranked using word-overlap scoring and limited (10 skills,
-//   4 experience, 3 education, 3 projects). The total is capped at 3600 chars.
-//   getCompletedProfileSections() and buildCategoryReadiness() track which
-//   sections are filled vs missing. sanitizeProfile() strips sensitive data
-//   (rawText, encrypted passwords) for safe API responses.
-// INTEGRATION: Used by email service, DAL, and Telegram AI bridge
+// PURPOSE: Builds a concise, relevant summary of the user's profile to feed to the AI when generating emails — only the parts that matter for the specific email type.
+// HOW IT WORKS: The AI doesn't need the user's entire life story for every email. This module selects and formats only the relevant sections based on the email category (from categories.ts):
+//   - buildProfileContext(): Main function. Takes profile, category, user's prompt, and character budget (default 3600 chars). For each section the category requires:
+//     * personal: Name + location
+//     * contactInfo: Phone + email (from resume or credentials)
+//     * professional: Current role title + active experience entries (from professional.ts)
+//     * jobApplication: Resume/LinkedIn/GitHub/Portfolio links
+//     * resume: Skills/experience/education/projects — RANKED by keyword overlap with the user's prompt so the most relevant items appear first. Limits: 10 skills, 4 experiences, 3 education, 3 projects.
+//     * preferences: Formality level, tone, language
+//     Adds a signature line. Returns ProfileContext with sections array, character count, signature, and writing preferences.
+//   - getCompletedProfileSections(): Checks which profile sections have actual data (used by UI to show completion status).
+//   - buildCategoryReadiness(): For a category, shows which required sections are filled vs missing.
+//   - sanitizeProfile(): Removes sensitive data (raw resume text, encrypted passwords) for safe API responses to the frontend.
+// INTEGRATION: Uses CATEGORY_POLICIES from email/categories.ts; professional.ts for active entries; AI types from src/modules/ai/types.ts. Called by: email service (src/modules/email/service.ts), schedule processor (src/modules/schedule/service.ts), Telegram AI bridge (src/modules/telegram/ai-bridge.ts), profile API (src/app/api/profile/route.ts).
 // ============================================================

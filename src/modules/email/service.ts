@@ -176,15 +176,14 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
 // ============================================================
 // FILE: src/modules/email/service.ts
 // ============================================================
-// PURPOSE: Core business logic for generating AI-powered emails.
-// HOW IT WORKS: generateEmail() orchestrates the full flow: (1) Resolves
-//   the email category (session overrides request), (2) Loads user profile
-//   and builds AI context with selected sections, (3) For existing sessions,
-//   loads bounded conversation history (max 8 messages, 6000 chars), (4) For
-//   new sessions, creates one with an auto-generated title, (5) Calls the
-//   AI provider with system prompt + history + user prompt, (6) Saves the
-//   EmailTemplate record and Message entries (user + assistant), (7) Logs
-//   an audit entry with full metadata. Returns the generated content.
-// INTEGRATION: AI provider factory, Profile/Session/Message/EmailTemplate models,
-//   context builder, history budget, audit logging
+// PURPOSE: The main engine that turns a user's prompt into a polished, personalized email using AI.
+// HOW IT WORKS: generateEmail() orchestrates the entire flow in one function:
+//   1. Category resolution: If the request is part of an existing conversation (session), the session's category overrides the request category.
+//   2. Profile context: Loads the user's profile and builds AI context using only the sections relevant to the email category (e.g., job_application uses personal + professional + resume; sick_leave uses only personal + professional).
+//   3. Conversation history: For existing sessions, loads the last 8 messages (max 6000 characters) so the AI remembers context. For new sessions, creates one with an auto-generated title like "Job Application 3".
+//   4. AI generation: Calls the AI provider (NVIDIA NIM via factory) with system prompt + history + user prompt + profile context.
+//   5. Persistence: Saves the generated email as an EmailTemplate record, saves both user prompt and AI response as Message records linked to the session.
+//   6. Audit logging: Records a detailed audit entry with model used, category, token usage, profile sections injected, history size.
+//   Returns the email content, model used, template ID, session ID, and assistant message ID.
+// INTEGRATION: AI provider factory (src/modules/ai/factory.ts), Profile model + context builder (src/modules/profile/), Session/Message/EmailTemplate models, history budget (src/modules/session/history-budget.ts), audit logging (src/lib/audit.ts), ownership filter (src/lib/auth/ownership.ts), categories (src/modules/email/categories.ts).
 // ============================================================

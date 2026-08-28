@@ -175,14 +175,13 @@ export async function handleComposeCommand(ctx: Context): Promise<void> {
 // ============================================================
 // FILE: src/modules/telegram/commands.ts
 // ============================================================
-// PURPOSE: Handles Telegram bot slash commands (/start, /menu, /cancel, /help, /status).
-// HOW IT WORKS: handleStart() processes the /start command with deep-link login codes:
-//   if a payload is present, it validates the 8-char code against bcrypt hashes in
-//   the User model, links the Telegram account on success, and shows an error on
-//   failure. Without payload, it shows welcome text with linking instructions.
-//   handleMenu() delegates to the compose flow's main menu. handleCancel() clears
-//   conversation state and shows the menu. handleHelp() shows command list.
-//   handleStatus() shows account info (link date, default model, Gmail config).
-//   consumeLoginCode() scans all users with non-expired codes and compares via bcrypt.
-// INTEGRATION: User model, Profile model, state module, compose flow, keyboards
+// PURPOSE: Handles the Telegram bot's slash commands — the main user-facing entry points in the chat.
+// HOW IT WORKS:
+//   - handleStart(): The /start command. If invoked with a payload (e.g., /start ABC12345), treats it as a login code: validates the 8-char code against bcrypt hashes stored in User documents, links the Telegram chat to that AutoCompose account on success. Without payload: shows welcome message with instructions to link account via web settings.
+//   - handleMenu(): The /menu command. Shows the main menu keyboard (Compose, Schedule, Batch, Settings).
+//   - handleCancel(): The /cancel command. Clears any active conversation flow state, shows menu.
+//   - handleHelp(): The /help command. Shows available commands and brief descriptions.
+//   - handleStatus(): The /status command. Shows account link date, default AI model, whether Gmail is configured.
+//   - consumeLoginCode(): Internal helper. Finds all users with non-expired login codes, bcrypt-compares the provided code, on match: updates user with chatId, username, linkedAt, enabled=true, clears the code. Used only by handleStart.
+// INTEGRATION: User model (telegram fields, login codes), Profile model (preferences, emailCredentials), state module (clearState), compose flow (handleMainMenu), keyboards (mainMenuKeyboard), text-constants (T), bcryptjs for secure code comparison, audit logging. Called by webhook.ts.
 // ============================================================

@@ -56,12 +56,12 @@ export function parseEmailContent(content: string): ParsedEmailContent {
 // ============================================================
 // FILE: src/modules/email/content.ts
 // ============================================================
-// PURPOSE: Utilities for parsing and cleaning AI-generated email content.
-// HOW IT WORKS: cleanAIContent() removes markdown bullet prefixes (* or -).
-//   extractSubject() reads the first non-empty line; if it starts with
-//   "Subject:", the value is extracted; otherwise the first line becomes
-//   the subject (truncated to 200 chars). stripSubjectLine() removes the
-//   subject prefix and trailing blank line from the body. parseEmailContent()
-//   combines these into a { subject, body } object.
-// INTEGRATION: Used by Telegram send flow and frontend to split AI output
+// PURPOSE: Turns the AI's raw text response into a clean subject line and body for sending.
+// HOW IT WORKS: The AI sometimes returns the email with "Subject: ..." on the first line, or with markdown bullets. This module normalizes that:
+//   - cleanAIContent(): Strips leading markdown bullet characters (* or -) from lines.
+//   - extractSubject(): Looks at the first non-empty line. If it starts with "Subject: ", extracts everything after the colon. Otherwise uses the whole first line (max 200 chars). Fallback: "Email from AutoCompose".
+//   - stripSubjectLine(): Removes the subject line and any blank line after it, returning just the body.
+//   - parseEmailContent(): One-stop function that cleans, extracts subject, and strips it from body. Returns { subject, body }.
+//   - extractEmailFromText(): Bonus helper that finds the first email address in a string (used when user pastes recipient info).
+// INTEGRATION: Used by Telegram send flow (src/modules/telegram/flows/send.ts) to parse AI output before sending, schedule processor (src/modules/schedule/service.ts) when generating scheduled emails, bulk service (src/modules/bulk/service.ts) when parsing generated content, and the web UI send dialog.
 // ============================================================

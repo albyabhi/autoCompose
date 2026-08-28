@@ -66,13 +66,16 @@ Generate a professional email template based on the above.`;
 // ============================================================
 // FILE: src/modules/ai/provider.ts
 // ============================================================
-// PURPOSE: Abstract base class that all AI providers must extend.
-// HOW IT WORKS: Defines the complete() abstract method and provides shared
-//   prompt-building logic. buildSystemPrompt() assembles the system message
-//   with: (1) role definition, (2) category-specific AI instructions from
-//   CATEGORY_POLICIES, (3) user profile context sections, (4) output rules
-//   (no markdown, no subject prefix, proper email formatting), and (5)
-//   language/signature preferences. buildUserPrompt() wraps the user's
-//   instructions with category context.
-// INTEGRATION: Extended by NvidiaNIMProvider, used by email service
+// PURPOSE: The shared prompt-building logic that all AI providers inherit — ensures consistent email formatting regardless of which AI model is used.
+// HOW IT WORKS: BaseAIProvider is an abstract class that defines the contract (complete() method) and provides two shared methods:
+//   - buildSystemPrompt(profileContext, category): Constructs the system message sent to the AI. Combines:
+//     1. Role: "You are an expert email composer."
+//     2. Rule: Only use provided facts; never invent.
+//     3. Category-specific instruction from CATEGORY_POLICIES (e.g., "Write a tailored application that connects the user's most relevant evidence to the target role." for job_application).
+//     4. Profile context sections (personal, professional, resume, etc.) if provided.
+//     5. Output rules: No markdown, first line = subject only (no "Subject:" prefix), proper email formatting, include signature.
+//     6. Language and signature preferences if set.
+//   - buildUserPrompt(prompt, category): Wraps the user's instructions with the category label.
+//   Concrete providers (NvidiaNIMProvider) only need to implement complete() — the prompt building is shared so all models get the same instructions.
+// INTEGRATION: Extended by NvidiaNIMProvider (src/modules/ai/providers/nvidia.ts); uses CATEGORY_POLICIES from email/categories.ts; AI types from src/modules/ai/types.ts. Called by factory and all AI consumers.
 // ============================================================

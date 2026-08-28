@@ -51,11 +51,15 @@ export const Message =
 // ============================================================
 // FILE: src/models/message.ts
 // ============================================================
-// PURPOSE: Mongoose schema for individual messages within an email generation session.
-// HOW IT WORKS: Each message has a role (user or assistant), content text,
-//   optional modelUsed field, and metadata. Messages are linked to a session
-//   via sessionId. The compound index on sessionId+createdAt enables efficient
-//   chronological retrieval for conversation history display.
-// FIELDS: sessionId (ref to Session), role, content, modelUsed, metadata
-// INTEGRATION: Used by message service for CRUD, loaded by session view for display
+// PURPOSE: Individual chat messages within a session — the conversation history between user and AI.
+// HOW IT WORKS: Mongoose schema for the Message collection. Each message belongs to one Session (sessionId). Fields:
+//   - sessionId: Reference to Session (indexed).
+//   - role: "user" (the prompt) or "assistant" (AI response).
+//   - content: Full text of the message.
+//   - modelUsed: Which AI model generated this response (only for assistant messages).
+//   - metadata: Flexible — for assistant messages, stores usage (tokens, duration).
+//   Index: sessionId+createdAt for chronological retrieval (used by getMessageHistory in session service).
+//   Messages are created in pairs: user prompt + assistant response.
+// FIELDS: sessionId, role, content, modelUsed, metadata, createdAt, updatedAt.
+// INTEGRATION: Session service (getMessageHistory for AI context), email service (creates message pairs), session view UI (displays conversation), message API routes.
 // ============================================================

@@ -168,15 +168,15 @@ export async function migrateUserCredentialsToV2(userId: string): Promise<boolea
 // ============================================================
 // FILE: src/modules/profile/service.ts
 // ============================================================
-// PURPOSE: CRUD operations for user profiles with envelope encryption credential management.
-// HOW IT WORKS: getProfile() returns the user's profile or null. createProfile()
-//   creates a new profile (throws if one exists). updateProfile() merges partial
-//   updates into existing sections and handles emailCredentials specially - encrypting
-//   the app password via v2 envelope encryption (per-user DEK) before storage and
-//   recording audit entries for save/remove. upsertProfile() does a MongoDB upsert
-//   for atomic create-or-update. migrateUserCredentialsToV2() transitions v1 legacy
-//   ciphertexts to v2 on demand (lazy migration). All operations use ownedFilter()
-//   to enforce ownership.
-// INTEGRATION: Profile model, crypto.ts (encryptV2, migrateV1ToV2), audit.ts,
-//   professional.ts
+// PURPOSE: Manages user profiles — personal info, work history, preferences, and encrypted Gmail credentials.
+// HOW IT WORKS: Each user has one Profile document. All functions enforce ownership via ownedFilter().
+//   - getProfile(userId): Returns the profile or null if not created yet.
+//   - createProfile(userId, data): Creates initial profile. Throws if profile already exists.
+//   - updateProfile(userId, data): Merges partial updates. Special handling for emailCredentials:
+//     * If null provided: removes credentials, logs audit "email.credentials_removed".
+//     * If provided: encrypts appPassword with crypto.encryptV2() (envelope encryption), stores encryptedData + encryptedDek + dekVersion, logs audit "email.credentials_saved".
+//   - upsertProfile(userId, data): Atomic create-or-update (MongoDB upsert). Used during onboarding.
+//   - migrateUserCredentialsToV2(userId): Called lazily when sending email with v1 credentials. Decrypts with old key, re-encrypts with v2 envelope, updates profile. Returns true if migrated.
+//   Profile sections: personal (name, title, location), professional (experience, education, skills), preferences (formality, tone), jobApplication (target role, company), contacts, resume (parsed from upload).
+// INTEGRATION: Profile model (src/models/profile.ts), crypto.ts (encryptV2, migrateV1ToV2), audit.ts (recordAudit), professional.ts (normalizeProfessionalForSave). Called by: API routes (src/app/api/profile/route.ts), email dispatch (src/modules/email/dispatch.ts), schedule processor, Telegram bot, resume parser.
 // ============================================================

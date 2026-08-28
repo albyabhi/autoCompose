@@ -56,10 +56,7 @@ export async function disconnectDB(): Promise<void> {
 // ============================================================
 // FILE: src/lib/db.ts
 // ============================================================
-// PURPOSE: Provides a cached MongoDB connection singleton using Mongoose.
-// HOW IT WORKS: Maintains a global cache (survives hot reloads) so only one
-//   connection is opened per process. connectDB() returns the existing
-//   connection if available, otherwise creates a new one with configured
-//   pool sizes and timeouts. disconnectDB() cleanly tears down the connection.
-// INTEGRATION: MongoDB via Mongoose, reads config from src/config/index.ts
+// PURPOSE: Manages the connection to the MongoDB database so the app can store and retrieve data.
+// HOW IT WORKS: Instead of opening a new database connection every time the code needs to read or write data (which would be slow and exhaust database resources), this module keeps a single shared connection alive for the entire lifetime of the server process. The first time connectDB() is called, it opens the connection using settings from config (connection pool size, timeouts). Subsequent calls return the same connection instantly. The connection survives Next.js hot reloads during development because it's stored in a global variable. disconnectDB() is available for graceful shutdown.
+// INTEGRATION: Reads MongoDB URI and options from src/config/index.ts; uses Mongoose (the MongoDB library); called by virtually every service module (email, schedule, profile, session, Telegram, bulk, resume) and audit logging before they query the database.
 // ============================================================

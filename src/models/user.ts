@@ -103,13 +103,15 @@ export const User =
 // ============================================================
 // FILE: src/models/user.ts
 // ============================================================
-// PURPOSE: Mongoose schema and model for user accounts.
-// HOW IT WORKS: Defines the User document with fields for auth (email,
-//   passwordHash, provider), profile (name, avatar), role (user/admin),
-//   onboarding status, and Telegram linking (chatId, username, login codes).
-//   Indexes on email, role, and telegram.chatId optimize common queries.
-//   Telegram login codes use select:false to hide from default queries.
-// FIELDS: name, email, passwordHash, avatar, role, provider, onboardingCompleted,
-//   telegram (chatId, username, linkedAt, enabled), telegramLoginCode
-// INTEGRATION: Used by auth.ts, session.ts, DAL, and Telegram link service
+// PURPOSE: The core user account model — stores authentication info, role, and Telegram linking data.
+// HOW IT WORKS: Mongoose schema for the User collection. Each document represents one registered account:
+//   - Authentication: email (unique, lowercase), passwordHash (for credentials login), provider ("credentials" or "oauth").
+//   - Profile basics: name, avatar (URL), role ("user" or "admin").
+//   - Onboarding: emailVerified date, onboardingCompleted boolean.
+//   - Telegram integration: telegram subdocument with chatId (unique index), username, linkedAt timestamp, enabled flag. Used by the bot to link Telegram chats to accounts.
+//   - Telegram login flow: telegramLoginCode (bcrypt hash, select:false for security), telegramLoginCodeExpiresAt (select:false).
+//   Indexes: email (unique), role, telegram.chatId (unique partial index — only when chatId exists).
+//   Timestamps: createdAt, updatedAt auto-managed by Mongoose.
+// FIELDS: name, email, passwordHash, avatar, role, provider, emailVerified, onboardingCompleted, telegram (chatId, username, linkedAt, enabled), telegramLoginCode, telegramLoginCodeExpiresAt, createdAt, updatedAt.
+// INTEGRATION: Used by auth.ts (NextAuth credentials), session.ts (requireAuth, hydrateUser), Telegram commands (handleStart, consumeLoginCode), Telegram link service, DAL. The telegramLoginCode is set via the web settings page and consumed when user clicks the deep link in Telegram.
 // ============================================================

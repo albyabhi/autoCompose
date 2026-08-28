@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useSendEntry, useSendEntryWithAttachments, useUploadAttachments } from "../hooks/use-bulk";
-import type { BulkEntryData } from "../types";
+import type { BulkEntryData } from "@/modules/bulk/types";
 
 interface BulkSendBarProps {
   entries: BulkEntryData[];

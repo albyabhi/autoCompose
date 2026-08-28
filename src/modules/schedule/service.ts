@@ -719,12 +719,10 @@ export async function processUserScheduleNow(
 // ============================================================
 // FILE: src/modules/schedule/service.ts
 // ============================================================
-// PURPOSE: Business logic for schedule CRUD, scheduled email snapshots, and cron processing.
-// HOW IT WORKS: User-facing methods enforce ownership and active future filters,
-//   create durable snapshots from single emails or batch entries, and expose list
-//   and detail DTOs. The cron processor finds due schedules, atomically claims
-//   a small batch of items, generates missing content when needed, sends through
-//   the shared dispatch path, and marks each item terminal without double-sending.
-// INTEGRATION: Schedule/ScheduledEmail/BulkEntry models, AI provider, profile
-//   context builder, email parsing and dispatch, audit logging, auth ownership.
+// PURPOSE: Manages scheduled email campaigns — create schedules, add emails to them, and the cron job that actually sends them on time.
+// HOW IT WORKS: Two main parts:
+//   USER-FACING (CRUD): createSchedule() makes a schedule with name, date, timezone. addScheduledEmails() adds emails (single or from batch) with deduplication (won't add the same batch entry twice). listSchedules() returns paginated list with counts (total/sent/failed/pending). getSchedule() returns full detail with all emails. updateSchedule() changes name/date/timezone/status. deleteSchedule() cancels and removes unsent emails.
+//   CRON PROCESSOR (runs automatically): processDueSchedules() finds all active schedules whose time has come. For each, claims up to N emails atomically (prevents double-send if cron runs twice), generates missing content via AI if needed, sends via dispatchSendEmail() with rate limiting, marks each email sent/failed, updates schedule status to "sent" or "expired" when done. processUserScheduleNow() lets a user trigger their schedule immediately (for testing).
+//   Delivery state machine: awaiting_content -> (AI generates) -> ready -> (sending) -> sent OR failed. "sending" state prevents duplicates.
+// INTEGRATION: Schedule/ScheduledEmail/BulkEntry models; AI provider factory; profile context builder; email parsing (content.ts) and dispatch (dispatch.ts); audit logging; auth ownership. Cron route: src/app/api/cron/process-schedules/route.ts.
 // ============================================================

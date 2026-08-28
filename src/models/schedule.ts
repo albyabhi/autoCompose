@@ -54,10 +54,14 @@ export const Schedule =
 // ============================================================
 // FILE: src/models/schedule.ts
 // ============================================================
-// PURPOSE: Mongoose schema for named future email schedules.
-// HOW IT WORKS: Each schedule belongs to one user, stores a display name,
-//   an absolute UTC Date for processing, and the browser timezone used for
-//   display. Status controls whether cron may process the schedule, with
-//   indexes optimized for active due-schedule lookup and user listing.
-// INTEGRATION: Used by schedule service, schedule API routes, and cron processor.
+// PURPOSE: A named, timed email campaign — "Send these emails at this date/time in this timezone."
+// HOW IT WORKS: Mongoose schema for the Schedule collection. Each schedule is a container for multiple ScheduledEmail documents.
+//   - userId: Owner (indexed).
+//   - name: Display name (e.g., "Weekly Team Updates"). Max 120 chars.
+//   - scheduledAt: Exact UTC Date when the cron processor should start sending.
+//   - timezone: User's IANA timezone (e.g., "America/New_York") for display — stored so the UI can show the schedule in their local time.
+//   - status: "active" (waiting for scheduledAt), "sent" (all emails sent), "expired" (time passed, no emails), "cancelled" (user cancelled). Indexed for cron queries.
+//   Compound index on userId+status+scheduledAt optimizes listing and cron lookup (find active due schedules).
+// FIELDS: userId, name, scheduledAt, timezone, status, createdAt, updatedAt.
+// INTEGRATION: Schedule service (CRUD + cron processor), ScheduledEmail model (child emails), schedule API routes, cron route (src/app/api/cron/process-schedules/route.ts).
 // ============================================================

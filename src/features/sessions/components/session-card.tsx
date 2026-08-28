@@ -1,6 +1,6 @@
 "use client";
 
-import type { SessionData } from "../types";
+import type { SessionData } from "@/modules/session/types";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { useDeleteSession, useToggleArchive, useUpdateSession } from "../hooks/use-sessions";

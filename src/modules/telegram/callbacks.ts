@@ -70,11 +70,18 @@ export async function handleCallback(ctx: Context): Promise<void> {
 // ============================================================
 // FILE: src/modules/telegram/callbacks.ts
 // ============================================================
-// PURPOSE: Routes inline keyboard button presses to their respective handlers.
-// HOW IT WORKS: Parses the callback data string and matches it against predefined
-//   CB constants (menu, compose, cancel, regenerate, sendStart, sendToMe, sendConfirm).
-//   Category selections use a prefix-based match (tg:cat:*) and extract the category
-//   value. Each callback delegates to the appropriate flow handler in compose.ts
-//   or send.ts. Unknown callbacks get an "Unknown action" response.
-// INTEGRATION: Compose flow, send flow, keyboards (CB constants), reply helper
+// PURPOSE: Handles every button press in the Telegram bot — routes inline keyboard callbacks to the right flow handler.
+// HOW IT WORKS: When a user taps a button in the Telegram chat, Telegram sends a "callback query" with a data string. This function parses that data and routes:
+//   - CB.compose ("tg:compose"): Start composing a new email -> startCompose()
+//   - CB.menu ("tg:menu"): Return to main menu -> handleMainMenu()
+//   - CB.cancel ("tg:cancel"): Cancel current send flow -> handleSendCancel()
+//   - CB.regenerate ("tg:regenerate"): Ask AI to rewrite the email -> handleRegenerate()
+//   - CB.sendStart ("tg:send:start"): Begin the send flow (enter recipient) -> handleSendStart()
+//   - CB.sendToMe ("tg:send:me"): Send email to own Gmail address -> handleSendToMe()
+//   - CB.sendConfirm ("tg:send:confirm"): User confirmed sending -> handleSendConfirm()
+//   - "tg:menu:help": Show help -> handleHelp()
+//   - CB.categoryPrefix ("tg:cat:"): Category selection (e.g., "tg:cat:job_application") -> handleCategorySelection()
+//   Unknown callbacks: Responds with "Unknown action" and removes loading state.
+//   Each handler is in compose.ts or send.ts flows. answerCb() acknowledges the button press to Telegram (removes the loading spinner on the button).
+// INTEGRATION: Keyboards module (CB constants from src/modules/telegram/keyboards.ts), compose flow (src/modules/telegram/flows/compose.ts), send flow (src/modules/telegram/flows/send.ts), commands (handleHelp), reply helpers (replyHtml, answerCb). Called by webhook.ts.
 // ============================================================
