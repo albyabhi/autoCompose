@@ -19,7 +19,7 @@ export abstract class BaseAIProvider implements AIProvider {
       sections.push("=== SELECTED PROFILE CONTEXT ===");
       sections.push(...profileContext.sections);
       sections.push("");
-      sections.push("If user contact information is provided (phone, email), include it in the email signature or closing unless the user provides a specific signature.");
+      sections.push("Contact information is provided above. Only include it in the email if the user explicitly requests it, or if the email is a formal professional communication (job application, resignation, formal complaint). For casual or personal emails, omit contact details.");
     }
 
     sections.push("");
