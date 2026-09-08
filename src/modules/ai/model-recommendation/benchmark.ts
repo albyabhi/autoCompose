@@ -11,7 +11,7 @@ import { MODEL_IDS } from "../types";
 function getDefaultBenchmarkConfig(): BenchmarkConfig {
   return {
     intervalMs: Number.parseInt(process.env.AI_MODEL_BENCHMARK_INTERVAL_MS ?? "600000", 10), // 10m
-    modelsPerCycle: Number.parseInt(process.env.AI_MODEL_BENCHMARK_MODELS_PER_CYCLE ?? "8", 10),
+    modelsPerCycle: Number.parseInt(process.env.AI_MODEL_BENCHMARK_MODELS_PER_CYCLE ?? "9", 10),
     samplesPerModel: Number.parseInt(process.env.AI_MODEL_BENCHMARK_SAMPLES_PER_MODEL ?? "2", 10),
     timeoutMs: Number.parseInt(process.env.AI_MODEL_BENCHMARK_TIMEOUT_MS ?? "20000", 10),
     minimumSuccessRate: Number.parseFloat(process.env.AI_MODEL_BENCHMARK_MIN_SUCCESS_RATE ?? "0.7"),

@@ -10,6 +10,7 @@ export const MODEL_IDS = {
   minimaxM27: "minimaxai/minimax-m2.7",
   llamaNemotronNano: "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
   nemotron3Ultra: "nvidia/nemotron-3-ultra-550b-a55b",
+  nemotron35Lightning: "nvidia/nemotron-3.5-lightning-30b-a3b",
 } as const;
 
 export const MODEL_IDS_KEYS = [
@@ -21,6 +22,7 @@ export const MODEL_IDS_KEYS = [
   "minimaxM27",
   "llamaNemotronNano",
   "nemotron3Ultra",
+  "nemotron35Lightning",
 ] as const satisfies readonly (keyof typeof MODEL_IDS)[];
 
 export type ModelId = (typeof MODEL_IDS_KEYS)[number];
@@ -36,11 +38,13 @@ export const MODEL_LABELS: Record<ModelId, { name: string; description: string }
   minimaxM27: { name: "MiniMax M2.7", description: "Code/agent-tuned MoE (230B/10B)" },
   llamaNemotronNano: { name: "Llama Nemotron Nano 8B VL", description: "NVIDIA lightweight multimodal vision-language" },
   nemotron3Ultra: { name: "Nemotron 3 Ultra 550B", description: "NVIDIA flagship reasoning, 550B param MoE (55B active)" },
+  nemotron35Lightning: { name: "Nemotron 3.5 Lightning 30B", description: "Fast MoE execution, 30B total / 3B active, 1M ctx" },
 };
 
 export const MODEL_DEFAULTS: Partial<Record<ModelId, { temperature?: number; maxTokens?: number }>> = {
   mistralSmall: { temperature: 0.6 },
   minimaxM27: { temperature: 1.0 },
+  nemotron35Lightning: { temperature: 1.0 },
 };
 
 export type FormalityLevel = "formal" | "semi-formal" | "casual";
@@ -106,7 +110,7 @@ export interface AIProvider {
 // ============================================================
 // PURPOSE: Defines all TypeScript types, constants, and Zod schemas for the AI module.
 // HOW IT WORKS: MODEL_IDS maps friendly keys (deepseek, nemotron, etc.) to NVIDIA NIM
-//   model identifiers. MODEL_LABELS provides display names and descriptions for 8 models.
+//   model identifiers. MODEL_LABELS provides display names and descriptions for 9 models.
 //   MODEL_DEFAULTS overrides temperature/maxTokens for specific models. ProfileContext
 //   carries user profile data for prompt enrichment. AICompletionRequest/Response define
 //   the standard interface for AI completions. AIProvider is the contract that providers

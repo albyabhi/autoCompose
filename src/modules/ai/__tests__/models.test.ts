@@ -10,9 +10,9 @@ import { generateEmailSchema } from "@/modules/email/validation";
 import { addMessageSchema } from "@/modules/session/validation";
 
 describe("AI model registry", () => {
-  it("exposes exactly the seven configured models", () => {
+  it("exposes exactly the nine configured models", () => {
     expect(Object.keys(MODEL_IDS)).toEqual(MODEL_IDS_KEYS);
-    expect(MODEL_IDS_KEYS).toHaveLength(8);
+    expect(MODEL_IDS_KEYS).toHaveLength(9);
   });
 
   it.each(MODEL_IDS_KEYS)("provides a label for %s", (id) => {

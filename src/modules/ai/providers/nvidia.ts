@@ -100,6 +100,6 @@ export class NvidiaNIMProvider extends BaseAIProvider {
 //   5. Returns standardized response: content, modelUsed, durationMs, token usage (prompt/completion/total).
 //   6. Logs success (model, duration, tokens) or failure (model, duration, error).
 //   Errors are wrapped in AIProviderError so callers can handle them uniformly.
-//   8 models available: deepseek, nemotron, gptOss, mistralSmall, llamaMaverick, minimaxM27, llamaNemotronNano, nemotron3Ultra.
+//   9 models available: deepseek, nemotron, gptOss, mistralSmall, llamaMaverick, minimaxM27, llamaNemotronNano, nemotron3Ultra, nemotron35Lightning.
 // INTEGRATION: NVIDIA NIM API (https://integrate.api.nvidia.com/v1); OpenAI SDK; config (src/config/index.ts) for apiKey/baseUrl/models; BaseAIProvider (src/modules/ai/provider.ts) for prompt building; AI types (src/modules/ai/types.ts) for model IDs and defaults. Called via factory (src/modules/ai/factory.ts).
 // ============================================================

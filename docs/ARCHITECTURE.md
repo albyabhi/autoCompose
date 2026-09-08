@@ -50,7 +50,7 @@ UI (AppShell pages, TanStack Query)
 
 - **AI generation** (`src/modules/ai/`): `AIProvider` interface →
   `BaseAIProvider` (Tree-of-Thought + DCE system prompt) → `NvidiaNIMProvider`
-  via `factory.ts`. 8 models from `MODEL_IDS`. Per-request overrides for
+  via `factory.ts`. 9 models from `MODEL_IDS`. Per-request overrides for
   `temperature`/`maxTokens` (`MODEL_DEFAULTS`). `model-recommendation/`
   benchmarks models and caches fastest-model state; refreshed by
   `src/lib/model-benchmark-worker.ts` (10-min interval, env-tunable).

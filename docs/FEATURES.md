@@ -68,7 +68,7 @@ rate limiting.
 
 ## AI Models
 
-8 models (labels in `AGENTS.md` / `ARCHITECTURE.md`); per-generation
+9 models (labels in `AGENTS.md` / `ARCHITECTURE.md`); per-generation
 override; profile default; resume-parse default with override and
 `parsedByModel` audit; background fastest-model recommendation.
 

@@ -178,6 +178,7 @@ Vercel production cron is configured in `vercel.json` to call `/api/cron/process
 | `minimaxM27` | MiniMax M2.7 | Code/agent-tuned MoE |
 | `llamaNemotronNano` | Llama Nemotron Nano 8B VL | NVIDIA lightweight multimodal |
 | `nemotron3Ultra` | Nemotron 3 Ultra 550B | NVIDIA flagship reasoning, 550B params |
+| `nemotron35Lightning` | Nemotron 3.5 Lightning 30B | Fast MoE execution, 30B total / 3B active |
 
 ## Code Documentation
 

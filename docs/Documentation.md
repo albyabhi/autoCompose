@@ -1219,6 +1219,7 @@ Uses OpenAI SDK to call NVIDIA NIM API. Supports conversation history injection 
 | `minimaxM27` | MiniMax M2.7 | `minimaxai/minimax-m2.7` | Code/agent-tuned MoE (230B/10B). Default temp 1.0. |
 | `llamaNemotronNano` | Llama Nemotron Nano 8B VL | `nvidia/llama-3.1-nemotron-nano-vl-8b-v1` | NVIDIA lightweight multimodal vision-language. |
 | `nemotron3Ultra` | Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b` | NVIDIA flagship reasoning, 550B param MoE (55B active). |
+| `nemotron35Lightning` | Nemotron 3.5 Lightning 30B | `nvidia/nemotron-3.5-lightning-30b-a3b` | Fast MoE execution, 30B total / 3B active, 1M ctx. Default temp 1.0. |
 
 ### Prompt Engineering
 

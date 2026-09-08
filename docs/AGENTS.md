@@ -72,10 +72,11 @@ Each maps to profile sections injected into AI prompts.
 
 ## AI Models
 
-8 NVIDIA NIM models, registry in `src/modules/ai/types.ts`
+9 NVIDIA NIM models, registry in `src/modules/ai/types.ts`
 (`MODEL_IDS` / `MODEL_LABELS`), mirrored in `src/config/index.ts`:
 `deepseek` (default), `nemotron`, `gptOss`, `mistralSmall`,
-`llamaMaverick`, `minimaxM27`, `llamaNemotronNano`, `nemotron3Ultra`.
+`llamaMaverick`, `minimaxM27`, `llamaNemotronNano`, `nemotron3Ultra`,
+`nemotron35Lightning`.
 Background benchmark worker (`src/lib/model-benchmark-worker.ts`) tracks the
 fastest model (`src/modules/ai/model-recommendation/`).
 
