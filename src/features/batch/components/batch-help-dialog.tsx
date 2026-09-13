@@ -7,6 +7,7 @@ const TIPS = [
   'Use "Apply to All" to set the same mail type across all pending rows.',
   "Shared attachments are sent with every email in the batch.",
   'Generate emails one-by-one or use "Send All" for bulk delivery.',
+  "Import CSV (recipient,prompt,category) in Batch Settings to auto-fill rows — category is optional.",
 ];
 
 export function BatchHelpDialog() {

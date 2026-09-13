@@ -5092,9 +5092,10 @@ body {
 }
 
 .batch-settings-panel--expanded {
-  max-height: 800px;
+  max-height: none;
   opacity: 1;
   margin-bottom: 0;
+  overflow: visible;
 }
 
 .batch-settings-panel--collapsed {
@@ -5374,4 +5375,172 @@ body {
 .settings-list-item__btn--delete:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 #000;
+}
+
+/* =========== BATCH CSV IMPORT =========== */
+
+.batch-csv {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.batch-csv__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.batch-csv__title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.batch-csv__hint {
+  font-size: 0.8125rem;
+  color: #555;
+}
+
+.batch-csv__format {
+  border: 2px solid var(--black);
+  border-radius: var(--radius);
+  background: var(--white);
+  padding: 10px 12px;
+}
+
+.batch-csv__format-toggle {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.batch-csv__format-toggle:focus-visible {
+  outline: 4px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.batch-csv__format-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.8125rem;
+}
+
+.batch-csv__format-body code {
+  background: var(--bg);
+  padding: 1px 6px;
+  border: 1px solid var(--black);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.batch-csv__sample,
+.batch-csv__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  background: var(--white);
+}
+
+.batch-csv__sample th,
+.batch-csv__sample td,
+.batch-csv__table th,
+.batch-csv__table td {
+  border: 2px solid var(--black);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.batch-csv__sample th,
+.batch-csv__table th {
+  background: var(--yellow);
+  font-weight: 800;
+}
+
+.batch-csv__format-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.batch-csv__limit {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.batch-csv__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.batch-csv__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.batch-csv__clear {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.batch-csv__clear:focus-visible {
+  outline: 4px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.batch-csv__error {
+  border: 3px solid var(--black);
+  border-radius: var(--radius);
+  background: var(--pink);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 8px 12px;
+}
+
+.batch-csv__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 3px solid var(--black);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 4px 4px 0 #000;
+  padding: 12px;
+}
+
+.batch-csv__summary {
+  font-size: 0.8125rem;
+}
+
+.batch-csv__note {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.batch-csv__errors {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.75rem;
+  color: #8a1f2d;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }

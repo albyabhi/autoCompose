@@ -6,6 +6,7 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { BatchStepper } from "./batch-stepper";
+import { BatchCsvImport } from "./batch-csv-import";
 
 interface BatchSettingsPanelProps {
   expanded: boolean;
@@ -24,6 +25,10 @@ interface BatchSettingsPanelProps {
   onAddMultiple?: () => void;
   sharedFiles: File[];
   onSharedFilesChange: (files: File[]) => void;
+  onCsvImport?: (
+    rows: Array<{ category: EmailCategory; prompt: string; recipient: string }>
+  ) => void | Promise<void>;
+  csvPending?: boolean;
 }
 
 export function BatchSettingsPanel({
@@ -43,6 +48,8 @@ export function BatchSettingsPanel({
   onAddMultiple,
   sharedFiles,
   onSharedFilesChange,
+  onCsvImport,
+  csvPending = false,
 }: BatchSettingsPanelProps) {
   return (
     <>
@@ -121,6 +128,17 @@ export function BatchSettingsPanel({
                   label="Shared Attachments"
                 />
               </div>
+
+              {onCsvImport && (
+                <div className="batch-settings-panel__section">
+                  <BatchCsvImport
+                    fallbackCategory={toolbarCategory}
+                    disabled={createEntriesPending || isCreatingSession}
+                    pending={csvPending || createEntriesPending}
+                    onImport={onCsvImport}
+                  />
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>
@@ -145,6 +163,6 @@ export function BatchSettingsPanel({
 // ============================================================
 // PURPOSE: Collapsible settings panel containing Mail Type, row adder, and shared attachments for batch compose.
 // HOW IT WORKS: Renders a Card with a toggle button in the header. When collapsed, a floating indicator pill appears. An optional sentinel ref is placed below for IntersectionObserver-based auto-hide.
-// PROPS: expanded (boolean), onToggle (callback), toolbarCategory, onCategoryChange, entryCount, pendingCount, onApplyToAll, applyingCategory, batchUpdatePending, addCount (optional), onAddCountChange (optional), createEntriesPending (optional), isCreatingSession (optional), onAddMultiple (optional — when omitted, the stepper/adder section is hidden), sharedFiles, onSharedFilesChange.
-// INTEGRATION: Card, Button, Select, BatchStepper, AttachmentUpload, CATEGORY_OPTIONS.
+// PROPS: expanded (boolean), onToggle (callback), toolbarCategory, onCategoryChange, entryCount, pendingCount, onApplyToAll, applyingCategory, batchUpdatePending, addCount (optional), onAddCountChange (optional), createEntriesPending (optional), isCreatingSession (optional), onAddMultiple (optional — when omitted, the stepper/adder section is hidden), sharedFiles, onSharedFilesChange, onCsvImport (optional — CSV rows importer), csvPending (optional).
+// INTEGRATION: Card, Button, Select, BatchStepper, BatchCsvImport, AttachmentUpload, CATEGORY_OPTIONS.
 // ============================================================

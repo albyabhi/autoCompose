@@ -12,7 +12,10 @@ prompt, response card with Send-via-Email and Schedule actions.
 ## Batch
 
 `?mode=batch` (`BatchComposeView` + `BatchSettingsPanel`): mail-type
-selector, Apply-to-All, 1–50 row stepper, shared attachments, help dialog.
+selector, Apply-to-All, 1–50 row stepper, CSV import
+(`recipient,prompt,category` with format sample + template download,
+50 rows/import, skip-invalid/import-valid, toolbar Mail Type fallback),
+shared attachments, help dialog.
 Per-row (`BulkRow`): edit/display modes, category/prompt/recipient editing
 (pending/failed), Generate/Preview/Regenerate/Delete/Schedule, status
 badges, inline preview with parsed subject/body, per-row attachments.

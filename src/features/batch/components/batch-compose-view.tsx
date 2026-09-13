@@ -47,13 +47,34 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
+    // Scroll container is the app content area, not the viewport.
+    const rootEl =
+      (document.querySelector(".app-shell__content") as Element | null) ??
+      null;
+    const getScrollTop = () =>
+      rootEl instanceof HTMLElement ? rootEl.scrollTop : window.scrollY;
+    let lastScrollTop = getScrollTop();
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) {
-          setIsSettingsExpanded(false);
+      (entries) => {
+        const entry = entries[0];
+        if (!entry || entry.isIntersecting) return;
+        // Only auto-collapse when the sentinel scrolled ABOVE the viewport
+        // (user scrolled down into rows). Ignore exits below the viewport,
+        // which happen when the panel itself grows (e.g. opening CSV format).
+        if (entry.boundingClientRect.top >= 0) {
+          lastScrollTop = getScrollTop();
+          return;
         }
+        const scrollTop = getScrollTop();
+        if (scrollTop <= lastScrollTop) {
+          lastScrollTop = scrollTop;
+          return;
+        }
+        lastScrollTop = scrollTop;
+        setIsSettingsExpanded(false);
       },
-      { threshold: 0 }
+      { root: rootEl, threshold: 0, rootMargin: "0px 0px -150px 0px" }
     );
 
     observer.observe(sentinel);
@@ -115,6 +136,26 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     }
   }, [sessionId, toolbarCategory, batchUpdateMutation]);
 
+  const handleCsvImport = useCallback(
+    async (
+      rows: Array<{
+        category: EmailCategory;
+        prompt: string;
+        recipient: string;
+      }>
+    ) => {
+      if (rows.length === 0) return;
+      setIsSettingsExpanded(false);
+      const currentSessionId = await ensureSession();
+      if (!currentSessionId) return;
+      createEntriesMutation.mutate({
+        sessionId: currentSessionId,
+        entries: rows,
+      });
+    },
+    [ensureSession, createEntriesMutation]
+  );
+
   const handleToggleSettings = useCallback(() => {
     setIsSettingsExpanded((prev) => !prev);
   }, []);
@@ -154,6 +195,8 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
             onAddMultiple={handleAddMultiple}
             sharedFiles={sharedFiles}
             onSharedFilesChange={setSharedFiles}
+            onCsvImport={handleCsvImport}
+            csvPending={createEntriesMutation.isPending}
           />
 
           <div ref={sentinelRef} className="batch-sentinel" />
@@ -188,7 +231,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
 // FILE: src/features/batch/components/batch-compose-view.tsx
 // ============================================================
 // PURPOSE: Main batch email configuration page.
-// HOW IT WORKS: Single-column layout with collapsible BatchSettingsPanel and BulkTable. IntersectionObserver on a sentinel element auto-collapses the panel when user scrolls down into entries. A floating indicator button re-expands when collapsed. AI model is read from user profile preferences.
+// HOW IT WORKS: Single-column layout with collapsible BatchSettingsPanel and BulkTable. IntersectionObserver on a sentinel element auto-collapses the panel only on real scroll-down into entries (sentinel exits above the viewport inside .app-shell__content); in-panel growth such as opening CSV format help is ignored. A floating indicator button re-expands when collapsed. AI model is read from user profile preferences.
 // PROPS: initialSessionId (optional string) for resuming an existing batch session.
 // INTEGRATION: React Query hooks for batch operations, BatchSettingsPanel, BulkTable, BatchHelpDialog, email categories, attachment upload, profile preferences.
 // ============================================================

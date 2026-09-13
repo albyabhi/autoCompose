@@ -6,6 +6,24 @@
 > the current state only. All dated changes, commit notes, and action
 > history live here.
 
+## 2026-09-08 — Batch settings auto-hide fix
+
+- Fixed Batch Settings + CSV format auto-collapsing when opened: sentinel
+  observer in `batch-compose-view.tsx` now collapses only on real
+  scroll-down into rows (ignores in-panel growth), expanded panel uses
+  `max-height: none` so format/preview never clips, CSV format `<details>`
+  is controlled and independent of the panel toggle.
+
+## 2026-09-08 — Batch CSV import
+
+- New `Import from CSV` in `BatchSettingsPanel`: `recipient,prompt,category`
+  (category optional → toolbar Mail Type fallback) with format sample +
+  template download, 50 rows / 1 MB cap, skip-invalid/import-valid preview.
+- New `src/features/batch/utils/csv-parser.ts` (+ tests) and
+  `src/features/batch/components/batch-csv-import.tsx`; wiring in
+  `batch-compose-view.tsx` via existing `POST /api/bulk/entries`.
+  No backend/API change; CSV rows behave like manual rows.
+
 ## 2026-08-31 — Prompt update email contact (`4532a6c`)
 
 - One-line prompt tweak in `src/modules/ai/provider.ts` (recipient/contact

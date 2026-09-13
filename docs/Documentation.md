@@ -820,6 +820,7 @@ In batch mode, the `BatchComposeView` renders a collapsible `BatchSettingsPanel`
 - **Mail Type selector** — Set category for all rows
 - **Apply to All** — Apply category to all pending/failed rows
 - **Row stepper** — Add 1-50 blank entries at once
+- **Import from CSV** — Upload `recipient,prompt,category` (category optional, falls back to Mail Type). Shows expected-format sample + `Download template.csv`, previews valid/invalid rows (invalid skipped), max 50 rows / 1 MB per import. Confirmed rows are auto-added via the existing entries API and behave like manual rows.
 - **Shared Attachments** — Files sent with every email in the batch
 
 Each entry row (`BulkRow`) has:
