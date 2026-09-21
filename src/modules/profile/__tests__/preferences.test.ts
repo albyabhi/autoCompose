@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { preferencesSchema } from "../validation";
-import { MODEL_IDS_KEYS } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID } from "@/modules/ai/types";
 
 const base = {
   formalityLevel: "semi-formal" as const,
@@ -29,7 +29,7 @@ describe("preferencesSchema", () => {
   describe("partial PATCH payloads", () => {
     it("accepts only preferredModel (AI Settings section shape)", () => {
       expect(() =>
-        preferencesSchema.parse({ preferredModel: "deepseek" })
+        preferencesSchema.parse({ preferredModel: DEFAULT_MODEL_ID })
       ).not.toThrow();
     });
 
@@ -68,7 +68,7 @@ describe("preferencesSchema", () => {
           preferredTone: "direct",
           defaultSignature: "Best,\nAlice",
           preferredLanguage: "English",
-          preferredModel: "deepseek",
+          preferredModel: DEFAULT_MODEL_ID,
         })
       ).not.toThrow();
     });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MODEL_IDS_KEYS } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID } from "@/modules/ai/types";
 import { EMAIL_CATEGORIES } from "./categories";
 
 export const generateEmailSchema = z.object({
@@ -8,11 +8,12 @@ export const generateEmailSchema = z.object({
     .min(10, "Prompt must be at least 10 characters")
     .max(5000, "Prompt cannot exceed 5000 characters"),
   category: z.enum(EMAIL_CATEGORIES).default("custom"),
-  modelId: z.enum(MODEL_IDS_KEYS).default("deepseek"),
+  modelId: z.enum(MODEL_IDS_KEYS).default(DEFAULT_MODEL_ID),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(64).max(4096).default(1024),
   sessionId: z.string().optional(),
   tone: z.enum(["formal", "semi-formal", "casual"]).optional(),
+  guest: z.boolean().optional(),
 });
 
 export const sendEmailSchema = z.object({
@@ -30,9 +31,10 @@ export type SendEmailInput = z.infer<typeof sendEmailSchema>;
 // PURPOSE: Zod schemas for validating email generation and sending inputs.
 // HOW IT WORKS: generateEmailSchema validates the prompt (10-5000 chars),
 //   category (must be one of 7 types, defaults to "custom"), modelId
-//   (must be a valid model key, defaults to "deepseek"), temperature
+//   (must be a valid model key, defaults to DEFAULT_MODEL_ID), temperature
 //   (0-2, default 0.7), maxTokens (64-4096, default 1024), and optional
-//   sessionId. sendEmailSchema validates recipient email, subject (1-200
+//   sessionId/tone plus an optional guest flag (stateless trial, no persistence).
+//   sendEmailSchema validates recipient email, subject (1-200
 //   chars), and body (1-20000 chars). Types are inferred for use elsewhere.
 // INTEGRATION: Used by API routes (generate, send-email) for request validation
 // ============================================================

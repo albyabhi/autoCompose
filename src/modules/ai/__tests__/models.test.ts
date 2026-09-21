@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_MODEL_ID,
   MODEL_DEFAULTS,
   MODEL_IDS,
   MODEL_IDS_KEYS,
@@ -10,9 +11,20 @@ import { generateEmailSchema } from "@/modules/email/validation";
 import { addMessageSchema } from "@/modules/session/validation";
 
 describe("AI model registry", () => {
-  it("exposes exactly the nine configured models", () => {
+  it("exposes exactly the three live models", () => {
     expect(Object.keys(MODEL_IDS)).toEqual(MODEL_IDS_KEYS);
-    expect(MODEL_IDS_KEYS).toHaveLength(9);
+    expect(MODEL_IDS_KEYS).toHaveLength(3);
+  });
+
+  it("defaults to a registered live model", () => {
+    expect(MODEL_IDS_KEYS).toContain(DEFAULT_MODEL_ID);
+    expect(() => modelIdSchema.parse(DEFAULT_MODEL_ID)).not.toThrow();
+  });
+
+  it("rejects retired model ids", () => {
+    for (const retired of ["deepseek", "nemotron", "mistralSmall", "llamaMaverick", "minimaxM27", "llamaNemotronNano", "nemotron35Lightning"]) {
+      expect(() => modelIdSchema.parse(retired)).toThrow();
+    }
   });
 
   it.each(MODEL_IDS_KEYS)("provides a label for %s", (id) => {

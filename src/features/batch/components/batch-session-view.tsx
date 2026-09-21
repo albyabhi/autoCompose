@@ -7,7 +7,7 @@ import { BulkRow } from "./bulk-row";
 import { BulkSendBar } from "./bulk-send-bar";
 import { BulkPreviewDialog } from "./bulk-preview-dialog";
 import { type EmailCategory } from "@/modules/email/categories";
-import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useRouter } from "next/navigation";
 import { BatchSettingsPanel } from "./batch-settings-panel";
@@ -41,7 +41,7 @@ export function BatchSessionView({ sessionId, title, category }: BatchSessionVie
     typeof storedPreferred === "string" &&
     (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
       ? (storedPreferred as ModelId)
-      : "deepseek";
+      : DEFAULT_MODEL_ID;
 
   useEffect(() => {
     const sentinel = sentinelRef.current;

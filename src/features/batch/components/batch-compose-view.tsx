@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { type EmailCategory } from "@/modules/email/categories";
-import { MODEL_IDS_KEYS, type ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useBulkEntries, useCreateBatchSession, useCreateEntries, useBatchUpdateCategory } from "../hooks/use-bulk";
 import { BatchSettingsPanel } from "./batch-settings-panel";
@@ -39,7 +39,7 @@ export function BatchComposeView({ initialSessionId }: BatchComposeViewProps) {
     typeof storedPreferred === "string" &&
     (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
       ? (storedPreferred as ModelId)
-      : "deepseek";
+      : DEFAULT_MODEL_ID;
 
   const isCreatingSession = createSessionMutation.isPending;
 

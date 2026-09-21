@@ -6,7 +6,9 @@ import { NewSessionDialog } from "@/features/sessions/components/new-session-dia
 import { SidebarFooter } from "@/features/layout/components/sidebar-footer";
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useGuest } from "@/features/guest/hooks/use-guest";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "▦" },
@@ -20,7 +22,16 @@ export function Sidebar() {
   const mobileSidebarOpen = useLayoutStore((s) => s.mobileSidebarOpen);
   const setMobileSidebarOpen = useLayoutStore((s) => s.setMobileSidebarOpen);
   const pathname = usePathname();
+  const router = useRouter();
+  const { status } = useSession();
+  const { isGuestMode } = useGuest();
   const [newSessionOpen, setNewSessionOpen] = useState(false);
+
+  function handleLockedNav(e: React.MouseEvent) {
+    e.preventDefault();
+    setMobileSidebarOpen(false);
+    router.push("/login");
+  }
 
   return (
     <>
@@ -47,45 +58,74 @@ export function Sidebar() {
             </button>
           </div>
           <div className="sidebar__nav">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar__nav-item ${
-                  pathname === item.href || pathname.startsWith(item.href + "/")
-                    ? "sidebar__nav-item--active"
-                    : ""
-                }`}
-                onClick={() => setMobileSidebarOpen(false)}
-              >
-                <span className="sidebar__nav-icon">{item.icon}</span>
-                <span className="sidebar__nav-label">{item.label}</span>
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isCompose = item.href === "/";
+              const locked = isGuestMode && !isCompose;
+              return (
+                <Link
+                  key={item.href}
+                  href={locked ? "/login" : item.href}
+                  className={`sidebar__nav-item ${
+                    pathname === item.href || pathname.startsWith(item.href + "/")
+                      ? "sidebar__nav-item--active"
+                      : ""
+                  }${locked ? " sidebar__nav-item--locked" : ""}`}
+                  onClick={(e) => {
+                    if (locked) handleLockedNav(e);
+                    else setMobileSidebarOpen(false);
+                  }}
+                  aria-disabled={locked}
+                  title={locked ? "Login to access this section" : undefined}
+                >
+                  <span className="sidebar__nav-icon">{item.icon}</span>
+                  <span className="sidebar__nav-label">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="sidebar__divider" />
 
-          <div className="sidebar__sessions-header">
-            <h3 className="sidebar__sessions-title">Sessions</h3>
-            <button
-              className="sidebar__new-btn"
-              onClick={() => setNewSessionOpen(true)}
-              aria-label="New session"
-            >
-              +
-            </button>
-          </div>
+          {isGuestMode ? (
+            <div className="sidebar__guest-note">
+              <p className="sidebar__guest-text">
+                Guest trial — single compose only. Login for sessions, batch & schedules.
+              </p>
+              <button
+                className="sidebar__new-btn sidebar__new-btn--disabled"
+                disabled
+                title="Login to create sessions"
+                aria-label="New session (login required)"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="sidebar__sessions-header">
+                <h3 className="sidebar__sessions-title">Sessions</h3>
+                <button
+                  className="sidebar__new-btn"
+                  onClick={() => setNewSessionOpen(true)}
+                  aria-label="New session"
+                >
+                  +
+                </button>
+              </div>
 
-          <SessionList onNewSession={() => setNewSessionOpen(true)} />
+              <SessionList onNewSession={() => setNewSessionOpen(true)} />
+            </>
+          )}
 
           <SidebarFooter />
         </div>
 
-        <NewSessionDialog
-          open={newSessionOpen}
-          onClose={() => setNewSessionOpen(false)}
-        />
+        {status !== "unauthenticated" || !isGuestMode ? (
+          <NewSessionDialog
+            open={newSessionOpen}
+            onClose={() => setNewSessionOpen(false)}
+          />
+        ) : null}
       </aside>
     </>
   );
@@ -95,7 +135,7 @@ export function Sidebar() {
 // FILE: src/features/layout/components/sidebar.tsx
 // ============================================================
 // PURPOSE: The application sidebar containing navigation links and a session list.
-// HOW IT WORKS: Reads sidebar open/closed state from the layout store, highlights the active nav item via usePathname, and renders a mobile backdrop overlay when open. The sessions section includes a "New" button that opens the NewSessionDialog, plus an embedded SessionList.
+// HOW IT WORKS: Reads sidebar open/closed state from the layout store, highlights the active nav item via usePathname, and renders a mobile backdrop overlay when open. For guest-trial visitors only Compose stays enabled — other nav items redirect to /login and the sessions section is replaced with a trial note. The sessions section includes a "New" button that opens the NewSessionDialog, plus an embedded SessionList.
 // PROPS: None (self-contained, reads state from store).
-// INTEGRATION: layout-store, SessionList, NewSessionDialog, Next.js Link/usePathname.
+// INTEGRATION: layout-store, SessionList, NewSessionDialog, Next.js Link/usePathname, next-auth session, useGuest gate.
 // ============================================================

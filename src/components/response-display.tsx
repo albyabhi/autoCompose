@@ -19,6 +19,7 @@ interface ResponseDisplayProps {
   category?: string;
   prompt?: string;
   modelId?: string;
+  isGuest?: boolean;
 }
 
 export function ResponseDisplay({
@@ -32,6 +33,7 @@ export function ResponseDisplay({
   category,
   prompt,
   modelId,
+  isGuest = false,
 }: ResponseDisplayProps) {
   const { data: profileData, isLoading: isProfileLoading } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,10 +54,23 @@ export function ResponseDisplay({
   }
 
   if (error) {
+    const isLimitError = error.toLowerCase().includes("limit exceeded");
     return (
       <div className="response-card response-error">
-        <h3 className="response-error-title">Generation Failed</h3>
+        <h3 className="response-error-title">
+          {isLimitError ? "Free Limit Reached" : "Generation Failed"}
+        </h3>
         <p className="response-error-text">{error}</p>
+        {isLimitError && (
+          <div className="response-error-actions">
+            <Link className="copy-btn" href="/login">
+              Login
+            </Link>
+            <Link className="send-btn-hint" href="/register">
+              Create an account
+            </Link>
+          </div>
+        )}
       </div>
     );
   }
@@ -109,62 +124,74 @@ export function ResponseDisplay({
         >
           Copy to Clipboard
         </button>
-        <button
-          className="send-btn"
-          onClick={() => {
-            if (emailConfigured) setDialogOpen(true);
-          }}
-          disabled={!emailConfigured || isProfileLoading}
-          title={
-            emailConfigured
-              ? `Send this email from ${gmailAddress ?? "your Gmail"}`
-              : "Add Gmail credentials in Settings to enable sending"
-          }
-        >
-          Send via Email
-        </button>
-        <button
-          className="send-btn send-btn--schedule"
-          onClick={() => setScheduleOpen(true)}
-          disabled={!recipient?.trim()}
-          title={recipient?.trim() ? "Schedule this generated email" : "Add a recipient before scheduling"}
-        >
-          Add to Schedule
-        </button>
-        {!emailConfigured && !isProfileLoading && (
-          <Link
-            className="send-btn-hint"
-            href="/settings?focus=email-credentials"
-          >
-            Connect Gmail in Settings
+        {isGuest ? (
+          <Link className="send-btn-hint" href="/login">
+            Login to send via Email or schedule
           </Link>
+        ) : (
+          <>
+            <button
+              className="send-btn"
+              onClick={() => {
+                if (emailConfigured) setDialogOpen(true);
+              }}
+              disabled={!emailConfigured || isProfileLoading}
+              title={
+                emailConfigured
+                  ? `Send this email from ${gmailAddress ?? "your Gmail"}`
+                  : "Add Gmail credentials in Settings to enable sending"
+              }
+            >
+              Send via Email
+            </button>
+            <button
+              className="send-btn send-btn--schedule"
+              onClick={() => setScheduleOpen(true)}
+              disabled={!recipient?.trim()}
+              title={recipient?.trim() ? "Schedule this generated email" : "Add a recipient before scheduling"}
+            >
+              Add to Schedule
+            </button>
+            {!emailConfigured && !isProfileLoading && (
+              <Link
+                className="send-btn-hint"
+                href="/settings?focus=email-credentials"
+              >
+                Connect Gmail in Settings
+              </Link>
+            )}
+          </>
         )}
       </div>
 
-      <SendEmailDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        defaultSubject={subject}
-        defaultBody={body}
-        defaultRecipient={recipient || undefined}
-      />
-      <AddToScheduleDialog
-        open={scheduleOpen}
-        onClose={() => setScheduleOpen(false)}
-        emails={[
-          {
-            sourceType: "single",
-            sourceSessionId,
-            sourceMessageId,
-            to: recipient,
-            subject,
-            body,
-            category,
-            prompt,
-            modelId,
-          },
-        ]}
-      />
+      {!isGuest && (
+        <>
+          <SendEmailDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            defaultSubject={subject}
+            defaultBody={body}
+            defaultRecipient={recipient || undefined}
+          />
+          <AddToScheduleDialog
+            open={scheduleOpen}
+            onClose={() => setScheduleOpen(false)}
+            emails={[
+              {
+                sourceType: "single",
+                sourceSessionId,
+                sourceMessageId,
+                to: recipient,
+                subject,
+                body,
+                category,
+                prompt,
+                modelId,
+              },
+            ]}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -180,5 +207,6 @@ export function ResponseDisplay({
 //   SendEmailDialog if Gmail credentials are configured, otherwise shows a
 //   link to Settings. Shows model used as a badge.
 // PROPS: content/modelUsed/loading/error plus optional source metadata for scheduling.
+//   isGuest hides Send-via-Email/Schedule actions (login-gated) and keeps Copy.
 // INTEGRATION: Email content parser, profile hook, SendEmailDialog, AddToScheduleDialog
 // ============================================================

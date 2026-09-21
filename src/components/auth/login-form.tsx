@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { AuthLoadingScreen } from "./auth-loading-screen";
+import { useGuestStore } from "@/features/guest/stores/guest-store";
 
 async function loginAction(
   _prev: {
@@ -65,6 +66,12 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const enterGuest = useGuestStore((s) => s.enterGuest);
+
+  function handleContinueAsGuest() {
+    enterGuest();
+    router.push("/");
+  }
 
   if (state?.success) {
     return (
@@ -147,6 +154,19 @@ export function LoginForm() {
         </button>
       </form>
 
+      <div className="auth-form__divider" aria-hidden="true">
+        <span>or</span>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleContinueAsGuest}
+        className="auth-form__submit auth-form__submit--secondary"
+      >
+        Continue without login
+      </button>
+      <p className="auth-form__hint">Try 5 free mails in single compose — no account needed.</p>
+
       <p className="auth-form__footer">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="auth-form__link">
@@ -167,5 +187,7 @@ export function LoginForm() {
 //   - On success: renders AuthLoadingScreen (animated) then redirects to callbackUrl.
 //   - UI: Email field (type=email), Password field with Show/Hide toggle, submit button with pending state, field-level and form-level error messages, "Create account" link to /register.
 //   - Hidden callbackUrl field preserves redirect destination from URL params.
+//   - "Continue without login" enters client-only guest trial (5 free single-compose
+//     mails via guest-store) and routes to / — no session is created.
 // INTEGRATION: NextAuth signIn(), React useActionState, useSearchParams, useRouter, AuthLoadingScreen component. Used by /login page (src/app/login/page.tsx).
 // ============================================================

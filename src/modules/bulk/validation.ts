@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EMAIL_CATEGORIES } from "@/modules/email/categories";
-import { MODEL_IDS_KEYS } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID } from "@/modules/ai/types";
 
 export const baseEntrySchema = z.object({
   category: z.enum(EMAIL_CATEGORIES).default("custom"),
@@ -34,7 +34,7 @@ export const updateEntrySchema = z.object({
 
 export const generateEntrySchema = z.object({
   entryId: z.string().min(1, "Entry ID is required"),
-  modelId: z.enum(MODEL_IDS_KEYS).default("deepseek"),
+  modelId: z.enum(MODEL_IDS_KEYS).default(DEFAULT_MODEL_ID),
 });
 
 export const sendEntrySchema = z.object({
@@ -65,7 +65,7 @@ export type SendEntryInput = z.infer<typeof sendEntrySchema>;
 //   - createEntrySchema: Single entry creation — requires sessionId + base fields.
 //   - createEntriesSchema: Bulk creation — requires sessionId + array of entries (at least 1).
 //   - updateEntrySchema: Partial updates — optional category, prompt (10-5000 chars if provided), recipient (must be valid email if provided). Only allowed on pending/failed entries.
-//   - generateEntrySchema: AI generation — requires entryId, optional modelId (defaults to "deepseek").
+//   - generateEntrySchema: AI generation — requires entryId, optional modelId (defaults to DEFAULT_MODEL_ID).
 //   - sendEntrySchema: Sending — requires entryId.
 //   - batchUpdateSchema: Change category for all entries in a session — requires sessionId + category.
 //   - listEntriesSchema: List entries — requires sessionId.

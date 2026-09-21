@@ -11,6 +11,7 @@ import { handleMainMenu, startCompose } from "@/modules/telegram/flows/compose";
 import { replyHtml } from "@/modules/telegram/reply";
 import { T } from "@/modules/telegram/text-constants";
 import bcrypt from "bcryptjs";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 
 export async function handleStart(ctx: Context): Promise<void> {
   const chatId = ctx.chat?.id;
@@ -158,7 +159,12 @@ export async function handleStatus(ctx: Context): Promise<void> {
   const profile = await Profile.findOne({ userId: user._id.toString() })
     .select("preferences emailCredentials")
     .lean();
-  const modelId = profile?.preferences?.preferredModel ?? "deepseek";
+  const storedPreferred = profile?.preferences?.preferredModel;
+  const modelId: ModelId =
+    typeof storedPreferred === "string" &&
+    (MODEL_IDS_KEYS as readonly string[]).includes(storedPreferred)
+      ? (storedPreferred as ModelId)
+      : DEFAULT_MODEL_ID;
   const gmailConfigured = !!profile?.emailCredentials?.encryptedAppPassword;
   const linkedAt = user.telegram?.linkedAt;
   const linkedAtStr = linkedAt ? linkedAt.toISOString().slice(0, 10) : "\u2014";

@@ -34,6 +34,74 @@ export interface GenerateEmailResult {
   assistantMessageId?: string;
 }
 
+export interface GuestGenerateEmailParams {
+  prompt: string;
+  category: EmailCategory;
+  modelId: ModelId;
+  temperature?: number;
+  maxTokens?: number;
+  tone?: FormalityLevel;
+  ip?: string;
+  userAgent?: string;
+}
+
+export interface GuestGenerateEmailResult {
+  content: string;
+  modelUsed: string;
+  guest: true;
+}
+
+export async function generateGuestEmail(params: GuestGenerateEmailParams): Promise<GuestGenerateEmailResult> {
+  const provider = getAIProvider();
+
+  logger.info("Generating guest email", {
+    category: params.category,
+    modelId: params.modelId,
+  });
+
+  const response = await provider.complete({
+    prompt: params.prompt,
+    category: params.category,
+    config: {
+      modelId: params.modelId,
+      temperature: params.temperature,
+      maxTokens: params.maxTokens,
+    },
+  });
+
+  try {
+    await connectDB();
+    await AuditLog.create({
+      action: "email.generated",
+      entityType: "EmailTemplate",
+      metadata: {
+        modelUsed: response.modelUsed,
+        category: params.category,
+        usage: response.usage,
+        providerDurationMs: response.durationMs,
+        guest: true,
+        profileInjected: false,
+      },
+      ip: params.ip,
+      userAgent: params.userAgent,
+    });
+  } catch (auditError) {
+    logger.warn("Guest audit log failed (non-blocking)", {
+      message: auditError instanceof Error ? auditError.message : String(auditError),
+    });
+  }
+
+  logger.info("Guest email generated successfully", {
+    model: response.modelUsed,
+  });
+
+  return {
+    content: response.content,
+    modelUsed: response.modelUsed,
+    guest: true,
+  };
+}
+
 export async function generateEmail(params: GenerateEmailParams): Promise<GenerateEmailResult> {
   const provider = getAIProvider();
 
@@ -177,13 +245,9 @@ export async function generateEmail(params: GenerateEmailParams): Promise<Genera
 // FILE: src/modules/email/service.ts
 // ============================================================
 // PURPOSE: The main engine that turns a user's prompt into a polished, personalized email using AI.
-// HOW IT WORKS: generateEmail() orchestrates the entire flow in one function:
-//   1. Category resolution: If the request is part of an existing conversation (session), the session's category overrides the request category.
-//   2. Profile context: Loads the user's profile and builds AI context using only the sections relevant to the email category (e.g., job_application uses personal + professional + resume; sick_leave uses only personal + professional).
-//   3. Conversation history: For existing sessions, loads the last 8 messages (max 6000 characters) so the AI remembers context. For new sessions, creates one with an auto-generated title like "Job Application 3".
-//   4. AI generation: Calls the AI provider (NVIDIA NIM via factory) with system prompt + history + user prompt + profile context.
-//   5. Persistence: Saves the generated email as an EmailTemplate record, saves both user prompt and AI response as Message records linked to the session.
-//   6. Audit logging: Records a detailed audit entry with model used, category, token usage, profile sections injected, history size.
-//   Returns the email content, model used, template ID, session ID, and assistant message ID.
+// HOW IT WORKS: generateEmail() orchestrates the full authed flow (profile context,
+//   history, persistence + audit). generateGuestEmail() is the stateless trial path:
+//   same AI provider with no profile/history, no Session/Message/Template writes,
+//   anonymous audit only. Returns content + modelUsed with guest:true.
 // INTEGRATION: AI provider factory (src/modules/ai/factory.ts), Profile model + context builder (src/modules/profile/), Session/Message/EmailTemplate models, history budget (src/modules/session/history-budget.ts), audit logging (src/lib/audit.ts), ownership filter (src/lib/auth/ownership.ts), categories (src/modules/email/categories.ts).
 // ============================================================

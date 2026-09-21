@@ -3,7 +3,7 @@ import { Context } from "grammy";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/user";
 import { Profile } from "@/models/profile";
-import { ModelId, MODEL_LABELS } from "@/modules/ai/types";
+import { ModelId, MODEL_LABELS, DEFAULT_MODEL_ID } from "@/modules/ai/types";
 import { isEmailCategory, EmailCategory } from "@/modules/email/categories";
 import { generateFromTelegram } from "@/modules/telegram/ai-bridge";
 import { saveState, loadStateForUser, clearState } from "@/modules/telegram/state";
@@ -19,7 +19,7 @@ import { AppError } from "@/lib/errors";
 function defaultModelForUser(profile: { preferences?: { preferredModel?: string } } | null): ModelId {
   const raw = profile?.preferences?.preferredModel;
   if (raw && raw in MODEL_LABELS) return raw as ModelId;
-  return "deepseek";
+  return DEFAULT_MODEL_ID;
 }
 
 export async function startCompose(ctx: Context): Promise<void> {

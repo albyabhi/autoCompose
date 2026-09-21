@@ -28,8 +28,8 @@ export function clearRecommendedModelState(): void {
 // ============================================================
 // PURPOSE: In-memory cache that holds the current "fastest model" recommendation so the UI can suggest it without re-running benchmarks.
 // HOW IT WORKS: Simple module-level variable (cached) that stores a RecommendedModelState object:
-//   - recommendedModelKey: Short key like "deepseek" (UI display)
-//   - recommendedModelUsed: Full model ID like "deepseek-ai/deepseek-v4-flash"
+//   - recommendedModelKey: Short key like "gptOss" (UI display)
+//   - recommendedModelUsed: Full model ID like "openai/gpt-oss-20b"
 //   - reason: Human-readable explanation (e.g., "Fastest with 95% success rate over 50 runs")
 //   - metrics: The full benchmark metrics (avgDurationMs, successRate, sampleCount, p95DurationMs, lastUpdatedAt)
 //   - benchmarkedAt: Unix timestamp of when this recommendation was generated

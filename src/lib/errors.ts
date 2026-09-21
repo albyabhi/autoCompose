@@ -54,6 +54,13 @@ export class AIProviderError extends AppError {
   }
 }
 
+export class GuestLimitError extends AppError {
+  constructor(message = "Limit exceeded — please login.") {
+    super("GUEST_LIMIT_EXCEEDED", message, 403);
+    this.name = "GuestLimitError";
+  }
+}
+
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
@@ -68,6 +75,7 @@ export function isAppError(error: unknown): error is AppError {
 //   - UnauthorizedError (401): User isn't logged in or session expired
 //   - ForbiddenError (403): User is logged in but not allowed to do this action
 //   - RateLimitError (429): Too many requests too quickly
+//   - GuestLimitError (403): Guest trial exhausted (5 free mails used)
 //   - AIProviderError (502): The AI service (NVIDIA NIM) failed or timed out
 //   The isAppError() function helps API routes detect these custom errors and return proper HTTP responses instead of crashing.
 // INTEGRATION: Used everywhere — API routes (src/app/api/**/route.ts), service modules (src/modules/*/service.ts), and middleware. When you throw new NotFoundError("Schedule not found"), the API route catches it and returns a 404 with a clean JSON error.

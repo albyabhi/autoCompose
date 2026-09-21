@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EMAIL_CATEGORIES } from "@/modules/email/categories";
-import { MODEL_IDS_KEYS } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID } from "@/modules/ai/types";
 
 const futureDateSchema = z.coerce.date().refine(
   (value) => Number.isFinite(value.getTime()),
@@ -22,7 +22,7 @@ const singleEmailSchema = z.object({
 const batchEmailSchema = z.object({
   sourceType: z.literal("batch"),
   sourceBulkEntryId: z.string().min(1, "Bulk entry ID is required"),
-  modelId: z.enum(MODEL_IDS_KEYS).default("deepseek"),
+  modelId: z.enum(MODEL_IDS_KEYS).default(DEFAULT_MODEL_ID),
 });
 
 export const addScheduledEmailSchema = z.discriminatedUnion("sourceType", [

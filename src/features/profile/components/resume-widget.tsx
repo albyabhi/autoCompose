@@ -6,7 +6,7 @@ import { useState, useRef } from "react";
 import type { ResumeData } from "../api/resume";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CATEGORY_POLICIES, isEmailCategory } from "@/modules/email/categories";
-import { MODEL_IDS_KEYS, MODEL_LABELS, type ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, MODEL_LABELS, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 
 function ViewModal({
   resume,
@@ -156,7 +156,7 @@ export function ResumeWidget() {
   const [dragOver, setDragOver] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [progressInfo, setProgressInfo] = useState<{ percent: number; text: string } | null>(null);
-  const [modelId, setModelId] = useState<ModelId>("deepseek");
+  const [modelId, setModelId] = useState<ModelId>(DEFAULT_MODEL_ID);
   const [userTouchedModel, setUserTouchedModel] = useState(false);
 
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;

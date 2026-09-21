@@ -63,7 +63,7 @@ export const EmailTemplate =
 //   - category: Email type (job_application, leave_request, etc.).
 //   - prompt: User's original instructions (max 5000 chars).
 //   - generatedEmail: Full AI response (subject + body).
-//   - modelUsed: Which AI model generated it (e.g., "deepseek-ai/deepseek-v4-flash").
+//   - modelUsed: Which AI model generated it (e.g., "openai/gpt-oss-20b").
 //   - userId: Owner (optional for legacy, indexed for user history).
 //   - metadata: Flexible extra data.
 //   Indexes: createdAt (recent first), userId+createdAt (user's history).

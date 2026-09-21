@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_MODEL_ID } from "@/modules/ai/types";
 import {
   addScheduledEmailsSchema,
   createScheduleSchema,
@@ -42,7 +43,7 @@ describe("schedule validation", () => {
         {
           sourceType: "batch",
           sourceBulkEntryId: "65f000000000000000000003",
-          modelId: "deepseek",
+          modelId: DEFAULT_MODEL_ID,
         },
       ],
     });
@@ -50,7 +51,7 @@ describe("schedule validation", () => {
     expect(input.emails[0]).toEqual({
       sourceType: "batch",
       sourceBulkEntryId: "65f000000000000000000003",
-      modelId: "deepseek",
+      modelId: DEFAULT_MODEL_ID,
     });
   });
 

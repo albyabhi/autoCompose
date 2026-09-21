@@ -3,7 +3,7 @@ import { success, failure } from "@/utils/api-response";
 import { requireAuth } from "@/lib/auth/session";
 import { uploadAndParseResume, getResume, updateResume, deleteResume } from "@/modules/resume/service";
 import { resumeUpdateSchema } from "@/modules/profile/validation";
-import { modelIdSchema, type ModelId } from "@/modules/ai/types";
+import { modelIdSchema, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 import { AppError, ValidationError } from "@/lib/errors";
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (parsedModelId && !parsedModelId.success) {
       throw new ValidationError("Invalid modelId", parsedModelId.error.flatten());
     }
-    const modelId: ModelId = (parsedModelId?.data as ModelId | undefined) ?? "deepseek";
+    const modelId: ModelId = (parsedModelId?.data as ModelId | undefined) ?? DEFAULT_MODEL_ID;
 
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {

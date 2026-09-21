@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useProfile, useUpdateProfile } from "../hooks/use-profile";
-import { MODEL_IDS_KEYS, MODEL_LABELS, type ModelId } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, MODEL_LABELS, DEFAULT_MODEL_ID, type ModelId } from "@/modules/ai/types";
 
 function isValidModelId(value: unknown): value is ModelId {
   return typeof value === "string" && (MODEL_IDS_KEYS as readonly string[]).includes(value);
@@ -13,7 +13,7 @@ export function AiSettingsSection() {
   const updateMutation = useUpdateProfile();
 
   const storedPreferred = data?.profile?.preferences?.preferredModel;
-  const initial: ModelId = isValidModelId(storedPreferred) ? storedPreferred : "deepseek";
+  const initial: ModelId = isValidModelId(storedPreferred) ? storedPreferred : DEFAULT_MODEL_ID;
 
   const [selected, setSelected] = useState<ModelId>(initial);
   const [dirty, setDirty] = useState(false);
@@ -119,7 +119,7 @@ export function AiSettingsSection() {
 // FILE: src/features/profile/components/ai-settings-section.tsx
 // ============================================================
 // PURPOSE: Settings section for selecting the default AI model used for email composition and resume parsing.
-// HOW IT works: Reads the stored preferredModel from the profile, displays a dropdown of MODEL_LABELS, and tracks local dirty state. On save, calls useUpdateProfile with the preferences section. Falls back to "deepseek" if no valid model is stored.
+// HOW IT works: Reads the stored preferredModel from the profile, displays a dropdown of MODEL_LABELS, and tracks local dirty state. On save, calls useUpdateProfile with the preferences section. Falls back to DEFAULT_MODEL_ID if no valid model is stored.
 // PROPS: None (self-contained settings section).
 // INTEGRATION: useProfile/useUpdateProfile hooks, MODEL_IDS_KEYS/MODEL_LABELS/ModelId from @/modules/ai/types.
 // ============================================================

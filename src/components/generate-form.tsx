@@ -6,21 +6,29 @@ import { useSession as useAppSession } from "@/features/sessions/hooks/use-sessi
 import { useQueryClient } from "@tanstack/react-query";
 import { ModelSelector } from "./model-selector";
 import { ResponseDisplay } from "./response-display";
-import { MODEL_IDS_KEYS, type ModelId, type FormalityLevel } from "@/modules/ai/types";
+import { MODEL_IDS_KEYS, DEFAULT_MODEL_ID, type ModelId, type FormalityLevel } from "@/modules/ai/types";
 import Link from "next/link";
 import { CATEGORY_OPTIONS, CATEGORY_POLICIES, type EmailCategory } from "@/modules/email/categories";
 import { extractEmailFromText } from "@/modules/email/content";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useLayoutStore } from "@/features/layout/stores/layout-store";
+import { useGuest } from "@/features/guest/hooks/use-guest";
+import { useGuestStore } from "@/features/guest/stores/guest-store";
+import { GuestBanner } from "@/features/guest/components/guest-banner";
+import { GUEST_HEADER, isGuestActive } from "@/lib/guest";
 
 export function GenerateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const initialSessionId = searchParams.get("sessionId");
-  const clonePrompt = searchParams.get("clone") === "true";
+  const { isGuestMode, count, remaining } = useGuest();
+  const incrementGuest = useGuestStore((s) => s.increment);
+  const rawSessionId = searchParams.get("sessionId");
+  // Guests are stateless: ignore any ?sessionId (no cross-user history).
+  const initialSessionId = isGuestMode ? null : rawSessionId;
+  const clonePrompt = !isGuestMode && searchParams.get("clone") === "true";
   
-  const { data: sessionData } = useAppSession(initialSessionId || "");
+  const { data: sessionData } = useAppSession(!isGuestMode && initialSessionId ? initialSessionId : "");
   const { data: profileData } = useProfile();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -28,23 +36,28 @@ export function GenerateForm() {
   const clearDraft = useLayoutStore((s) => s.clearDraft);
 
   const [restored, setRestored] = useState(() => {
+    // Guest trial never inherits the authed in-memory draft (same-tab logout→guest).
+    if (isGuestActive()) return false;
     const saved = useLayoutStore.getState().draft;
     return !initialSessionId && !clonePrompt && !!saved;
   });
   const [prompt, setPrompt] = useState(() => {
+    if (isGuestActive()) return "";
     const saved = useLayoutStore.getState().draft;
     return !initialSessionId && !clonePrompt && saved ? saved.prompt : "";
   });
   const [promptEdited, setPromptEdited] = useState(() => {
+    if (isGuestActive()) return false;
     const saved = useLayoutStore.getState().draft;
     return !initialSessionId && !clonePrompt && !!saved;
   });
   const [category, setCategory] = useState<EmailCategory>(() => {
+    if (isGuestActive()) return "custom";
     const saved = useLayoutStore.getState().draft;
     return !initialSessionId && !clonePrompt && saved ? (saved.category as EmailCategory) : "custom";
   });
   const [tone, setTone] = useState<FormalityLevel | null>(null);
-  const [modelId, setModelId] = useState<ModelId>("deepseek");
+  const [modelId, setModelId] = useState<ModelId>(DEFAULT_MODEL_ID);
   const [userTouchedModel, setUserTouchedModel] = useState(false);
   const [modelSelection, setModelSelection] = useState<ModelId | "recommended">("recommended");
   const [response, setResponse] = useState<string | null>(null);
@@ -60,10 +73,11 @@ export function GenerateForm() {
   }, []);
 
   useEffect(() => {
+    if (isGuestMode) return;
     if (!initialSessionId && !clonePrompt && (promptEdited || prompt)) {
       setDraft({ prompt, category });
     }
-  }, [prompt, category, promptEdited, initialSessionId, clonePrompt, setDraft]);
+  }, [prompt, category, promptEdited, initialSessionId, clonePrompt, setDraft, isGuestMode]);
 
   const storedPreferred = profileData?.profile?.preferences?.preferredModel;
   const profileFormality = profileData?.profile?.preferences?.formalityLevel;
@@ -91,48 +105,77 @@ export function GenerateForm() {
     setModelId(next);
   };
 
-  const clonedPrompt = clonePrompt && sessionData?.messages
-    ? [...sessionData.messages].reverse().find((message) => message.role === "user")?.content ?? ""
+  const clonedPrompt = !isGuestMode && clonePrompt && sessionData?.messages
+    ? ([...sessionData.messages].reverse().find((message) => message.role === "user")?.content ?? "")
     : "";
   const effectivePrompt = promptEdited ? prompt : clonedPrompt;
-  const effectiveCategory = (sessionData?.category as EmailCategory | undefined) ?? category;
+  const sessionCategory = (!isGuestMode ? sessionData?.category : undefined) as EmailCategory | undefined;
+  const effectiveCategory: EmailCategory = sessionCategory ?? category;
   const policy = CATEGORY_POLICIES[effectiveCategory];
-  const missingSections = profileData?.readiness[effectiveCategory]?.missingSections ?? [];
+  const missingSections: string[] = isGuestMode
+    ? []
+    : (profileData?.readiness[effectiveCategory]?.missingSections ?? []);
+  const limitReached = isGuestMode && remaining <= 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (isGuestMode && remaining <= 0) {
+      setError("Limit exceeded — please login.");
+      return;
+    }
     setLoading(true);
     setResponse(null);
 
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: effectivePrompt, category: effectiveCategory, modelId: effectiveModelId, tone: tone ?? undefined, sessionId: initialSessionId || undefined }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(isGuestMode ? { [GUEST_HEADER]: "1" } : {}),
+        },
+        body: JSON.stringify({
+          prompt: effectivePrompt,
+          category: effectiveCategory,
+          modelId: effectiveModelId,
+          tone: tone ?? undefined,
+          sessionId: !isGuestMode && initialSessionId ? initialSessionId : undefined,
+          ...(isGuestMode ? { guest: true } : {}),
+        }),
       });
 
       const data = await res.json();
 
       if (!data.success) {
         if (res.status === 401) {
-          throw new Error("Please sign in to generate emails");
+          throw new Error(isGuestMode ? "Please login to continue." : "Please sign in to generate emails");
+        }
+        if (data.error?.code === "GUEST_LIMIT_EXCEEDED") {
+          throw new Error("Limit exceeded — please login.");
         }
         throw new Error(data.error?.message ?? "Generation failed");
       }
 
       setResponse(data.data.content);
       setModelUsed(data.data.modelUsed);
-      setGeneratedSessionId(data.data.sessionId);
-      setAssistantMessageId(data.data.assistantMessageId);
+      if (isGuestMode) {
+        setGeneratedSessionId(undefined);
+        setAssistantMessageId(undefined);
+        incrementGuest();
+      } else {
+        setGeneratedSessionId(data.data.sessionId);
+        setAssistantMessageId(data.data.assistantMessageId);
+      }
       setExtractedRecipient(extractEmailFromText(effectivePrompt));
-      clearDraft();
-      
-      // Invalidate sessions cache to update sidebar
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      
-      if (data.data.sessionId && !initialSessionId) {
-        router.push(`/sessions/${data.data.sessionId}`);
+      if (!isGuestMode) clearDraft();
+
+      if (!isGuestMode) {
+        // Invalidate sessions cache to update sidebar
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
+
+        if (data.data.sessionId && !initialSessionId) {
+          router.push(`/sessions/${data.data.sessionId}`);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -144,7 +187,10 @@ export function GenerateForm() {
 
   return (
     <div className="generate-page">
-      {restored && (
+      {isGuestMode && (
+        <GuestBanner count={count} remaining={remaining} limitReached={limitReached} />
+      )}
+      {restored && !isGuestMode && (
         <div className="profile-readiness-warning">
           <div>Draft restored from your previous session</div>
           <button type="button" className="draft-restore-dismiss" onClick={() => { clearDraft(); setRestored(false); setPrompt(""); setPromptEdited(true); }}>Discard</button>
@@ -232,8 +278,13 @@ export function GenerateForm() {
           </div>
         )}
 
-        <button type="submit" className="generate-btn" disabled={loading || effectivePrompt.length < 10}>
-          {loading ? "Generating..." : "Generate Email"}
+        <button
+          type="submit"
+          className="generate-btn"
+          disabled={loading || effectivePrompt.length < 10 || limitReached}
+          title={limitReached ? "Limit exceeded — please login." : undefined}
+        >
+          {loading ? "Generating..." : limitReached ? "Limit Reached — Login" : "Generate Email"}
         </button>
       </form>
 
@@ -248,6 +299,7 @@ export function GenerateForm() {
         category={effectiveCategory}
         prompt={effectivePrompt}
         modelId={effectiveModelId}
+        isGuest={isGuestMode}
       />
     </div>
   );
@@ -261,7 +313,7 @@ export function GenerateForm() {
 //   STATE: prompt (textarea), category (dropdown), modelId (ModelSelector), tone (formal/semi-formal/casual toggle), response (AI result), loading/error states, extractedRecipient (auto-detected email in prompt).
 //   INITIALIZATION: Reads URL params for sessionId (continue existing conversation) or clone=true (copy prompt from session). Restores draft from layout store (survives navigation).
 //   MODEL SELECTION: Defaults to "recommended" (server-side fastest model). User can pick specific model. If profile has preferredModel, uses that as fallback.
-//   SUBMISSION (handleSubmit): POSTs to /api/generate with prompt, category, modelId, tone, sessionId. On success: shows ResponseDisplay with generated email, clears draft, invalidates sessions cache, navigates to session page if new.
+//   SUBMISSION (handleSubmit): POSTs to /api/generate with prompt, category, modelId, tone, sessionId. Guest trial sends x-guest:1 + guest:true with no sessionId, increments the client counter only on success (validation/AI failures don't consume), and never navigates to /sessions or touches the authed draft. On success: shows ResponseDisplay with generated email, clears draft, invalidates sessions cache, navigates to session page if new.
 //   PROFILE READINESS: Shows warning if current category needs profile sections that aren't filled (e.g., job_application needs professional + resume). Links to settings.
 //   CATEGORY GUIDANCE: Shows "For best results, include:" with category-specific hints from CATEGORY_POLICIES.
 //   PROPS: None (page-level component).

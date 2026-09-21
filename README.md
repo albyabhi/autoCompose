@@ -182,11 +182,10 @@ Vercel production cron is configured in `vercel.json` to call `/api/cron/process
 
 ## Code Documentation
 
-Every source file has a standardized comment block at the **bottom of the file** explaining its purpose, how it works, and key integrations. See [Documentation.md](./Documentation.md) for the full convention and examples.
+Every source file has a standardized comment block at the **bottom of the file** explaining its purpose, how it works, and key integrations.
 
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [NVIDIA NIM API](https://docs.nvidia.com/nim/)
 - [grammY Bot Framework](https://grammy.dev/)
-- [Full Documentation](./Documentation.md)

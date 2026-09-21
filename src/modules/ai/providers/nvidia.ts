@@ -93,13 +93,13 @@ export class NvidiaNIMProvider extends BaseAIProvider {
 // ============================================================
 // PURPOSE: The actual implementation that talks to NVIDIA's AI models (Nemotron, DeepSeek, Llama, Mistral, etc.) via their OpenAI-compatible API.
 // HOW IT WORKS: Extends BaseAIProvider. On creation, initializes an OpenAI client with NVIDIA's API key and base URL (from config). The complete() method:
-//   1. Maps the short model key (e.g., "deepseek") to the full model ID (e.g., "deepseek-ai/deepseek-v4-flash") using MODEL_IDS from types.ts.
+//   1. Maps the short model key (e.g., "gptOss") to the full model ID (e.g., "openai/gpt-oss-20b") using MODEL_IDS from types.ts.
 //   2. Gets model-specific defaults (temperature, maxTokens) from MODEL_DEFAULTS.
 //   3. Builds the message array: system prompt (from BaseAIProvider) + conversation history + user prompt.
 //   4. Calls OpenAI chat.completions.create() with model, messages, temperature, maxTokens.
 //   5. Returns standardized response: content, modelUsed, durationMs, token usage (prompt/completion/total).
 //   6. Logs success (model, duration, tokens) or failure (model, duration, error).
 //   Errors are wrapped in AIProviderError so callers can handle them uniformly.
-//   9 models available: deepseek, nemotron, gptOss, mistralSmall, llamaMaverick, minimaxM27, llamaNemotronNano, nemotron3Ultra, nemotron35Lightning.
+//   2 live models available: gptOss, nemotron3Ultra (retired IDs removed 2026-09-21).
 // INTEGRATION: NVIDIA NIM API (https://integrate.api.nvidia.com/v1); OpenAI SDK; config (src/config/index.ts) for apiKey/baseUrl/models; BaseAIProvider (src/modules/ai/provider.ts) for prompt building; AI types (src/modules/ai/types.ts) for model IDs and defaults. Called via factory (src/modules/ai/factory.ts).
 // ============================================================

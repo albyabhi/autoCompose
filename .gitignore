@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — ignore secrets, but publish the template
 .env*
+!.env*.example
 
 # vercel
 .vercel
@@ -39,3 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# publishing exclusions — internal-only, not needed to run the app
+/skills/
+/docs/
+
+# agent pointer file (points to docs/AGENTS.md, not for public repo)
+/CLAUDE.md
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
