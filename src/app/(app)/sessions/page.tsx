@@ -8,7 +8,10 @@ import { NewSessionDialog } from "@/features/sessions/components/new-session-dia
 import { useState } from "react";
 
 export default function SessionsPage() {
-  const { data, isLoading, isError } = useSessions({ pageSize: 50 });
+  const { data, isLoading, isError } = useSessions({
+    pageSize: 50,
+    isArchived: false,
+  });
   const [newOpen, setNewOpen] = useState(false);
 
   if (isLoading) {
@@ -81,9 +84,10 @@ export default function SessionsPage() {
 // ============================================================
 // FILE: src/app/(app)/sessions/page.tsx
 // ============================================================
-// PURPOSE: Sessions list page — displays all user sessions with creation/management.
-// HOW IT WORKS: Client component that fetches sessions via useSessions() hook (50
-//   page size). Shows session-shaped skeleton loading state, error message, or empty state with
+// PURPOSE: Sessions list page — displays active user sessions with creation/management.
+// HOW IT WORKS: Client component that fetches active sessions via useSessions() hook (50
+//   page size, isArchived=false; archived sessions live in the sidebar Archives section).
+//   Shows session-shaped skeleton loading state, error message, or empty state with
 //   "Create Session" CTA. When sessions exist, renders a list of SessionCard
 //   components. A "New Session" button opens the NewSessionDialog modal. Sessions
 //   are fetched from /api/sessions via TanStack Query.

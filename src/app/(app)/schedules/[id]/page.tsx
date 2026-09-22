@@ -17,6 +17,17 @@ import {
   hasProcessableEmails,
   isDueActiveSchedule,
 } from "@/features/schedule/utils/status";
+import {
+  ScheduleEmailFilterTabs,
+  type ScheduleEmailFilter,
+} from "@/features/schedule/components/schedule-filter-tabs";
+
+function humanizeDeliveryState(state: string): string {
+  return state
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 export default function ScheduleDetailPage() {
   const params = useParams<{ id: string }>();
@@ -28,6 +39,8 @@ export default function ScheduleDetailPage() {
   const updateEmailMutation = useUpdateScheduledEmail();
   const processScheduleMutation = useProcessScheduleNow();
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [emailFilter, setEmailFilter] = useState<ScheduleEmailFilter>("all");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const lastTriggerMsRef = useRef(0);
 
   useEffect(() => {
@@ -54,6 +67,30 @@ export default function ScheduleDetailPage() {
     processScheduleMutation.mutate(scheduleId);
   }, [data, nowMs, processScheduleMutation, scheduleId]);
 
+  const emailCounts = useMemo(() => {
+    const emails = data?.emails ?? [];
+    return {
+      all: emails.length,
+      pending: emails.filter((e) => ["awaiting_content", "ready", "sending"].includes(e.deliveryState)).length,
+      sent: emails.filter((e) => e.deliveryState === "sent").length,
+      failed: emails.filter((e) => e.deliveryState === "failed").length,
+    };
+  }, [data?.emails]);
+
+  const visibleEmails = useMemo(() => {
+    const emails = data?.emails ?? [];
+    switch (emailFilter) {
+      case "pending":
+        return emails.filter((e) => ["awaiting_content", "ready", "sending"].includes(e.deliveryState));
+      case "sent":
+        return emails.filter((e) => e.deliveryState === "sent");
+      case "failed":
+        return emails.filter((e) => e.deliveryState === "failed");
+      default:
+        return emails;
+    }
+  }, [data?.emails, emailFilter]);
+
   if (isLoading) {
     return <div className="session-detail"><SkeletonList count={4} /></div>;
   }
@@ -68,7 +105,7 @@ export default function ScheduleDetailPage() {
     );
   }
 
-  async function handleCancelSchedule() {
+  async function handleDeleteSchedule() {
     await deleteScheduleMutation.mutateAsync(scheduleId);
     router.push("/schedules");
   }
@@ -89,12 +126,35 @@ export default function ScheduleDetailPage() {
         </div>
         <Button
           variant="danger"
-          onClick={handleCancelSchedule}
-          disabled={data.status !== "active" || deleteScheduleMutation.isPending}
+          onClick={() => setShowDeleteConfirm(true)}
+          disabled={deleteScheduleMutation.isPending}
         >
-          Cancel Schedule
+          Delete
         </Button>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete schedule?</h3>
+            <p>
+              Delete &ldquo;{data.name}&rdquo; and all {data.emails.length} emails, including sent emails? This cannot be undone.
+            </p>
+            <div className="modal__actions">
+              <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteSchedule}
+                loading={deleteScheduleMutation.isPending}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="schedule-detail__stats">
         {status && (
@@ -111,58 +171,69 @@ export default function ScheduleDetailPage() {
       {data.emails.length === 0 ? (
         <div className="bulk-table__empty">No emails have been added to this schedule.</div>
       ) : (
-        <div className="bulk-list">
-          {data.emails.map((email) => (
-            <div key={email.id} className="bulk-card">
-              <div className="bulk-card__header">
-                <span className="bulk-card__order">#{email.sortOrder + 1}</span>
-                <span className={`schedule-status schedule-status--${email.deliveryState}`}>
-                  {email.deliveryState.replace(/_/g, " ")}
-                </span>
-              </div>
-              <div className="bulk-card__display">
-                <div className="bulk-card__display-row bulk-card__display-row--recipient">
-                  <span className="bulk-card__display-label">To</span>
-                  <span className="bulk-card__display-value">{email.to}</span>
-                </div>
-                {email.subject && (
-                  <div className="bulk-card__display-row">
-                    <span className="bulk-card__display-label">Subject</span>
-                    <span className="bulk-card__display-value">{email.subject}</span>
+        <>
+          <ScheduleEmailFilterTabs value={emailFilter} counts={emailCounts} onChange={setEmailFilter} />
+          <p className="schedule-filter-hint" aria-live="polite">
+            Showing {visibleEmails.length} of {data.emails.length} emails
+            {emailFilter !== "all" ? ` · filtered by ${emailFilter}` : ""}.
+          </p>
+          {visibleEmails.length === 0 ? (
+            <div className="bulk-table__empty">No emails match this filter.</div>
+          ) : (
+            <div className="bulk-list">
+              {visibleEmails.map((email) => (
+                <div key={email.id} className="bulk-card">
+                  <div className="bulk-card__header">
+                    <span className="bulk-card__order">#{email.sortOrder + 1}</span>
+                    <span className={`schedule-status schedule-status--${email.deliveryState}`}>
+                      {humanizeDeliveryState(email.deliveryState)}
+                    </span>
                   </div>
-                )}
-                {email.body && <div className="schedule-email__body">{email.body}</div>}
-                {email.errorMessage && (
-                  <div className="bulk-card__error">{email.errorMessage}</div>
-                )}
-              </div>
-              <div className="bulk-card__actions">
-                {email.deliveryState === "failed" && (
-                  <button
-                    className="bulk-card__btn bulk-card__btn--regen"
-                    onClick={() =>
-                      updateEmailMutation.mutate({
-                        scheduleId,
-                        emailId: email.id,
-                        input: { retry: true },
-                      })
-                    }
-                  >
-                    Retry
-                  </button>
-                )}
-                {email.deliveryState !== "sent" && (
-                  <button
-                    className="bulk-card__btn bulk-card__btn--delete"
-                    onClick={() => deleteEmailMutation.mutate({ scheduleId, emailId: email.id })}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
+                  <div className="bulk-card__display">
+                    <div className="bulk-card__display-row bulk-card__display-row--recipient">
+                      <span className="bulk-card__display-label">To</span>
+                      <span className="bulk-card__display-value">{email.to}</span>
+                    </div>
+                    {email.subject && (
+                      <div className="bulk-card__display-row">
+                        <span className="bulk-card__display-label">Subject</span>
+                        <span className="bulk-card__display-value">{email.subject}</span>
+                      </div>
+                    )}
+                    {email.body && <div className="schedule-email__body">{email.body}</div>}
+                    {email.errorMessage && (
+                      <div className="bulk-card__error">{email.errorMessage}</div>
+                    )}
+                  </div>
+                  <div className="bulk-card__actions">
+                    {email.deliveryState === "failed" && (
+                      <button
+                        className="bulk-card__btn bulk-card__btn--regen"
+                        onClick={() =>
+                          updateEmailMutation.mutate({
+                            scheduleId,
+                            emailId: email.id,
+                            input: { retry: true },
+                          })
+                        }
+                      >
+                        Retry
+                      </button>
+                    )}
+                    {email.deliveryState !== "sent" && (
+                      <button
+                        className="bulk-card__btn bulk-card__btn--delete"
+                        onClick={() => deleteEmailMutation.mutate({ scheduleId, emailId: email.id })}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

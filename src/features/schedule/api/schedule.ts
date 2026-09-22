@@ -46,6 +46,13 @@ export function deleteSchedule(id: string): Promise<{ deleted: boolean }> {
   return api.delete<{ deleted: boolean }>(`/api/schedules/${id}`);
 }
 
+export function clearAllSchedules(): Promise<{ clearedSchedules: number; clearedEmails: number }> {
+  return api.post<{ clearedSchedules: number; clearedEmails: number }>(
+    "/api/schedules/clear",
+    {}
+  );
+}
+
 export function processScheduleNow(id: string): Promise<ProcessScheduleNowResult> {
   return api.post<ProcessScheduleNowResult>(`/api/schedules/${id}/process`, {});
 }

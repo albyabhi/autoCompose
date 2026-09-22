@@ -314,24 +314,41 @@ export async function updateSchedule(
 
 export async function deleteSchedule(scheduleId: string, userId: string): Promise<void> {
   await connectDB();
-  const schedule = await Schedule.findOneAndUpdate(
-    ownedFilter(userId, { _id: scheduleId }),
-    { $set: { status: "cancelled" } },
-    { returnDocument: "after" }
-  );
+  const schedule = await Schedule.findOne(ownedFilter(userId, { _id: scheduleId }));
   if (!schedule) throw new NotFoundError("Schedule not found");
-  await ScheduledEmail.deleteMany(
-    ownedFilter(userId, {
-      scheduleId: schedule._id,
-      deliveryState: { $ne: "sent" },
-    })
-  );
+  // Emails first so a crash can never leave orphaned items behind.
+  await ScheduledEmail.deleteMany(ownedFilter(userId, { scheduleId: schedule._id }));
+  await Schedule.deleteOne(ownedFilter(userId, { _id: scheduleId }));
   await recordAudit({
-    action: "schedule.cancelled",
+    action: "schedule.deleted",
     entityType: "Schedule",
     entityId: scheduleId,
     userId,
   });
+}
+
+export async function clearAllSchedules(
+  userId: string
+): Promise<{ clearedSchedules: number; clearedEmails: number }> {
+  await connectDB();
+  const schedules = await Schedule.find(ownedFilter(userId, {}))
+    .select("_id")
+    .lean();
+  const ids = schedules.map((schedule) => schedule._id);
+  if (ids.length === 0) return { clearedSchedules: 0, clearedEmails: 0 };
+  const emailsResult = await ScheduledEmail.deleteMany(
+    ownedFilter(userId, { scheduleId: { $in: ids } })
+  );
+  const schedulesResult = await Schedule.deleteMany(ownedFilter(userId, { _id: { $in: ids } }));
+  logger.info("All schedules cleared", {
+    userId,
+    clearedSchedules: schedulesResult.deletedCount ?? 0,
+    clearedEmails: emailsResult.deletedCount ?? 0,
+  });
+  return {
+    clearedSchedules: schedulesResult.deletedCount ?? 0,
+    clearedEmails: emailsResult.deletedCount ?? 0,
+  };
 }
 
 export async function addScheduledEmails(

@@ -1,27 +1,47 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import {
+  useClearAllSchedules,
   useCreateSchedule,
   useDeleteSchedule,
   useProcessScheduleNow,
   useSchedules,
 } from "@/features/schedule/hooks/use-schedules";
-import { getScheduleCountdown } from "@/features/schedule/utils/countdown";
-import {
-  getScheduleStatusDisplay,
-  shouldTriggerSchedule,
-} from "@/features/schedule/utils/status";
+import { shouldTriggerSchedule } from "@/features/schedule/utils/status";
 import {
   getBrowserTimezone,
   localPartsToIso,
   ScheduleFormFields,
   toDatetimeLocalParts,
 } from "@/features/schedule/components/schedule-form-fields";
+import { ScheduleCard } from "@/features/schedule/components/schedule-card";
+import {
+  ScheduleFilterTabs,
+  type ScheduleListFilter,
+} from "@/features/schedule/components/schedule-filter-tabs";
+
+const FILTER_COPY: Record<ScheduleListFilter, { title: string; description: string }> = {
+  all: {
+    title: "No schedules yet",
+    description: "Create a schedule, then add emails from single or batch compose.",
+  },
+  scheduled: {
+    title: "No scheduled emails",
+    description: "Upcoming schedules will appear here.",
+  },
+  sent: {
+    title: "No sent schedules",
+    description: "Completed schedules will appear here.",
+  },
+  failed: {
+    title: "No failed emails",
+    description: "Schedules with failed emails will appear here.",
+  },
+};
 
 export default function SchedulesPage() {
   const { data, isLoading, isError } = useSchedules({ pageSize: 50 });
@@ -32,11 +52,16 @@ export default function SchedulesPage() {
   const [date, setDate] = useState(initial.date);
   const [time, setTime] = useState(initial.time);
   const [timezone, setTimezone] = useState(getBrowserTimezone());
+  const [filter, setFilter] = useState<ScheduleListFilter>("all");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
+  const [clearResult, setClearResult] = useState<string | null>(null);
+  const [clearError, setClearError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [scheduleToDelete, setScheduleToDelete] = useState<{ id: string; name: string; emailCount: number } | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const deleteMutation = useDeleteSchedule();
+  const clearAllMutation = useClearAllSchedules();
   const processScheduleMutation = useProcessScheduleNow();
   const processingIdsRef = useRef(new Set<string>());
   const lastTriggerMsRef = useRef(new Map<string, number>());
@@ -67,6 +92,31 @@ export default function SchedulesPage() {
     }
   }, [data?.items, nowMs, processScheduleMutation]);
 
+  const schedules = useMemo(() => data?.items ?? [], [data?.items]);
+
+  const counts = useMemo(
+    () => ({
+      all: schedules.length,
+      scheduled: schedules.filter((s) => s.status === "active").length,
+      sent: schedules.filter((s) => s.status === "sent").length,
+      failed: schedules.filter((s) => (s.failedCount ?? 0) > 0).length,
+    }),
+    [schedules]
+  );
+
+  const visibleSchedules = useMemo(() => {
+    switch (filter) {
+      case "scheduled":
+        return schedules.filter((s) => s.status === "active");
+      case "sent":
+        return schedules.filter((s) => s.status === "sent");
+      case "failed":
+        return schedules.filter((s) => (s.failedCount ?? 0) > 0);
+      default:
+        return schedules;
+    }
+  }, [schedules, filter]);
+
   async function handleCreate() {
     await createMutation.mutateAsync({
       name,
@@ -81,10 +131,27 @@ export default function SchedulesPage() {
     setDeletingId(scheduleToDelete.id);
     try {
       await deleteMutation.mutateAsync(scheduleToDelete.id);
+      setClearResult(null);
     } finally {
       setDeletingId(null);
       setShowDeleteConfirm(false);
       setScheduleToDelete(null);
+    }
+  }
+
+  async function handleClearAllSchedules() {
+    setClearResult(null);
+    setClearError(null);
+    try {
+      const result = await clearAllMutation.mutateAsync();
+      setFilter("all");
+      setClearResult(
+        `Deleted ${result.clearedSchedules} schedule${result.clearedSchedules !== 1 ? "s" : ""} and ${result.clearedEmails} email${result.clearedEmails !== 1 ? "s" : ""}.`
+      );
+    } catch (error) {
+      setClearError(error instanceof Error ? error.message : "Failed to clear schedules");
+    } finally {
+      setShowClearAllConfirm(false);
     }
   }
 
@@ -108,7 +175,7 @@ export default function SchedulesPage() {
     );
   }
 
-  const schedules = data?.items ?? [];
+  const copy = FILTER_COPY[filter];
 
   return (
     <div className="sessions-page">
@@ -147,9 +214,8 @@ export default function SchedulesPage() {
 
       {schedules.length === 0 ? (
         <EmptyState
-          icon="T"
-          title="No schedules yet"
-          description="Create a schedule, then add generated emails from single or batch compose."
+          title={copy.title}
+          description={copy.description}
           action={
             <button className="btn btn--primary" onClick={() => setShowCreate(true)}>
               Create Schedule
@@ -157,74 +223,61 @@ export default function SchedulesPage() {
           }
         />
       ) : (
-        <div className="sessions-page__list">
-          {schedules.map((schedule) => {
-            const isDeleting = deletingId === schedule.id;
-            const countdown = getScheduleCountdown(schedule.scheduledAt, schedule.status, nowMs);
-            const status = getScheduleStatusDisplay(schedule, nowMs);
-            return (
-              <Link
-                key={schedule.id}
-                href={isDeleting ? "#" : `/schedules/${schedule.id}`}
-                className={`schedule-card${isDeleting ? " schedule-card--deleting" : ""}`}
-                onClick={isDeleting ? (e) => e.preventDefault() : undefined}
-                aria-disabled={isDeleting}
-              >
-                <div className="schedule-card__header">
-                  <h2 className="schedule-card__title">{isDeleting ? "Deleting..." : schedule.name}</h2>
-                  <div className="schedule-card__actions">
-                    <span className={`schedule-status schedule-status--${status.className}`}>
-                      {status.label}
-                    </span>
-                    {schedule.status === "active" && (
-                      <button
-                        className="btn btn--danger btn--sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setScheduleToDelete({
-                            id: schedule.id,
-                            name: schedule.name,
-                            emailCount: schedule.totalCount ?? 0,
-                          });
-                          setShowDeleteConfirm(true);
-                        }}
-                        disabled={deletingId !== null}
-                      >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="schedule-card__time">
-                  {new Date(schedule.scheduledAt).toLocaleString()} ({schedule.timezone})
-                </div>
-                {countdown.isActiveFuture || countdown.isDue ? (
-                  <div className={`schedule-countdown schedule-countdown--${countdown.tone}`}>
-                    {countdown.label}
-                  </div>
-                ) : null}
-                <div className="schedule-card__stats">
-                  <span>{schedule.totalCount ?? 0} emails</span>
-                  <span>{schedule.pendingCount ?? 0} pending</span>
-                  <span>{schedule.sentCount ?? 0} sent</span>
-                  <span>{schedule.failedCount ?? 0} failed</span>
-                </div>
-              </Link>
-            );
-          })}
+        <>
+          <ScheduleFilterTabs value={filter} counts={counts} onChange={setFilter} />
+          <p className="schedule-filter-hint" aria-live="polite">
+            {visibleSchedules.length} of {schedules.length} schedules.
+          </p>
+          {visibleSchedules.length === 0 ? (
+            <EmptyState title={copy.title} description={copy.description} />
+          ) : (
+            <div className="sessions-page__list">
+              {visibleSchedules.map((schedule) => (
+                <ScheduleCard
+                  key={schedule.id}
+                  schedule={schedule}
+                  nowMs={nowMs}
+                  isDeleting={deletingId === schedule.id}
+                  deleteDisabled={deletingId !== null}
+                  onDelete={(target) => {
+                    setScheduleToDelete(target);
+                    setShowDeleteConfirm(true);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {schedules.length > 0 && (
+        <div className="schedule-clear-all">
+          <p className="schedule-clear-all__text">
+            Delete all schedules and their emails.
+          </p>
+          {clearResult && <p className="schedule-clear-all__result">{clearResult}</p>}
+          {clearError && <p className="schedule-clear-all__error">{clearError}</p>}
+          <Button
+            variant="danger"
+            onClick={() => {
+              setClearResult(null);
+              setClearError(null);
+              setShowClearAllConfirm(true);
+            }}
+            disabled={clearAllMutation.isPending}
+            loading={clearAllMutation.isPending}
+          >
+            Delete all
+          </Button>
         </div>
       )}
 
       {showDeleteConfirm && scheduleToDelete && (
         <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Delete Schedule?</h3>
+            <h3>Delete schedule?</h3>
             <p>
-              Are you sure you want to delete &ldquo;{scheduleToDelete.name}&rdquo;?
-              {scheduleToDelete.emailCount > 0 && (
-                <> This will cancel the schedule and remove {scheduleToDelete.emailCount} pending email(s). Sent emails will be preserved.</>
-              )}
+              Delete &ldquo;{scheduleToDelete.name}&rdquo; and all {scheduleToDelete.emailCount} emails, including sent emails? This cannot be undone.
             </p>
             <div className="modal__actions">
               <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
@@ -236,6 +289,30 @@ export default function SchedulesPage() {
                 loading={deleteMutation.isPending}
               >
                 Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showClearAllConfirm && (
+        <div className="modal-overlay" onClick={() => setShowClearAllConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete all schedules?</h3>
+            <p>
+              Delete all {schedules.length} schedule{schedules.length !== 1 ? "s" : ""} and
+              {" "}{schedules.reduce((sum, s) => sum + (s.totalCount ?? 0), 0)} emails, including sent emails? This cannot be undone.
+            </p>
+            <div className="modal__actions">
+              <Button variant="ghost" onClick={() => setShowClearAllConfirm(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleClearAllSchedules}
+                loading={clearAllMutation.isPending}
+              >
+                Delete all
               </Button>
             </div>
           </div>

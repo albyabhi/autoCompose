@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addScheduledEmails,
+  clearAllSchedules,
   createSchedule,
   deleteSchedule,
   deleteScheduledEmail,
@@ -101,6 +102,16 @@ export function useDeleteSchedule() {
         qc.setQueryData(SCHEDULES_KEY, context.previous);
       }
     },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: SCHEDULES_KEY });
+    },
+  });
+}
+
+export function useClearAllSchedules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearAllSchedules(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: SCHEDULES_KEY });
     },

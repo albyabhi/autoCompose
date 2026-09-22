@@ -26,6 +26,7 @@ export function Sidebar() {
   const { status } = useSession();
   const { isGuestMode } = useGuest();
   const [newSessionOpen, setNewSessionOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   function handleLockedNav(e: React.MouseEvent) {
     e.preventDefault();
@@ -113,7 +114,43 @@ export function Sidebar() {
                 </button>
               </div>
 
-              <SessionList onNewSession={() => setNewSessionOpen(true)} />
+              <SessionList
+                onNewSession={() => setNewSessionOpen(true)}
+                onClose={() => setMobileSidebarOpen(false)}
+              />
+
+              <div className="sidebar__divider" />
+
+              <button
+                type="button"
+                className={`sidebar__archives-toggle ${
+                  showArchived ? "sidebar__archives-toggle--open" : ""
+                }`}
+                onClick={() => setShowArchived((v) => !v)}
+                aria-expanded={showArchived}
+                aria-controls="sidebar-archives"
+                title={showArchived ? "Hide archived sessions" : "Show archived sessions"}
+              >
+                <span className="sidebar__archives-label">Archives</span>
+                <span
+                  className="sidebar__archives-chevron"
+                  aria-hidden="true"
+                >
+                  {showArchived ? "▾" : "▸"}
+                </span>
+              </button>
+
+              {showArchived && (
+                <div
+                  id="sidebar-archives"
+                  className="sidebar__archives-list"
+                >
+                  <SessionList
+                    isArchived={true}
+                    onClose={() => setMobileSidebarOpen(false)}
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -134,8 +171,8 @@ export function Sidebar() {
 // ============================================================
 // FILE: src/features/layout/components/sidebar.tsx
 // ============================================================
-// PURPOSE: The application sidebar containing navigation links and a session list.
-// HOW IT WORKS: Reads sidebar open/closed state from the layout store, highlights the active nav item via usePathname, and renders a mobile backdrop overlay when open. For guest-trial visitors only Compose stays enabled — other nav items redirect to /login and the sessions section is replaced with a trial note. The sessions section includes a "New" button that opens the NewSessionDialog, plus an embedded SessionList.
+// PURPOSE: The application sidebar containing navigation links, session list, and archives section.
+// HOW IT WORKS: Reads sidebar open/closed state from the layout store, highlights the active nav item via usePathname, and renders a mobile backdrop overlay when open. For guest-trial visitors only Compose stays enabled — other nav items redirect to /login and the sessions section is replaced with a trial note. The sessions section includes a "New" button that opens the NewSessionDialog, an active SessionList (isArchived=false), and a collapsible Archives toggle rendering SessionList with isArchived=true; archived cards reuse SessionCard Unarchive to remove from archive.
 // PROPS: None (self-contained, reads state from store).
 // INTEGRATION: layout-store, SessionList, NewSessionDialog, Next.js Link/usePathname, next-auth session, useGuest gate.
 // ============================================================

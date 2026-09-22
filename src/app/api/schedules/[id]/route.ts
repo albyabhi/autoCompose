@@ -53,8 +53,9 @@ export async function DELETE(
 // ============================================================
 // FILE: src/app/api/schedules/[id]/route.ts
 // ============================================================
-// PURPOSE: API endpoints for reading, editing, and cancelling one schedule.
+// PURPOSE: API endpoints for reading, editing, and hard-deleting one schedule.
 // HOW IT WORKS: Uses async route params, authenticates the user, validates
 //   PATCH input, and delegates ownership-enforced operations to the service.
+//   DELETE permanently removes the schedule row and all its email items.
 // INTEGRATION: Auth session, schedule service/validation, API response helpers.
 // ============================================================

@@ -25,6 +25,8 @@ export type AuditAction =
   | "schedule.created"
   | "schedule.updated"
   | "schedule.cancelled"
+  | "schedule.deleted"
+  | "schedule.bulk_deleted"
   | "schedule.email_added"
   | "schedule.email_sent"
   | "schedule.email_failed"
