@@ -2,7 +2,7 @@
 
 import { useSessions } from "@/features/sessions/hooks/use-sessions";
 import { SessionCard } from "@/features/sessions/components/session-card";
-import { SkeletonList } from "@/components/ui/skeleton";
+import { SessionListSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { NewSessionDialog } from "@/features/sessions/components/new-session-dialog";
 import { useState } from "react";
@@ -15,7 +15,13 @@ export default function SessionsPage() {
     return (
       <div className="sessions-page">
         <h1 className="sessions-page__title">Session History</h1>
-        <SkeletonList count={5} />
+        <div
+          className="sessions-page__list"
+          role="status"
+          aria-label="Loading sessions"
+        >
+          <SessionListSkeleton count={5} />
+        </div>
       </div>
     );
   }
@@ -77,9 +83,9 @@ export default function SessionsPage() {
 // ============================================================
 // PURPOSE: Sessions list page — displays all user sessions with creation/management.
 // HOW IT WORKS: Client component that fetches sessions via useSessions() hook (50
-//   page size). Shows skeleton loading state, error message, or empty state with
+//   page size). Shows session-shaped skeleton loading state, error message, or empty state with
 //   "Create Session" CTA. When sessions exist, renders a list of SessionCard
 //   components. A "New Session" button opens the NewSessionDialog modal. Sessions
 //   are fetched from /api/sessions via TanStack Query.
-// INTEGRATION: useSessions hook, SessionCard, NewSessionDialog, API client
+// INTEGRATION: useSessions hook, SessionCard, NewSessionDialog, SessionListSkeleton, API client
 // ============================================================

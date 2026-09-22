@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, useSessionMessages } from "../hooks/use-sessions";
-import { SkeletonList } from "@/components/ui/skeleton";
+import { SessionDetailSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { MessageBubble } from "./message-bubble";
@@ -26,8 +26,8 @@ export function SessionView({ id }: SessionViewProps) {
 
   if (sessionLoading) {
     return (
-      <div className="session-detail">
-        <SkeletonList count={3} />
+      <div role="status" aria-label="Loading session">
+        <SessionDetailSkeleton count={3} />
       </div>
     );
   }
@@ -115,7 +115,7 @@ export function SessionView({ id }: SessionViewProps) {
 // FILE: src/features/sessions/components/session-view.tsx
 // ============================================================
 // PURPOSE: Full detail view of a single session showing its messages and action buttons.
-// HOW IT works: Fetches the session and its messages via useSession. Shows a skeleton while loading, an EmptyState on error, or the session header (title, category) with "Continue" and "Edit Prompt & Generate" buttons. Messages are rendered as MessageBubble components; if none exist, prompts the user to start writing.
+// HOW IT works: Fetches the session and its messages via useSession. Shows SessionDetailSkeleton (header + message-shaped) while loading, an EmptyState on error, or the session header (title, category) with "Continue" and "Edit Prompt & Generate" buttons. Messages are rendered as MessageBubble components; if none exist, prompts the user to start writing.
 // PROPS: id (string).
-// INTEGRATION: useSession hook, MessageBubble, Button, EmptyState, SkeletonList, Next.js useRouter.
+// INTEGRATION: useSession hook, MessageBubble, Button, EmptyState, SessionDetailSkeleton, Next.js useRouter.
 // ============================================================
